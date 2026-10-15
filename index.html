@@ -1,0 +1,4537 @@
+<!doctype html>
+<html lang="en" data-outline="divided-gradient">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#090a0c">
+  <title>Thoughtspace</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090a0c;
+      --panel: #0e1013;
+      --card: #101216;
+      --line: rgba(255, 255, 255, .085);
+      --line-strong: rgba(255, 255, 255, .15);
+      --text: #eef0f3;
+      --muted: #9298a2;
+      --accent: #d4d7dd;
+      --outline-a: #ffffff;
+      --outline-b: #8b94a4;
+      --outline-width: 1px;
+      --radius: 14px;
+      --inner-shadow: .58;
+      --grid-size: 24px;
+      --topbar-h: 58px;
+      --rail-w: 58px;
+      --inspector-w: 296px;
+      --shadow: 0 18px 60px rgba(0, 0, 0, .42);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-text-size-adjust: 100%;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit
+    }
+
+    button {
+      color: inherit;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px
+    }
+
+    ::selection {
+      background: rgba(205, 211, 224, .28)
+    }
+
+    .app {
+      height: 100dvh;
+      width: 100%;
+      display: grid;
+      grid-template-rows: var(--topbar-h) minmax(0, 1fr);
+      background: var(--bg);
+    }
+
+    /* ---------- Topbar ---------- */
+    .topbar {
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(12, 13, 16, .92);
+      backdrop-filter: blur(18px);
+      min-width: 0;
+    }
+
+    .project-name {
+      background: transparent;
+      border: 1px solid transparent;
+      outline: none;
+      color: #e7e9ed;
+      font-size: 13px;
+      font-weight: 560;
+      letter-spacing: .01em;
+      padding: 8px 10px;
+      border-radius: 8px;
+      width: 190px;
+      min-width: 100px;
+      max-width: 25vw;
+    }
+
+    .project-name:hover,
+    .project-name:focus {
+      border-color: var(--line-strong);
+      background: rgba(255, 255, 255, .025);
+    }
+
+    .top-divider {
+      height: 23px;
+      width: 1px;
+      background: var(--line-strong);
+      flex-shrink: 0
+    }
+
+    .top-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0
+    }
+
+    .top-spacer {
+      flex: 1
+    }
+
+    .icon-btn,
+    .tool-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #aeb3bc;
+      border-radius: 9px;
+      min-width: 34px;
+      height: 34px;
+      padding: 0 9px;
+      transition: background .16s, border-color .16s, color .16s;
+    }
+
+    .icon-btn:hover,
+    .tool-btn:hover {
+      background: rgba(255, 255, 255, .06);
+      border-color: var(--line);
+      color: #fff
+    }
+
+    .icon-btn:disabled {
+      opacity: .28;
+      cursor: default
+    }
+
+    .icon-btn.active,
+    .tool-btn.active {
+      background: rgba(255, 255, 255, .09);
+      border-color: rgba(255, 255, 255, .14);
+      color: #fff
+    }
+
+    .icon-btn svg,
+    .tool-btn svg,
+    .primary-btn svg,
+    .select-btn svg {
+      width: 17px;
+      height: 17px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    .tool-btn {
+      font-size: 12px;
+      min-width: 34px
+    }
+
+    .tool-btn span {
+      white-space: nowrap
+    }
+
+    .primary-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 35px;
+      padding: 0 12px;
+      background: #e5e7eb;
+      color: #101216;
+      border: 1px solid rgba(255, 255, 255, .45);
+      border-radius: 9px;
+      font-size: 12px;
+      font-weight: 650;
+      white-space: nowrap;
+      box-shadow: inset 0 1px rgba(255, 255, 255, .8), 0 3px 14px rgba(0, 0, 0, .18);
+      transition: filter .15s, transform .15s;
+    }
+
+    .primary-btn:hover {
+      filter: brightness(1.07)
+    }
+
+    .primary-btn:active {
+      transform: translateY(1px)
+    }
+
+    /* ---------- Workspace shell ---------- */
+    .workspace-shell {
+      display: grid;
+      grid-template-columns: var(--rail-w) minmax(0, 1fr) var(--inspector-w);
+      min-height: 0;
+      position: relative;
+    }
+
+    .rail {
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 7px 9px;
+      background: #0c0d10;
+      border-right: 1px solid var(--line);
+      min-height: 0;
+    }
+
+    .rail-separator {
+      width: 25px;
+      height: 1px;
+      background: var(--line-strong);
+      margin: 5px 0
+    }
+
+    .rail-spacer {
+      flex: 1
+    }
+
+    .rail-btn {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 41px;
+      height: 41px;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      background: transparent;
+      color: #838995;
+      transition: all .15s;
+    }
+
+    .rail-btn:hover {
+      color: #f5f6f8;
+      background: rgba(255, 255, 255, .055);
+      border-color: var(--line)
+    }
+
+    .rail-btn.active {
+      color: #f2f3f5;
+      background: rgba(255, 255, 255, .09);
+      border-color: rgba(255, 255, 255, .15)
+    }
+
+    .rail-btn svg {
+      width: 19px;
+      height: 19px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round
+    }
+
+    .rail-btn .rail-tip {
+      position: absolute;
+      left: 49px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 100;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      background: #191c21;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      padding: 7px 9px;
+      font-size: 11px;
+      color: #e6e8ec;
+      box-shadow: var(--shadow);
+      transition: opacity .1s;
+    }
+
+    .rail-btn:hover .rail-tip {
+      opacity: 1
+    }
+
+    .center {
+      position: relative;
+      overflow: hidden;
+      min-width: 0;
+      min-height: 0;
+      background: var(--bg)
+    }
+
+    #workspace {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      touch-action: none;
+      cursor: grab;
+      background-color: var(--bg);
+      background-image: radial-gradient(rgba(255, 255, 255, .16) .75px, transparent .9px);
+      background-size: var(--grid-size) var(--grid-size);
+    }
+
+    #workspace.dragging {
+      cursor: grabbing
+    }
+
+    #workspace.no-grid {
+      background-image: none !important
+    }
+
+    .world {
+      position: absolute;
+      left: 0;
+      top: 0;
+      transform-origin: 0 0;
+      will-change: transform;
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    #edge-layer {
+      position: absolute;
+      overflow: visible;
+      left: 0;
+      top: 0;
+      pointer-events: none
+    }
+
+    .edge-path {
+      fill: none;
+      stroke: #b7bdc7;
+      stroke-width: 1.65;
+      opacity: .72;
+      pointer-events: none;
+      vector-effect: non-scaling-stroke;
+      transition: opacity .12s, stroke .12s;
+    }
+
+    .edge-hit {
+      fill: none;
+      stroke: transparent;
+      stroke-width: 18;
+      pointer-events: stroke;
+      cursor: pointer;
+    }
+
+    .edge-label {
+      font-size: 11px;
+      fill: #c3c7ce;
+      pointer-events: none
+    }
+
+    #nodes {
+      position: absolute;
+      left: 0;
+      top: 0;
+      pointer-events: none
+    }
+
+    /* ---------- Node ---------- */
+    .node {
+      position: absolute;
+      width: 260px;
+      min-width: 170px;
+      pointer-events: auto;
+      user-select: text;
+      -webkit-user-select: text;
+      touch-action: pan-y;
+      --node-text: #cdd1d8;
+      --node-text-strong: #f1f2f5;
+      --node-accent: var(--accent);
+      color: var(--node-text);
+    }
+
+    .node-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      min-height: 95px;
+      background: var(--card);
+      border: 1px solid var(--node-border, rgba(255, 255, 255, .035));
+      border-radius: var(--radius);
+      overflow: visible;
+      box-shadow:
+        inset 0 0 calc(var(--inner-shadow)*30px) rgba(255, 255, 255, .055),
+        inset 0 1px 0 rgba(255, 255, 255, calc(var(--inner-shadow)*.2)),
+        inset 1px 0 0 rgba(255, 255, 255, calc(var(--inner-shadow)*.12)),
+        inset -1px 0 0 rgba(255, 255, 255, calc(var(--inner-shadow)*.13)),
+        inset 0 -1px 0 rgba(255, 255, 255, calc(var(--inner-shadow)*.12)),
+        0 9px 26px rgba(0, 0, 0, .19);
+      transition: box-shadow .16s, border-color .16s;
+      background-image: linear-gradient(145deg, rgba(255, 255, 255, .022), transparent 42%);
+    }
+
+    .node-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      padding: var(--outline-width);
+      border-radius: inherit;
+      pointer-events: none;
+      background: linear-gradient(135deg, rgba(255, 255, 255, .34), rgba(255, 255, 255, .08) 45%, rgba(255, 255, 255, .025) 70%, rgba(255, 255, 255, .16));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: .62;
+    }
+
+    .node[data-outline="none"] .node-card::before {
+      display: none
+    }
+
+    .node[data-outline="soft"] .node-card::before {
+      background: linear-gradient(140deg, rgba(255, 255, 255, .38), rgba(255, 255, 255, .04) 45%, rgba(255, 255, 255, .19));
+    }
+
+    .node[data-outline="divided"] .node-card::before {
+      background: repeating-conic-gradient(from 12deg, rgba(255, 255, 255, .55) 0 38deg, rgba(255, 255, 255, .08) 38deg 100deg, rgba(255, 255, 255, .24) 100deg 137deg, rgba(255, 255, 255, .04) 137deg 180deg);
+    }
+
+    .node[data-outline="gradient"] .node-card::before {
+      background: conic-gradient(from 15deg, var(--outline-a), rgba(255, 255, 255, .05), var(--outline-b), rgba(255, 255, 255, .12), var(--outline-a));
+    }
+
+    .node[data-outline="divided-gradient"] .node-card::before {
+      background: repeating-conic-gradient(from 7deg, var(--outline-a) 0 37deg, rgba(255, 255, 255, .075) 37deg 78deg, var(--outline-b) 78deg 111deg, rgba(255, 255, 255, .035) 111deg 180deg);
+    }
+
+    .node.selected .node-card {
+      border-color: rgba(255, 255, 255, .25);
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, .13),
+        0 0 0 4px rgba(255, 255, 255, .035),
+        inset 0 0 calc(var(--inner-shadow)*30px) rgba(255, 255, 255, .065),
+        0 14px 34px rgba(0, 0, 0, .34);
+    }
+
+    .node.selected .node-card::before {
+      opacity: 1
+    }
+
+    .node-header {
+      height: 33px;
+      min-height: 33px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 9px;
+      border-bottom: 1px solid rgba(255, 255, 255, .055);
+      cursor: grab;
+      touch-action: none;
+      color: #777f8a;
+      position: relative;
+      z-index: 4;
+    }
+
+    .node-header:active {
+      cursor: grabbing
+    }
+
+    .node-kind-mark {
+      width: 7px;
+      height: 7px;
+      border-radius: 2px;
+      background: var(--node-accent);
+      box-shadow: 0 0 9px color-mix(in srgb, var(--node-accent) 25%, transparent);
+      flex-shrink: 0;
+    }
+
+    .node-kind-label {
+      font-size: 9px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      font-weight: 680;
+      color: #9ca2ad;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .node-grip {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin-left: auto;
+      opacity: .6
+    }
+
+    .node-grip i {
+      width: 2px;
+      height: 2px;
+      border-radius: 50%;
+      background: #9fa5af;
+      display: block
+    }
+
+    .node-quick {
+      display: flex;
+      gap: 2px;
+      opacity: 0;
+      transition: opacity .12s
+    }
+
+    .node:hover .node-quick,
+    .node.selected .node-quick {
+      opacity: 1
+    }
+
+    .node-quick button,
+    .expand-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 23px;
+      height: 23px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #aeb4bd;
+      flex-shrink: 0;
+      padding: 0;
+    }
+
+    .node-quick button:hover,
+    .expand-btn:hover {
+      background: rgba(255, 255, 255, .09);
+      border-color: var(--line-strong);
+      color: #fff
+    }
+
+    .node-quick svg,
+    .expand-btn svg {
+      width: 13px;
+      height: 13px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round
+    }
+
+    .node-body {
+      flex: 1;
+      min-height: 48px;
+      overflow: auto;
+      padding: 12px 13px 14px;
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: inherit;
+      overflow-wrap: anywhere;
+      outline: none;
+      white-space: normal;
+      cursor: text;
+      user-select: text;
+      -webkit-user-select: text;
+      touch-action: pan-y;
+    }
+
+    .node-body:empty::before,
+    .node-title:empty::before {
+      content: attr(data-placeholder);
+      color: #59606b;
+      pointer-events: none;
+    }
+
+    .node-body p {
+      margin: 0 0 7px
+    }
+
+    .node-body p:last-child {
+      margin-bottom: 0
+    }
+
+    .node-body h1,
+    .node-body h2,
+    .node-body h3 {
+      color: var(--node-text-strong);
+      line-height: 1.25;
+      margin: .25em 0 .5em;
+    }
+
+    .node-body h1 {
+      font-size: 20px
+    }
+
+    .node-body h2 {
+      font-size: 17px
+    }
+
+    .node-body h3 {
+      font-size: 14px
+    }
+
+    .node-body ul,
+    .node-body ol {
+      padding-left: 19px;
+      margin: 6px 0
+    }
+
+    .node-body a {
+      color: inherit;
+      text-decoration: underline;
+      text-underline-offset: 2px
+    }
+
+    .node-title {
+      padding: 13px 13px 9px;
+      font-size: 14px;
+      font-weight: 640;
+      letter-spacing: -.015em;
+      line-height: 1.35;
+      color: var(--node-text-strong);
+      outline: none;
+      overflow-wrap: anywhere;
+      cursor: text;
+      user-select: text;
+      -webkit-user-select: text;
+      touch-action: pan-y;
+    }
+
+    .node-title-wrap {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px
+    }
+
+    .node-title-wrap .node-title {
+      flex: 1;
+      min-width: 0
+    }
+
+    .expand-btn {
+      margin: 8px 9px 0 0;
+      width: 22px;
+      height: 22px;
+      border-color: rgba(255, 255, 255, .08);
+      background: rgba(255, 255, 255, .025);
+      transition: transform .17s;
+    }
+
+    .node[data-collapsed="false"] .expand-btn svg {
+      transform: rotate(180deg)
+    }
+
+    .node-body-wrap {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      border-top: 1px solid rgba(255, 255, 255, .055);
+      padding-top: 0;
+    }
+
+    .node-body-wrap .node-body {
+      padding-top: 10px;
+      min-height: 0
+    }
+
+    .node[data-collapsed="true"] .node-body-wrap {
+      display: none
+    }
+
+    /* Image */
+    .image-drop {
+      margin: 10px 10px 0;
+      min-height: 110px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 8px;
+      border: 1px dashed rgba(255, 255, 255, .18);
+      border-radius: 9px;
+      color: #7d8490;
+      background: rgba(255, 255, 255, .018);
+      cursor: pointer;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .image-drop:hover {
+      border-color: rgba(255, 255, 255, .38);
+      color: #d9dce2;
+      background: rgba(255, 255, 255, .035)
+    }
+
+    .image-drop img {
+      display: block;
+      width: 100%;
+      max-height: 270px;
+      object-fit: contain;
+      background: rgba(0, 0, 0, .15)
+    }
+
+    .image-drop .image-empty-icon svg {
+      width: 24px;
+      height: 24px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.3
+    }
+
+    .image-drop span {
+      font-size: 10.5px
+    }
+
+    .image-caption {
+      font-size: 11px;
+      min-height: 35px;
+      padding: 9px 12px 12px;
+      line-height: 1.4;
+      color: inherit;
+      outline: none;
+      overflow-wrap: anywhere;
+      user-select: text;
+      -webkit-user-select: text;
+      touch-action: pan-y;
+    }
+
+    .image-caption:empty:before {
+      content: attr(data-placeholder);
+      color: #59606b
+    }
+
+    /* Quote */
+    .node[data-type="quote"] .node-body {
+      font-style: italic;
+      padding: 14px 14px 14px 30px;
+      position: relative;
+      font-size: 13.5px;
+    }
+
+    .node[data-type="quote"] .node-body::before {
+      content: "\201C";
+      position: absolute;
+      left: 9px;
+      top: 2px;
+      font-size: 40px;
+      line-height: 1;
+      color: var(--node-accent);
+      font-family: Georgia, "Times New Roman", serif;
+      opacity: .85;
+    }
+
+    /* Code */
+    .node[data-type="code"] .node-body {
+      font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11.5px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      tab-size: 2;
+      background: rgba(0, 0, 0, .3);
+      border-radius: 8px;
+      margin: 10px;
+      padding: 11px 12px;
+      border: 1px solid rgba(255, 255, 255, .05);
+      flex: 0 1 auto;
+    }
+
+    /* Checklist */
+    .checklist {
+      padding: 8px 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 1px
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 5px 6px;
+      border-radius: 7px;
+      transition: background .12s;
+    }
+
+    .check-item:hover {
+      background: rgba(255, 255, 255, .035)
+    }
+
+    .check-box {
+      flex-shrink: 0;
+      width: 17px;
+      height: 17px;
+      margin-top: 1px;
+      border-radius: 5px;
+      border: 1.4px solid rgba(255, 255, 255, .3);
+      background: transparent;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      color: transparent;
+      transition: background .12s, border-color .12s, color .12s;
+    }
+
+    .check-box svg {
+      width: 12px;
+      height: 12px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2.6;
+      stroke-linecap: round;
+      stroke-linejoin: round
+    }
+
+    .check-item.done .check-box {
+      background: var(--node-accent);
+      border-color: var(--node-accent);
+      color: #101216
+    }
+
+    .check-text {
+      flex: 1;
+      min-width: 0;
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: inherit;
+      outline: none;
+      overflow-wrap: anywhere;
+      padding: 1px 0;
+      cursor: text;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .check-text:empty::before {
+      content: attr(data-placeholder);
+      color: #59606b;
+      pointer-events: none
+    }
+
+    .check-item.done .check-text {
+      text-decoration: line-through;
+      opacity: .5
+    }
+
+    .check-del {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      border: 0;
+      background: transparent;
+      color: #6a7280;
+      border-radius: 5px;
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      padding: 0;
+    }
+
+    .check-item:hover .check-del,
+    .check-item:focus-within .check-del {
+      opacity: 1
+    }
+
+    .check-del:hover {
+      color: #e88;
+      background: rgba(255, 255, 255, .06)
+    }
+
+    .check-del svg {
+      width: 12px;
+      height: 12px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round
+    }
+
+    .check-add {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+      padding: 6px 8px;
+      border: 0;
+      background: transparent;
+      color: #7d8490;
+      font-size: 11px;
+      border-radius: 7px;
+      text-align: left;
+    }
+
+    .check-add:hover {
+      color: #e7e9ee;
+      background: rgba(255, 255, 255, .05)
+    }
+
+    .check-add svg {
+      width: 13px;
+      height: 13px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round
+    }
+
+    /* Ports & handles */
+    .node-port {
+      position: absolute;
+      z-index: 8;
+      width: 12px;
+      height: 12px;
+      padding: 0;
+      border-radius: 50%;
+      background: #12151a;
+      border: 1.5px solid #aab0ba;
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, .32);
+      opacity: 0;
+      transition: opacity .12s, transform .12s;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .node.selected .node-port,
+    .node:hover .node-port,
+    .connect-mode .node-port {
+      opacity: 1
+    }
+
+    .node-port:hover {
+      background: var(--accent);
+      transform: scale(1.16)
+    }
+
+    .node-port.n {
+      top: -6px;
+      left: calc(50% - 6px)
+    }
+
+    .node-port.e {
+      right: -6px;
+      top: calc(50% - 6px)
+    }
+
+    .node-port.s {
+      bottom: -6px;
+      left: calc(50% - 6px)
+    }
+
+    .node-port.w {
+      left: -6px;
+      top: calc(50% - 6px)
+    }
+
+    .resize-handle {
+      position: absolute;
+      z-index: 9;
+      right: -4px;
+      bottom: -4px;
+      width: 15px;
+      height: 15px;
+      border: 1px solid rgba(255, 255, 255, .32);
+      border-radius: 5px;
+      background: #171a20;
+      opacity: 0;
+      cursor: nwse-resize;
+      touch-action: none;
+    }
+
+    .node.selected .resize-handle {
+      opacity: 1
+    }
+
+    .resize-handle:after {
+      content: "";
+      position: absolute;
+      right: 3px;
+      bottom: 3px;
+      width: 5px;
+      height: 5px;
+      border-right: 1px solid #d7dbe2;
+      border-bottom: 1px solid #d7dbe2;
+    }
+
+    #connection-preview {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: visible
+    }
+
+    /* Empty state */
+    .empty-state {
+      position: absolute;
+      left: 50%;
+      top: 46%;
+      transform: translate(-50%, -50%);
+      width: min(440px, 80%);
+      text-align: center;
+      pointer-events: none;
+      color: #8b919b;
+      transition: opacity .2s;
+    }
+
+    .empty-mark {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 18px;
+      width: 53px;
+      height: 53px;
+      border: 1px solid rgba(255, 255, 255, .13);
+      border-radius: 16px;
+      background: linear-gradient(145deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .015));
+      box-shadow: inset 0 0 24px rgba(255, 255, 255, .035), 0 10px 30px rgba(0, 0, 0, .2);
+    }
+
+    .empty-mark svg {
+      width: 24px;
+      height: 24px;
+      stroke: #d6dae1;
+      fill: none;
+      stroke-width: 1.4
+    }
+
+    .empty-state h2 {
+      font-size: 15px;
+      letter-spacing: -.01em;
+      font-weight: 580;
+      color: #e0e3e8;
+      margin: 0 0 7px
+    }
+
+    .empty-state p {
+      font-size: 12px;
+      line-height: 1.7;
+      color: #777e89;
+      margin: 0 auto;
+      max-width: 330px
+    }
+
+    .empty-actions {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .empty-actions button {
+      background: rgba(255, 255, 255, .045);
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      padding: 8px 11px;
+      font-size: 11px;
+      color: #d5d9e0;
+    }
+
+    .empty-actions button:hover {
+      background: rgba(255, 255, 255, .09)
+    }
+
+    /* Canvas controls & status */
+    .canvas-controls {
+      position: absolute;
+      left: 16px;
+      bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px;
+      background: rgba(12, 13, 16, .86);
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 7px 24px rgba(0, 0, 0, .2);
+      z-index: 8;
+    }
+
+    .canvas-controls .icon-btn {
+      height: 29px;
+      min-width: 29px;
+      width: 29px;
+      padding: 0
+    }
+
+    .zoom-value {
+      font-size: 10px;
+      font-variant-numeric: tabular-nums;
+      color: #aeb4bd;
+      min-width: 38px;
+      text-align: center;
+      cursor: pointer;
+      background: transparent;
+      border: 0;
+      padding: 0;
+    }
+
+    .statusbar {
+      position: absolute;
+      right: 14px;
+      bottom: 19px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      color: #68707b;
+      font-size: 10px;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 5px
+    }
+
+    .status-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #6f9c81
+    }
+
+    /* Inspector */
+    .inspector {
+      z-index: 22;
+      background: #0d0f12;
+      border-left: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .inspector-head {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 17px 15px 13px;
+      border-bottom: 1px solid var(--line);
+      min-height: 57px;
+    }
+
+    .inspector-kicker {
+      font-size: 9px;
+      color: #767d88;
+      text-transform: uppercase;
+      letter-spacing: .15em;
+      font-weight: 700
+    }
+
+    .inspector-title {
+      font-size: 13px;
+      font-weight: 620;
+      color: #e7e9ee;
+      margin-top: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .inspector-head-main {
+      flex: 1;
+      min-width: 0
+    }
+
+    .inspector-content {
+      padding: 13px 14px 22px;
+      overflow: auto;
+      overscroll-behavior: contain;
+      flex: 1;
+      min-height: 0;
+      scrollbar-width: thin;
+      scrollbar-color: #2b3038 transparent;
+    }
+
+    .inspector-tabs {
+      display: flex;
+      gap: 3px;
+      border-bottom: 1px solid var(--line);
+      padding: 0 12px
+    }
+
+    .inspector-tab {
+      flex: 1;
+      height: 38px;
+      border: 0;
+      border-bottom: 1.5px solid transparent;
+      background: transparent;
+      color: #767d88;
+      font-size: 10.5px;
+    }
+
+    .inspector-tab.active {
+      color: #eff0f3;
+      border-bottom-color: #d7dbe1
+    }
+
+    .panel-section {
+      margin-bottom: 22px
+    }
+
+    .section-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #7e8590;
+      font-weight: 690;
+      margin: 0 0 11px;
+    }
+
+    .field {
+      margin-bottom: 12px
+    }
+
+    .field:last-child {
+      margin-bottom: 0
+    }
+
+    .field>label {
+      display: block;
+      font-size: 10.5px;
+      color: #aeb4bd;
+      margin-bottom: 6px
+    }
+
+    .input,
+    .select,
+    .textarea {
+      width: 100%;
+      height: 34px;
+      background: #121519;
+      border: 1px solid rgba(255, 255, 255, .105);
+      border-radius: 8px;
+      color: #e4e7eb;
+      padding: 0 9px;
+      font-size: 11px;
+      outline: none;
+      min-width: 0;
+    }
+
+    .textarea {
+      height: auto;
+      min-height: 70px;
+      padding: 8px;
+      resize: vertical;
+      line-height: 1.5
+    }
+
+    .input:focus,
+    .select:focus,
+    .textarea:focus {
+      border-color: rgba(255, 255, 255, .32);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, .04);
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px
+    }
+
+    .range-row {
+      display: flex;
+      align-items: center;
+      gap: 9px
+    }
+
+    .range-row input[type=range] {
+      width: 100%;
+      accent-color: #c8cdd5
+    }
+
+    .range-value {
+      width: 44px;
+      text-align: right;
+      color: #bfc4cc;
+      font-size: 10px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .color-row {
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .color-input {
+      width: 33px;
+      height: 31px;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      padding: 2px;
+      background: #111317;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .color-hex {
+      font-size: 10px;
+      color: #9da4af;
+      font-variant-numeric: tabular-nums
+    }
+
+    .override-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity .15s;
+      flex-shrink: 0;
+    }
+
+    .override-dot.on {
+      opacity: .8
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 5px
+    }
+
+    .segmented.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr))
+    }
+
+    .segment-btn {
+      min-height: 33px;
+      padding: 6px 8px;
+      text-align: center;
+      background: #121519;
+      border: 1px solid rgba(255, 255, 255, .09);
+      border-radius: 7px;
+      color: #9ea5af;
+      font-size: 10px;
+      line-height: 1.25;
+    }
+
+    .segment-btn:hover {
+      border-color: rgba(255, 255, 255, .21);
+      color: #e5e7eb
+    }
+
+    .segment-btn.active {
+      background: #20242a;
+      border-color: rgba(255, 255, 255, .27);
+      color: #f0f1f4;
+      box-shadow: inset 0 1px rgba(255, 255, 255, .06);
+    }
+
+    .action-row {
+      display: flex;
+      gap: 7px
+    }
+
+    .subtle-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 33px;
+      padding: 0 9px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .035);
+      font-size: 10.5px;
+      color: #c9ced6;
+      flex: 1;
+    }
+
+    .subtle-btn:hover {
+      background: rgba(255, 255, 255, .075);
+      color: #fff
+    }
+
+    .subtle-btn.danger {
+      color: #dd9999;
+      border-color: rgba(216, 116, 116, .17)
+    }
+
+    .subtle-btn svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, .045);
+    }
+
+    .toggle-row:last-child {
+      border-bottom: 0
+    }
+
+    .toggle-text {
+      font-size: 11px;
+      color: #c7cbd2
+    }
+
+    .toggle-sub {
+      font-size: 9px;
+      color: #707784;
+      margin-top: 3px;
+      line-height: 1.35
+    }
+
+    .switch {
+      position: relative;
+      width: 30px;
+      height: 17px;
+      flex-shrink: 0
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0
+    }
+
+    .switch span {
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(255, 255, 255, .13);
+      background: #22262c;
+      border-radius: 20px;
+      transition: .15s;
+    }
+
+    .switch span:before {
+      content: "";
+      position: absolute;
+      width: 11px;
+      height: 11px;
+      left: 2px;
+      top: 2px;
+      background: #8d949e;
+      border-radius: 50%;
+      transition: .15s;
+    }
+
+    .switch input:checked+span {
+      background: #d7dbe2;
+      border-color: #e6e8ec
+    }
+
+    .switch input:checked+span:before {
+      transform: translateX(13px);
+      background: #14161a
+    }
+
+    .inspector-empty {
+      padding: 13px 3px 4px
+    }
+
+    .inspector-empty h3 {
+      font-size: 13px;
+      font-weight: 550;
+      margin: 0 0 8px;
+      color: #dfe2e7
+    }
+
+    .inspector-empty p {
+      font-size: 11px;
+      line-height: 1.7;
+      color: #7d8490;
+      margin: 0 0 16px
+    }
+
+    .shortcut-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, .04);
+      font-size: 10px;
+      color: #8d949e;
+    }
+
+    .key {
+      font-size: 9px;
+      color: #b9bec7;
+      padding: 3px 5px;
+      border: 1px solid rgba(255, 255, 255, .13);
+      background: #13161a;
+      border-radius: 5px;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(0, 0, 0, .58);
+      backdrop-filter: blur(12px);
+    }
+
+    .modal-backdrop.open {
+      display: flex
+    }
+
+    .modal {
+      width: min(540px, 100%);
+      max-height: min(88dvh, 760px);
+      display: flex;
+      flex-direction: column;
+      background: #0e1013;
+      border: 1px solid rgba(255, 255, 255, .16);
+      border-radius: 16px;
+      box-shadow: 0 30px 100px rgba(0, 0, 0, .55);
+      overflow: hidden;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 19px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .modal-heading {
+      font-size: 14px;
+      font-weight: 620;
+      flex: 1
+    }
+
+    .modal-desc {
+      font-size: 10px;
+      color: #7d8490;
+      margin-top: 4px
+    }
+
+    .modal-body {
+      padding: 17px 19px 21px;
+      overflow: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #2b3038 transparent
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 12px 18px;
+      border-top: 1px solid var(--line)
+    }
+
+    .modal-x {
+      height: 31px;
+      width: 31px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: #8f96a1;
+      display: grid;
+      place-items: center;
+    }
+
+    .modal-x:hover {
+      background: rgba(255, 255, 255, .05);
+      color: #fff
+    }
+
+    .modal-x svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.7
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      z-index: 150;
+      bottom: 24px;
+      left: 50%;
+      transform: translate(-50%, 12px);
+      opacity: 0;
+      pointer-events: none;
+      background: #1a1d22;
+      color: #e8ebf0;
+      border: 1px solid rgba(255, 255, 255, .16);
+      box-shadow: var(--shadow);
+      border-radius: 9px;
+      padding: 10px 13px;
+      font-size: 11px;
+      transition: opacity .18s, transform .18s;
+      white-space: nowrap;
+      max-width: calc(100vw - 24px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0)
+    }
+
+    .format-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 10px
+    }
+
+    .format-tools button {
+      height: 29px;
+      min-width: 29px;
+      border: 1px solid rgba(255, 255, 255, .1);
+      border-radius: 6px;
+      background: #121519;
+      color: #aeb4bd;
+      padding: 0 7px;
+      font-size: 11px;
+    }
+
+    .format-tools button:hover {
+      background: #21252b;
+      color: #fff
+    }
+
+    .format-tools svg {
+      width: 13px;
+      height: 13px;
+      vertical-align: middle;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.7
+    }
+
+    /* Add popover */
+    .add-popover {
+      position: fixed;
+      z-index: 80;
+      min-width: 176px;
+      padding: 5px;
+      background: #14171c;
+      border: 1px solid var(--line-strong);
+      border-radius: 11px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .5);
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      animation: pop .12s ease;
+    }
+
+    @keyframes pop {
+      from {
+        opacity: 0;
+        transform: translateY(4px) scale(.98)
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    .add-popover[hidden] {
+      display: none
+    }
+
+    .add-popover button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border: 0;
+      background: transparent;
+      color: #d3d7de;
+      font-size: 12px;
+      border-radius: 7px;
+      text-align: left;
+    }
+
+    .add-popover button:hover {
+      background: rgba(255, 255, 255, .07);
+      color: #fff
+    }
+
+    .add-popover .add-ic {
+      width: 16px;
+      height: 16px;
+      display: grid;
+      place-items: center;
+      color: #9aa1ac
+    }
+
+    .add-popover .add-ic svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round
+    }
+
+    .add-sep {
+      height: 1px;
+      background: var(--line);
+      margin: 4px 6px
+    }
+
+    .mobile-close {
+      display: none
+    }
+
+    /* ---------- Responsive ---------- */
+    @media(max-width:1100px) {
+      :root {
+        --inspector-w: 268px
+      }
+
+      .project-name {
+        width: 150px
+      }
+
+      .topbar {
+        gap: 7px;
+        padding: 0 9px
+      }
+
+      .top-group .wide-action span {
+        display: none
+      }
+
+      .top-group .wide-action {
+        width: 34px;
+        padding: 0
+      }
+    }
+
+    @media(max-width:850px) {
+      :root {
+        --rail-w: 54px;
+        --inspector-w: 0px;
+        --topbar-h: 56px
+      }
+
+      .workspace-shell {
+        grid-template-columns: var(--rail-w) minmax(0, 1fr)
+      }
+
+      .inspector {
+        display: flex;
+        position: absolute;
+        right: 9px;
+        top: 9px;
+        bottom: 9px;
+        width: min(320px, calc(100vw - 82px));
+        border: 1px solid var(--line-strong);
+        border-radius: 13px;
+        box-shadow: var(--shadow);
+        transform: translateX(calc(100% + 20px));
+        transition: transform .2s ease;
+        z-index: 25;
+      }
+
+      .inspector.open {
+        transform: translateX(0)
+      }
+
+      .inspector-head {
+        min-height: 52px;
+        padding: 12px
+      }
+
+      .inspector-content {
+        padding: 12px
+      }
+
+      .mobile-close {
+        display: grid;
+        place-items: center
+      }
+
+      .topbar {
+        gap: 5px
+      }
+
+      .project-name {
+        width: 140px;
+        max-width: 25vw;
+        padding-left: 6px
+      }
+
+      .top-divider.optional {
+        display: none
+      }
+
+      .topbar .history-group {
+        display: none
+      }
+
+      .topbar .export-label {
+        display: none
+      }
+
+      .topbar .primary-btn {
+        width: 35px;
+        padding: 0
+      }
+
+      .topbar .primary-btn span {
+        display: none
+      }
+
+      .canvas-controls {
+        left: 10px;
+        bottom: 10px
+      }
+
+      .statusbar {
+        right: 10px;
+        bottom: 20px
+      }
+
+      .rail {
+        padding-top: 9px
+      }
+    }
+
+    @media(max-width:560px) {
+      :root {
+        --topbar-h: 54px
+      }
+
+      .topbar {
+        padding: 0 7px;
+        gap: 3px
+      }
+
+      .project-name {
+        width: 115px;
+        min-width: 75px;
+        font-size: 11px;
+        padding: 6px 5px
+      }
+
+      .topbar .optional-small {
+        display: none
+      }
+
+      .topbar .primary-btn {
+        height: 32px;
+        width: 32px;
+        min-width: 32px
+      }
+
+      .topbar .icon-btn {
+        height: 31px;
+        min-width: 31px;
+        width: 31px;
+        padding: 0
+      }
+
+      .topbar .top-group {
+        gap: 2px
+      }
+
+      .topbar .top-divider {
+        margin: 0 2px
+      }
+
+      .workspace-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(0, 1fr) 54px
+      }
+
+      .rail {
+        grid-row: 2;
+        grid-column: 1;
+        flex-direction: row;
+        justify-content: space-around;
+        gap: 2px;
+        padding: 5px 8px calc(5px + env(safe-area-inset-bottom));
+        border-right: 0;
+        border-top: 1px solid var(--line);
+        min-height: 54px;
+      }
+
+      .rail-btn {
+        width: 39px;
+        height: 39px
+      }
+
+      .rail-spacer,
+      .rail-separator {
+        display: none
+      }
+
+      .rail-btn .rail-tip {
+        display: none
+      }
+
+      .center {
+        grid-row: 1;
+        grid-column: 1
+      }
+
+      .inspector {
+        width: min(320px, calc(100vw - 22px));
+        right: 7px;
+        top: 7px;
+        bottom: 7px
+      }
+
+      .canvas-controls {
+        bottom: 9px;
+        left: 8px
+      }
+
+      .statusbar {
+        display: none
+      }
+
+      .empty-state {
+        top: 43%
+      }
+
+      .node {
+        width: 235px
+      }
+
+      .node-quick {
+        opacity: 1
+      }
+
+      .check-del {
+        opacity: 1
+      }
+    }
+
+    @media(prefers-reduced-motion:reduce) {
+
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+        scroll-behavior: auto !important;
+        animation: none !important
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header class="topbar">
+      <input id="project-name" class="project-name" value="Untitled workspace" aria-label="Workspace name" spellcheck="false" maxlength="100">
+      <div class="top-divider optional"></div>
+      <div class="top-group history-group">
+        <button class="icon-btn" id="undo-btn" title="Undo · Ctrl/Cmd+Z" aria-label="Undo" disabled></button>
+        <button class="icon-btn" id="redo-btn" title="Redo · Ctrl/Cmd+Shift+Z" aria-label="Redo" disabled></button>
+      </div>
+      <div class="top-divider optional"></div>
+      <div class="top-group">
+        <button class="icon-btn" id="fit-btn" title="Fit workspace" aria-label="Fit workspace"></button>
+        <button class="icon-btn" id="zoom-out-btn" title="Zoom out" aria-label="Zoom out"></button>
+        <button class="icon-btn optional-small" id="zoom-reset-btn" title="Reset zoom">100%</button>
+        <button class="icon-btn" id="zoom-in-btn" title="Zoom in" aria-label="Zoom in"></button>
+      </div>
+      <div class="top-spacer"></div>
+      <div class="top-group">
+        <button class="tool-btn wide-action" id="connect-btn" title="Connect two cards"><span>Connect</span></button>
+        <button class="icon-btn" id="import-btn" title="Import workspace" aria-label="Import workspace"></button>
+        <button class="primary-btn" id="export-btn" title="Export entire workspace"><span class="export-label">Export</span></button>
+        <button class="icon-btn" id="settings-btn" title="Workspace appearance" aria-label="Workspace appearance"></button>
+        <button class="icon-btn" id="inspector-toggle" title="Toggle properties" aria-label="Toggle properties"></button>
+      </div>
+    </header>
+    <div class="workspace-shell">
+      <nav class="rail" aria-label="Tools">
+        <button class="rail-btn active" data-tool="select" title="Select and move (V)" aria-label="Select and move"></button>
+        <button class="rail-btn" data-tool="pan" title="Pan workspace (Space)" aria-label="Pan workspace"></button>
+        <button class="rail-btn" data-tool="connect" title="Connect cards (C)" aria-label="Connect cards"></button>
+        <div class="rail-separator"></div>
+        <button class="rail-btn" id="add-btn" title="Add a card" aria-label="Add a card"></button>
+        <div class="rail-spacer"></div>
+        <button class="rail-btn" id="layers-btn" title="Workspace overview" aria-label="Workspace overview"></button>
+        <button class="rail-btn" id="rail-settings-btn" title="Appearance settings" aria-label="Appearance settings"></button>
+      </nav>
+      <main class="center">
+        <div id="workspace" aria-label="Infinite diagram workspace">
+          <div class="world" id="world">
+            <svg id="edge-layer" aria-label="Connectors"></svg>
+            <div id="nodes"></div>
+          </div>
+          <svg id="connection-preview"></svg>
+          <div id="empty-state" class="empty-state">
+            <div class="empty-mark" id="empty-mark"></div>
+            <h2>A clear space for your thinking</h2>
+            <p>Start with a main point, add expandable notes, and connect ideas in any direction. The canvas keeps going
+              as your map grows.</p>
+            <div class="empty-actions">
+              <button id="empty-root-btn">＋ Main point</button>
+              <button id="empty-note-btn">＋ Quick note</button>
+              <button id="empty-import-btn">Import project</button>
+            </div>
+          </div>
+        </div>
+        <div class="canvas-controls" aria-label="Canvas controls">
+          <button class="icon-btn" id="canvas-minus" title="Zoom out" aria-label="Zoom out"></button>
+          <button class="zoom-value" id="canvas-zoom" title="Click to reset zoom">100%</button>
+          <button class="icon-btn" id="canvas-plus" title="Zoom in" aria-label="Zoom in"></button>
+          <div class="top-divider" style="height:18px;margin:0 2px"></div>
+          <button class="icon-btn" id="canvas-fit" title="Fit all cards" aria-label="Fit all cards"></button>
+        </div>
+        <div class="statusbar">
+          <span class="status-item"><i class="status-dot"></i><span id="save-status">Saved locally</span></span>
+          <span class="status-item" id="node-count">0 cards</span>
+          <span class="status-item" id="edge-count">0 links</span>
+        </div>
+      </main>
+      <aside class="inspector" id="inspector" aria-label="Properties">
+        <div class="inspector-head">
+          <div class="inspector-head-main">
+            <div class="inspector-kicker" id="inspector-kicker">Workspace</div>
+            <div class="inspector-title" id="inspector-title">Nothing selected</div>
+          </div>
+          <button class="modal-x mobile-close" id="inspector-close" aria-label="Close properties"></button>
+        </div>
+        <div class="inspector-tabs" id="inspector-tabs">
+          <button class="inspector-tab active" data-tab="details">Details</button>
+          <button class="inspector-tab" data-tab="style">Style</button>
+          <button class="inspector-tab" data-tab="links">Links</button>
+        </div>
+        <div class="inspector-content" id="inspector-content"></div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="add-popover" id="add-popover" hidden role="menu"></div>
+
+  <input type="file" id="import-file" accept=".json,application/json,.thoughtspace" hidden>
+  <input type="file" id="image-file" accept="image/*" hidden>
+
+  <div class="modal-backdrop" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="modal">
+      <div class="modal-head">
+        <div style="flex:1">
+          <div class="modal-heading" id="settings-title">Workspace appearance</div>
+          <div class="modal-desc">Global defaults for the canvas, cards, outlines and connections.</div>
+        </div>
+        <button class="modal-x" data-close-modal aria-label="Close settings"></button>
+      </div>
+      <div class="modal-body" id="settings-body"></div>
+      <div class="modal-footer">
+        <button class="subtle-btn" style="flex:0 0 auto;min-width:90px" id="reset-settings">Reset defaults</button>
+        <button class="primary-btn" id="done-settings">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      /* ------------------------------------------------------------------ *
+       * Helpers
+       * ------------------------------------------------------------------ */
+      const $ = (q, root = document) => root.querySelector(q);
+      const $$ = (q, root = document) => [...root.querySelectorAll(q)];
+      const svg = (paths) => `<svg viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
+
+      const icons = {
+        select: '<path d="M5 3.5 19 12l-6.4 1.5L10 20 5 3.5Z"/><path d="m12.5 13.5 4.3 5"/>',
+        pan: '<path d="M8 11V5.5a1.5 1.5 0 0 1 3 0V10 4.5a1.5 1.5 0 0 1 3 0V10 6a1.5 1.5 0 0 1 3 0v6-1a1.5 1.5 0 0 1 3 0v4.5A5.5 5.5 0 0 1 14.5 21h-2.2a5 5 0 0 1-3.7-1.6L5 15.5a1.8 1.8 0 0 1 2.6-2.5L10 15"/>',
+        connect: '<circle cx="6" cy="7" r="3"/><circle cx="18" cy="17" r="3"/><path d="M8.5 9 15.5 15"/>',
+        note: '<path d="M7 3.5h7l4.5 4.5V20a1 1 0 0 1-1 1H7a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2Z"/><path d="M14 3.5V9h4.5M8 13h8M8 16.5h8"/>',
+        section: '<path d="M4 5.5h16M4 10h10M4 14.5h16M4 19h10"/>',
+        image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.4"/><path d="m4 17 5-4 3 2 3.5-4 4.5 5"/>',
+        quote: '<path d="M9.5 7.5C7 7.5 5 9.4 5 11.8c0 2 1.5 3.5 3.4 3.5.4 0 .8-.05 1.1-.15-.4 1.6-1.8 2.8-3.5 3.1M20.5 7.5c-2.5 0-4.5 1.9-4.5 4.3 0 2 1.5 3.5 3.4 3.5.4 0 .8-.05 1.1-.15-.4 1.6-1.8 2.8-3.5 3.1"/>',
+        code: '<path d="m9 8-5 4 5 4M15 8l5 4-5 4"/>',
+        checklist: '<path d="M4 6.5 5.5 8 8 5M4 12l1.5 1.5L8 10.5M4 17.5 5.5 19 8 16"/><path d="M11 7h9M11 12.5h9M11 18h9"/>',
+        layers: '<path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/>',
+        settings: '<path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="m19.4 15 .1.1a1.7 1.7 0 0 1-2.4 2.4l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a1.7 1.7 0 0 1-3.4 0v-.2a1.7 1.7 0 0 0-2.9-1.2l-.1.1a1.7 1.7 0 0 1-2.4-2.4l.1-.1a1.7 1.7 0 0 0-1.2-2.9H4a1.7 1.7 0 0 1 0-3.4h.2a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a1.7 1.7 0 0 1 2.4-2.4l.1.1a1.7 1.7 0 0 0 2.9-1.2V2a1.7 1.7 0 0 1 3.4 0v.2a1.7 1.7 0 0 0 2.9 1.2l.1-.1a1.7 1.7 0 0 1 2.4 2.4l-.1.1a1.7 1.7 0 0 0 1.2 2.9h.2a1.7 1.7 0 0 1 0 3.4h-.2a1.7 1.7 0 0 0-1.2 2.9Z"/>',
+        undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 0 14h-2"/>',
+        redo: '<path d="m15 14 5-5-5-5"/><path d="M20 9h-9a7 7 0 0 0 0 14h2"/>',
+        fit: '<path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M3 16v3a2 2 0 0 0 2 2h3"/><path d="M9 9h6v6H9z"/>',
+        plus: '<path d="M12 5v14M5 12h14"/>',
+        minus: '<path d="M5 12h14"/>',
+        import: '<path d="M12 15V3m-4 4 4-4 4 4"/><path d="M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/>',
+        export: '<path d="M12 3v12m-4-4 4 4 4-4"/><path d="M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/>',
+        close: '<path d="m6 6 12 12M18 6 6 18"/>',
+        expand: '<path d="m7 10 5 5 5-5"/>',
+        trash: '<path d="M4 7h16M10 11v6M14 11v6M5.5 7l1 13h11l1-13M9 7V4h6v3"/>',
+        duplicate: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>',
+        link: '<path d="M10 13.5a4 4 0 0 0 5.7 0l2.4-2.4a4 4 0 0 0-5.7-5.7L11 6.8"/><path d="M14 10.5a4 4 0 0 0-5.7 0l-2.4 2.4a4 4 0 0 0 5.7 5.7l1.4-1.4"/>',
+        bullet: '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4" cy="6" r=".8"/><circle cx="4" cy="12" r=".8"/><circle cx="4" cy="18" r=".8"/>',
+        check: '<path d="m5 12 4 4L19 6"/>',
+      };
+      const icon = (name) => svg(icons[name] || icons.note);
+
+      const escapeHTML = (str = '') => String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      const clone = (o) => JSON.parse(JSON.stringify(o));
+      const safeNum = (v, min, max, def) => { const n = Number(v); return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : def; };
+
+      function sanitizeHTML(html) {
+        const t = document.createElement('template');
+        t.innerHTML = String(html || '');
+        t.content.querySelectorAll('script,style,iframe,object,embed,form,input,button,video,audio,svg,math,link,meta').forEach(el => el.remove());
+        const allowed = new Set(['DIV', 'P', 'BR', 'STRONG', 'B', 'I', 'EM', 'U', 'UL', 'OL', 'LI', 'H1', 'H2', 'H3', 'BLOCKQUOTE', 'SPAN', 'A', 'SUB', 'SUP', 'CODE', 'PRE']);
+        const walker = document.createTreeWalker(t.content, NodeFilter.SHOW_ELEMENT);
+        const els = [];
+        while (walker.nextNode()) els.push(walker.currentNode);
+        els.forEach(el => {
+          if (!el.parentNode) return;
+          if (!allowed.has(el.tagName)) {
+            const parent = el.parentNode;
+            while (el.firstChild) parent.insertBefore(el.firstChild, el);
+            parent.removeChild(el);
+            return;
+          }
+          [...el.attributes].forEach(a => {
+            const k = a.name.toLowerCase();
+            if (k.startsWith('on') || k === 'id' || k === 'class' || k === 'srcdoc' || k === 'contenteditable') el.removeAttribute(a.name);
+            else if (k === 'href') { if (!/^(https?:|mailto:|#)/i.test(a.value.trim())) el.removeAttribute(a.name); }
+            else if (k === 'style') {
+              const ok = [];
+              a.value.split(';').forEach(rule => {
+                const i = rule.indexOf(':');
+                if (i < 0) return;
+                const prop = rule.slice(0, i).trim().toLowerCase();
+                const val = rule.slice(i + 1).trim();
+                if (['color', 'background-color', 'font-size', 'font-family', 'text-align', 'font-weight', 'font-style', 'text-decoration'].includes(prop) && !/url\(|expression|javascript/i.test(val)) {
+                  ok.push(prop + ':' + val);
+                }
+              });
+              if (ok.length) el.setAttribute('style', ok.join(';'));
+              else el.removeAttribute('style');
+            } else if (!['href', 'target', 'rel', 'style', 'title', 'colspan', 'rowspan'].includes(k)) {
+              el.removeAttribute(a.name);
+            }
+          });
+          if (el.tagName === 'A') {
+            el.setAttribute('target', '_blank');
+            el.setAttribute('rel', 'noopener noreferrer');
+          }
+        });
+        return t.innerHTML;
+      }
+
+      function plainText(html = '') {
+        const t = document.createElement('div');
+        t.innerHTML = html;
+        return (t.textContent || '').trim();
+      }
+
+      /* ------------------------------------------------------------------ *
+       * Configuration & state
+       * ------------------------------------------------------------------ */
+      const DEFAULT_SETTINGS = {
+        canvas: '#090a0c',
+        card: '#101216',
+        accent: '#d4d7dd',
+        outlineA: '#ffffff',
+        outlineB: '#8b94a4',
+        outlineStyle: 'divided-gradient',
+        outlineWidth: 1,
+        innerShadow: 0.58,
+        radius: 14,
+        gridStyle: 'dots',
+        gridSpacing: 24,
+        connectorStyle: 'curved',
+        connectorColor: '#aeb6c3',
+        connectorWidth: 1.65,
+        connectorDash: 'solid',
+        showGrid: true,
+        arrows: false,
+      };
+
+      const OUTLINE_OPTIONS = [
+        ['soft', 'Soft highlight'],
+        ['divided', 'Divided segments'],
+        ['gradient', 'Gradient'],
+        ['divided-gradient', 'Divided gradient'],
+        ['none', 'No outline'],
+      ];
+
+      const TYPE_LABELS = {
+        note: 'TEXT NOTE',
+        section: 'TITLE & NOTES',
+        image: 'IMAGE NOTE',
+        quote: 'QUOTE',
+        code: 'CODE',
+        checklist: 'CHECKLIST',
+      };
+
+      let settings = { ...DEFAULT_SETTINGS };
+      let state = { version: 1, name: 'Untitled workspace', nodes: [], edges: [], nextId: 1 };
+      let camera = { x: 100, y: 100, zoom: 1 };
+
+      let selectedNode = null;
+      let selectedEdge = null;
+      let tool = 'select';
+      let inspectorTab = 'details';
+      let activeAction = null;
+      let connectFrom = null;
+      let edgeDraft = null;
+      let pendingImageParent = null;
+
+      let history = [];
+      let future = [];
+      let saveTimer = 0;
+      let toastTimer = 0;
+      let edgeRaf = 0;
+      let lastEditTarget = null;
+      let lastEditSelection = null;
+
+      /* ------------------------------------------------------------------ *
+       * DOM references
+       * ------------------------------------------------------------------ */
+      const viewport = $('#workspace');
+      const world = $('#world');
+      const nodesEl = $('#nodes');
+      const edgesEl = $('#edge-layer');
+      const inspector = $('#inspector');
+      const inspectorContent = $('#inspector-content');
+      const settingsModal = $('#settings-modal');
+      const settingsBody = $('#settings-body');
+      const addPopover = $('#add-popover');
+
+      const nodeById = id => state.nodes.find(n => n.id === id);
+      const edgeById = id => state.edges.find(e => e.id === id);
+      const makeId = prefix => prefix + '_' + (state.nextId++).toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+
+      /* ------------------------------------------------------------------ *
+       * History
+       * ------------------------------------------------------------------ */
+      function snapshot() { return JSON.stringify({ state, settings, camera: { ...camera } }); }
+
+      function commitHistory() {
+        const s = snapshot();
+        if (history[history.length - 1] !== s) history.push(s);
+        if (history.length > 80) history.shift();
+        future = [];
+        updateHistoryButtons();
+      }
+
+      function restoreSnapshot(s) {
+        try {
+          const d = JSON.parse(s);
+          state = d.state;
+          settings = { ...DEFAULT_SETTINGS, ...d.settings };
+          camera = d.camera || camera;
+          selectedNode = null;
+          selectedEdge = null;
+          connectFrom = null;
+          edgeDraft = null;
+          applySettings();
+          renderAll();
+          saveSoon();
+        } catch (e) {
+          console.error(e);
+          toast('Could not restore this step.');
+        }
+      }
+
+      function undo() {
+        if (!history.length) return;
+        future.push(snapshot());
+        restoreSnapshot(history.pop());
+        updateHistoryButtons();
+        toast('Undo');
+      }
+
+      function redo() {
+        if (!future.length) return;
+        history.push(snapshot());
+        restoreSnapshot(future.pop());
+        updateHistoryButtons();
+        toast('Redo');
+      }
+
+      function updateHistoryButtons() {
+        $('#undo-btn').disabled = history.length === 0;
+        $('#redo-btn').disabled = future.length === 0;
+      }
+
+      /* ------------------------------------------------------------------ *
+       * Persistence
+       * ------------------------------------------------------------------ */
+      function currentJSON() {
+        return {
+          format: 'ThoughtspaceProject',
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          state: clone(state),
+          settings: clone(settings),
+          camera: clone(camera),
+        };
+      }
+
+      function saveSoon() {
+        $('#save-status').textContent = 'Saving…';
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(saveLocal, 350);
+      }
+
+      function saveLocal() {
+        try {
+          localStorage.setItem('thoughtspace-project-v1', JSON.stringify(currentJSON()));
+          $('#save-status').textContent = 'Saved locally';
+        } catch (e) {
+          $('#save-status').textContent = 'Local save limited';
+          console.warn('Local save failed', e);
+        }
+      }
+
+      function loadLocal() {
+        try {
+          const raw = localStorage.getItem('thoughtspace-project-v1');
+          if (!raw) return false;
+          loadProject(JSON.parse(raw), false);
+          return true;
+        } catch (e) {
+          console.warn('Could not read local save', e);
+          return false;
+        }
+      }
+
+      /* ------------------------------------------------------------------ *
+       * Normalisation
+       * ------------------------------------------------------------------ */
+      function normalizeStyle(s) {
+        s = s && typeof s === 'object' ? s : {};
+        const color = v => /^#[0-9a-f]{3,8}$/i.test(v || '') ? v : '';
+        return {
+          card: color(s.card),
+          border: color(s.border),
+          text: color(s.text),
+          accent: color(s.accent),
+          outlineA: color(s.outlineA),
+          outlineB: color(s.outlineB),
+          outline: OUTLINE_OPTIONS.some(([v]) => v === s.outline) ? s.outline : '',
+          radius: s.radius == null ? null : safeNum(s.radius, 0, 40, null),
+          outlineWidth: s.outlineWidth == null ? null : safeNum(s.outlineWidth, 0, 4, null),
+        };
+      }
+
+      function normalizeProject(data) {
+        if (!data || typeof data !== 'object') throw new Error('The file is not a valid project.');
+        const src = data.state || data.project || data;
+        if (!Array.isArray(src.nodes) || !Array.isArray(src.edges)) {
+          throw new Error('This file does not contain a node and connector list.');
+        }
+        const used = new Set();
+        const nodes = src.nodes.slice(0, 2000).map((n, i) => {
+          const id = String(n.id || `n_${i + 1}`);
+          if (used.has(id)) throw new Error('Duplicate card ID in project.');
+          used.add(id);
+          const type = ['note', 'section', 'image', 'quote', 'code', 'checklist'].includes(n.type) ? n.type : 'note';
+          const items = Array.isArray(n.items) ? n.items.slice(0, 200).map(it => ({
+            id: String(it.id || makeId('i')),
+            text: String(it.text || '').slice(0, 2000),
+            done: !!it.done,
+          })) : [];
+          return {
+            id,
+            type,
+            x: safeNum(n.x, -100000, 100000, 0),
+            y: safeNum(n.y, -100000, 100000, 0),
+            w: safeNum(n.w, 170, 900, 250),
+            h: n.h == null ? null : safeNum(n.h, 70, 1600, 160),
+            autoHeight: n.autoHeight !== false,
+            title: sanitizeHTML(n.title || ''),
+            body: sanitizeHTML(n.body || ''),
+            caption: sanitizeHTML(n.caption || ''),
+            image: typeof n.image === 'string' && n.image.startsWith('data:image/') && n.image.length < 18000000 ? n.image : '',
+            collapsed: n.collapsed !== false,
+            color: /^#[0-9a-f]{6}$/i.test(n.color || '') ? n.color : '',
+            style: normalizeStyle(n.style),
+            items,
+            created: n.created || Date.now(),
+          };
+        });
+        const idSet = new Set(nodes.map(n => n.id));
+        const edgeIds = new Set();
+        const edges = src.edges.slice(0, 4000).map((e, i) => {
+          const id = String(e.id || `e_${i + 1}`);
+          if (edgeIds.has(id)) throw new Error('Duplicate connector ID in project.');
+          edgeIds.add(id);
+          return {
+            id,
+            from: String(e.from || ''),
+            to: String(e.to || ''),
+            style: ['curved', 'straight', 'elbow'].includes(e.style) ? e.style : null,
+            color: /^#[0-9a-f]{6}$/i.test(e.color || '') ? e.color : '',
+            width: safeNum(e.width, .5, 8, 1.65),
+            dash: ['solid', 'dashed', 'dotted'].includes(e.dash) ? e.dash : null,
+            arrow: !!e.arrow,
+            label: String(e.label || '').slice(0, 240),
+          };
+        }).filter(e => e.from !== e.to && idSet.has(e.from) && idSet.has(e.to));
+
+        let maxId = 1;
+        for (const n of nodes) {
+          const m = n.id.match(/_(\w+)_/);
+          if (m) maxId = Math.max(maxId, parseInt(m[1], 36) || 1);
+        }
+
+        return {
+          state: {
+            version: 1,
+            name: String(src.name || data.name || 'Untitled workspace').slice(0, 100),
+            nodes, edges,
+            nextId: safeNum(src.nextId, 1, 999999, maxId + 1),
+          },
+          settings: { ...DEFAULT_SETTINGS, ...(data.settings || {}) },
+          camera: data.camera || { x: 100, y: 100, zoom: 1 },
+        };
+      }
+
+      function loadProject(data, notify = true) {
+        const d = normalizeProject(data);
+        state = d.state;
+        settings = { ...DEFAULT_SETTINGS, ...d.settings };
+        camera = {
+          x: safeNum(d.camera.x, -100000, 100000, 100),
+          y: safeNum(d.camera.y, -100000, 100000, 100),
+          zoom: safeNum(d.camera.zoom, .18, 3.5, 1),
+        };
+        selectedNode = null;
+        selectedEdge = null;
+        connectFrom = null;
+        edgeDraft = null;
+        applySettings();
+        $('#project-name').value = state.name;
+        renderAll();
+        commitHistory();
+        saveSoon();
+        if (notify) toast('Workspace imported');
+      }
+
+      /* ------------------------------------------------------------------ *
+       * Settings
+       * ------------------------------------------------------------------ */
+      function applySettings() {
+        const root = document.documentElement;
+        root.style.setProperty('--bg', settings.canvas);
+        root.style.setProperty('--card', settings.card);
+        root.style.setProperty('--accent', settings.accent);
+        root.style.setProperty('--outline-a', settings.outlineA);
+        root.style.setProperty('--outline-b', settings.outlineB);
+        root.style.setProperty('--outline-width', settings.outlineWidth + 'px');
+        root.style.setProperty('--inner-shadow', settings.innerShadow);
+        root.style.setProperty('--radius', settings.radius + 'px');
+
+        let bg = 'none';
+        if (settings.showGrid && settings.gridStyle !== 'none') {
+          if (settings.gridStyle === 'lines') {
+            bg = 'linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px)';
+          } else {
+            bg = 'radial-gradient(rgba(255,255,255,.16) .75px,transparent .9px)';
+          }
+        }
+        viewport.style.backgroundImage = bg;
+        viewport.classList.toggle('no-grid', !settings.showGrid || settings.gridStyle === 'none');
+
+        updateCamera();
+
+        $$('.node', nodesEl).forEach(el => {
+          const n = nodeById(el.dataset.id);
+          if (n) applyNodeStyle(el, n);
+        });
+      }
+
+      function updateCamera() {
+        world.style.transform = `translate(${camera.x}px,${camera.y}px) scale(${camera.zoom})`;
+        const gap = Math.max(8, settings.gridSpacing * camera.zoom);
+        viewport.style.backgroundSize = settings.gridStyle === 'lines'
+          ? `${gap}px ${gap}px,${gap}px ${gap}px`
+          : `${gap}px ${gap}px`;
+        viewport.style.backgroundPosition = `${camera.x}px ${camera.y}px`;
+        $('#canvas-zoom').textContent = Math.round(camera.zoom * 100) + '%';
+        $('#zoom-reset-btn').textContent = Math.round(camera.zoom * 100) + '%';
+      }
+
+      /* ------------------------------------------------------------------ *
+       * Per-node style
+       * ------------------------------------------------------------------ */
+      function applyNodeStyle(el, n) {
+        if (!el) return;
+        const s = n.style || {};
+        const eff = {
+          card: s.card || settings.card,
+          radius: s.radius == null ? settings.radius : s.radius,
+          text: s.text || '',
+          accent: s.accent || n.color || settings.accent,
+          border: s.border || '',
+          outline: s.outline || settings.outlineStyle,
+          outlineA: s.outlineA || settings.outlineA,
+          outlineB: s.outlineB || settings.outlineB,
+          outlineWidth: s.outlineWidth == null ? settings.outlineWidth : s.outlineWidth,
+        };
+        el.style.setProperty('--card', eff.card);
+        el.style.setProperty('--radius', eff.radius + 'px');
+        el.style.setProperty('--outline-a', eff.outlineA);
+        el.style.setProperty('--outline-b', eff.outlineB);
+        el.style.setProperty('--outline-width', eff.outlineWidth + 'px');
+        el.style.setProperty('--node-accent', eff.accent);
+        if (eff.text) {
+          el.style.setProperty('--node-text', eff.text);
+          el.style.setProperty('--node-text-strong', eff.text);
+        } else {
+          el.style.removeProperty('--node-text');
+          el.style.removeProperty('--node-text-strong');
+        }
+        if (eff.border) el.style.setProperty('--node-border', eff.border);
+        else el.style.removeProperty('--node-border');
+        el.dataset.outline = eff.outline;
+      }
+
+      /* ------------------------------------------------------------------ *
+       * Toast
+       * ------------------------------------------------------------------ */
+      function toast(msg) {
+        const el = $('#toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+      }
+
+      /* ------------------------------------------------------------------ *
+       * Node creation
+       * ------------------------------------------------------------------ */
+      function makeNode(type, x, y, options = {}) {
+        return {
+          id: makeId('n'),
+          type,
+          x, y,
+          w: options.w || (type === 'section' ? 275 : type === 'image' ? 250 : 250),
+          h: null,
+          autoHeight: true,
+          title: options.title || '',
+          body: options.body || '',
+          caption: options.caption || '',
+          image: options.image || '',
+          collapsed: type === 'section' ? options.collapsed !== false : false,
+          color: options.color || '',
+          style: normalizeStyle(options.style),
+          items: options.items || [],
+          created: Date.now(),
+        };
+      }
+
+      function measureNode(n) {
+        const el = $(`.node[data-id="${CSS.escape(n.id)}"]`);
+        if (!el) return { w: n.w, h: n.h || 130 };
+        return { w: el.offsetWidth || n.w, h: el.offsetHeight || n.h || 130 };
+      }
+
+      function findSpawnPosition(anchor = null) {
+        const rect = viewport.getBoundingClientRect();
+        if (anchor) {
+          const m = measureNode(anchor);
+          return { x: anchor.x + m.w + 110, y: anchor.y + Math.max(0, (m.h - 130) / 2) };
+        }
+        return {
+          x: (rect.width / 2 - camera.x) / camera.zoom - 125,
+          y: (rect.height / 2 - camera.y) / camera.zoom - 65,
+        };
+      }
+
+      function addRoot(type = 'section') {
+        commitHistory();
+        const p = findSpawnPosition();
+        const opts = type === 'section'
+          ? { title: 'Main point', collapsed: true }
+          : type === 'checklist'
+            ? { items: [{ id: makeId('i'), text: '', done: false }] }
+            : {};
+        const n = makeNode(type, p.x, p.y, opts);
+        state.nodes.push(n);
+        selectNode(n.id);
+        renderAll();
+        focusEditable(n.id, type === 'section' ? 'title' : type === 'checklist' ? null : 'body');
+        saveSoon();
+        return n;
+      }
+
+      function addNote(type = 'note', parentId = selectedNode) {
+        commitHistory();
+        const parent = parentId ? nodeById(parentId) : null;
+        const p = findSpawnPosition(parent);
+        const opts = type === 'section'
+          ? { title: 'New topic', collapsed: true }
+          : type === 'checklist'
+            ? { items: [{ id: makeId('i'), text: '', done: false }] }
+            : {};
+        const n = makeNode(type, p.x, p.y, opts);
+        state.nodes.push(n);
+        if (parent) createEdge(parent.id, n.id, false);
+        selectNode(n.id);
+        renderAll();
+        if (type === 'image') {
+          pendingImageParent = n.id;
+          $('#image-file').click();
+        } else {
+          focusEditable(n.id, type === 'section' ? 'title' : type === 'checklist' ? null : 'body');
+        }
+        saveSoon();
+        return n;
+      }
+
+      function createEdge(from, to, record = true) {
+        if (from === to) return null;
+        if (state.edges.some(e => (e.from === from && e.to === to) || (e.from === to && e.to === from))) {
+          toast('Those cards are already connected');
+          return null;
+        }
+        if (record) commitHistory();
+        const e = {
+          id: makeId('e'),
+          from, to,
+          style: null,
+          color: '',
+          width: settings.connectorWidth,
+          dash: null,
+          arrow: settings.arrows,
+          label: '',
+        };
+        state.edges.push(e);
+        selectedEdge = e.id;
+        selectedNode = null;
+        connectFrom = null;
+        edgeDraft = null;
+        renderAll();
+        saveSoon();
+        return e;
+      }
+
+      /* ------------------------------------------------------------------ *
+       * Selection
+       * ------------------------------------------------------------------ */
+      function selectNode(id) {
+        selectedNode = id;
+        selectedEdge = null;
+        renderSelection();
+        renderInspector();
+      }
+
+      function selectEdge(id) {
+        selectedEdge = id;
+        selectedNode = null;
+        renderSelection();
+        renderInspector();
+      }
+
+      /* ------------------------------------------------------------------ *
+       * Rendering
+       * ------------------------------------------------------------------ */
+      function renderAll() {
+        $('#project-name').value = state.name;
+        renderNodes();
+        renderSelection();
+        updateCounts();
+        updateCamera();
+        updateHistoryButtons();
+        renderInspector();
+        const empty = state.nodes.length === 0;
+        $('#empty-state').style.opacity = empty ? '1' : '0';
+        $('#empty-state').style.pointerEvents = empty ? 'auto' : 'none';
+        $('#empty-state').style.display = empty ? 'block' : 'none';
+      }
+
+      function checkRow(n, item) {
+        const row = document.createElement('div');
+        row.className = 'check-item' + (item.done ? ' done' : '');
+        row.dataset.itemId = item.id;
+
+        const box = document.createElement('button');
+        box.type = 'button';
+        box.className = 'check-box';
+        box.dataset.checkToggle = '1';
+        box.setAttribute('aria-label', item.done ? 'Mark as not done' : 'Mark as done');
+        box.innerHTML = icon('check');
+
+        const text = document.createElement('div');
+        text.className = 'check-text';
+        text.contentEditable = 'true';
+        text.spellcheck = true;
+        text.dataset.checkText = '1';
+        text.dataset.placeholder = 'New item';
+        text.textContent = item.text || '';
+
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'check-del';
+        del.dataset.checkDelete = '1';
+        del.setAttribute('aria-label', 'Remove item');
+        del.innerHTML = icon('close');
+
+        row.append(box, text, del);
+        return row;
+      }
+
+      function renderNodes() {
+        nodesEl.innerHTML = '';
+        const frag = document.createDocumentFragment();
+
+        state.nodes.forEach(n => {
+          const article = document.createElement('article');
+          article.className = 'node' + (n.id === selectedNode ? ' selected' : '');
+          article.dataset.id = n.id;
+          article.dataset.type = n.type;
+          article.dataset.collapsed = String(!!n.collapsed);
+          article.style.left = n.x + 'px';
+          article.style.top = n.y + 'px';
+          article.style.width = n.w + 'px';
+          if (!n.autoHeight && n.h) article.style.height = n.h + 'px';
+
+          const card = document.createElement('div');
+          card.className = 'node-card';
+
+          const header = document.createElement('div');
+          header.className = 'node-header';
+          header.innerHTML =
+            `<span class="node-kind-mark"></span>` +
+            `<span class="node-kind-label">${escapeHTML(TYPE_LABELS[n.type] || 'NOTE')}</span>` +
+            `<span class="node-quick">` +
+              `<button type="button" data-node-action="duplicate" title="Duplicate card" aria-label="Duplicate card">${icon('duplicate')}</button>` +
+              `<button type="button" data-node-action="delete" title="Delete card" aria-label="Delete card">${icon('trash')}</button>` +
+            `</span>` +
+            `<span class="node-grip"><i></i><i></i><i></i><i></i><i></i><i></i></span>`;
+          card.appendChild(header);
+
+          if (n.type === 'section') {
+            const wrap = document.createElement('div');
+            wrap.className = 'node-title-wrap';
+            const title = document.createElement('div');
+            title.className = 'node-title';
+            title.contentEditable = 'true';
+            title.spellcheck = true;
+            title.dataset.field = 'title';
+            title.dataset.placeholder = 'Add a title…';
+            title.innerHTML = sanitizeHTML(n.title);
+            wrap.appendChild(title);
+            const exp = document.createElement('button');
+            exp.className = 'expand-btn';
+            exp.type = 'button';
+            exp.dataset.nodeAction = 'toggle';
+            exp.title = n.collapsed ? 'Expand notes' : 'Collapse notes';
+            exp.setAttribute('aria-label', exp.title);
+            exp.innerHTML = icon('expand');
+            wrap.appendChild(exp);
+            card.appendChild(wrap);
+
+            const bodyWrap = document.createElement('div');
+            bodyWrap.className = 'node-body-wrap';
+            const body = document.createElement('div');
+            body.className = 'node-body';
+            body.contentEditable = 'true';
+            body.spellcheck = true;
+            body.dataset.field = 'body';
+            body.dataset.placeholder = 'Add notes, details, questions…';
+            body.innerHTML = sanitizeHTML(n.body);
+            bodyWrap.appendChild(body);
+            card.appendChild(bodyWrap);
+          } else if (n.type === 'image') {
+            const area = document.createElement('div');
+            area.className = 'image-drop';
+            area.dataset.nodeAction = 'choose-image';
+            area.setAttribute('role', 'button');
+            area.setAttribute('tabindex', '0');
+            area.setAttribute('aria-label', n.image ? 'Change image' : 'Choose an image');
+            if (n.image) {
+              const img = document.createElement('img');
+              img.src = n.image;
+              img.alt = '';
+              img.draggable = false;
+              area.appendChild(img);
+              const cover = document.createElement('span');
+              cover.textContent = 'Click to replace image';
+              cover.style.cssText = 'position:absolute;bottom:6px;right:7px;background:rgba(0,0,0,.66);padding:4px 6px;border-radius:5px;opacity:0;font-size:9px';
+              area.appendChild(cover);
+              area.addEventListener('mouseenter', () => cover.style.opacity = '1');
+              area.addEventListener('mouseleave', () => cover.style.opacity = '0');
+            } else {
+              area.innerHTML = `<div class="image-empty-icon">${icon('image')}</div><span>Add an image</span>`;
+            }
+            card.appendChild(area);
+
+            const cap = document.createElement('div');
+            cap.className = 'image-caption';
+            cap.contentEditable = 'true';
+            cap.spellcheck = true;
+            cap.dataset.field = 'caption';
+            cap.dataset.placeholder = 'Add a caption…';
+            cap.innerHTML = sanitizeHTML(n.caption);
+            card.appendChild(cap);
+          } else if (n.type === 'checklist') {
+            const list = document.createElement('div');
+            list.className = 'checklist';
+            n.items.forEach(it => list.appendChild(checkRow(n, it)));
+            const addBtn = document.createElement('button');
+            addBtn.type = 'button';
+            addBtn.className = 'check-add';
+            addBtn.dataset.checkAdd = '1';
+            addBtn.innerHTML = icon('plus') + '<span>Add item</span>';
+            list.appendChild(addBtn);
+            card.appendChild(list);
+          } else {
+            const body = document.createElement('div');
+            body.className = 'node-body';
+            body.contentEditable = 'true';
+            body.spellcheck = n.type !== 'code';
+            body.dataset.field = 'body';
+            body.dataset.placeholder = n.type === 'quote' ? 'Quote…' : n.type === 'code' ? '// code' : 'Write a note…';
+            body.innerHTML = sanitizeHTML(n.body);
+            card.appendChild(body);
+          }
+
+          article.appendChild(card);
+          ['n', 'e', 's', 'w'].forEach(side => {
+            const port = document.createElement('button');
+            port.type = 'button';
+            port.className = 'node-port ' + side;
+            port.dataset.port = side;
+            port.setAttribute('aria-label', 'Connect from ' + side + ' side');
+            article.appendChild(port);
+          });
+          const resize = document.createElement('button');
+          resize.type = 'button';
+          resize.className = 'resize-handle';
+          resize.dataset.nodeAction = 'resize';
+          resize.setAttribute('aria-label', 'Resize card');
+          article.appendChild(resize);
+
+          frag.appendChild(article);
+        });
+
+        nodesEl.appendChild(frag);
+        state.nodes.forEach(n => applyNodeStyle($(`.node[data-id="${CSS.escape(n.id)}"]`), n));
+        renderEdges();
+      }
+
+      function getAnchor(a, b) {
+        const am = measureNode(a), bm = measureNode(b);
+        const acx = a.x + am.w / 2, acy = a.y + am.h / 2;
+        const bcx = b.x + bm.w / 2, bcy = b.y + bm.h / 2;
+        const dx = bcx - acx, dy = bcy - acy;
+        if (Math.abs(dx) >= Math.abs(dy)) {
+          return dx >= 0
+            ? { x: a.x + am.w, y: acy, tx: b.x, ty: b.y + bm.h / 2 }
+            : { x: a.x, y: acy, tx: b.x + bm.w, ty: b.y + bm.h / 2 };
+        }
+        return dy >= 0
+          ? { x: acx, y: a.y + am.h, tx: bcx, ty: b.y }
+          : { x: acx, y: a.y, tx: bcx, ty: b.y + bm.h };
+      }
+
+      function pathFor(x1, y1, x2, y2, style) {
+        if (style === 'straight') return `M ${x1} ${y1} L ${x2} ${y2}`;
+        if (style === 'elbow') {
+          if (Math.abs(x2 - x1) >= Math.abs(y2 - y1)) {
+            const mid = x1 + (x2 - x1) / 2;
+            return `M ${x1} ${y1} L ${mid} ${y1} L ${mid} ${y2} L ${x2} ${y2}`;
+          }
+          const mid = y1 + (y2 - y1) / 2;
+          return `M ${x1} ${y1} L ${x1} ${mid} L ${x2} ${mid} L ${x2} ${y2}`;
+        }
+        const dx = x2 - x1, dy = y2 - y1;
+        if (Math.abs(dx) >= Math.abs(dy)) {
+          const c = Math.max(38, Math.abs(dx) * .42);
+          return `M ${x1} ${y1} C ${x1 + (dx >= 0 ? c : -c)} ${y1}, ${x2 - (dx >= 0 ? c : -c)} ${y2}, ${x2} ${y2}`;
+        }
+        const c = Math.max(38, Math.abs(dy) * .42);
+        return `M ${x1} ${y1} C ${x1} ${y1 + (dy >= 0 ? c : -c)}, ${x2} ${y2 - (dy >= 0 ? c : -c)}, ${x2} ${y2}`;
+      }
+
+      function scheduleRenderEdges() {
+        if (edgeRaf) return;
+        edgeRaf = requestAnimationFrame(() => { edgeRaf = 0; renderEdges(); });
+      }
+
+      function renderEdges() {
+        let minX = 0, minY = 0, maxX = 1, maxY = 1;
+        const bounds = [];
+        state.nodes.forEach(n => {
+          const m = measureNode(n);
+          bounds.push({ x: n.x, y: n.y, w: m.w, h: m.h });
+        });
+        if (bounds.length) {
+          minX = Math.min(...bounds.map(b => b.x)) - 100;
+          minY = Math.min(...bounds.map(b => b.y)) - 100;
+          maxX = Math.max(...bounds.map(b => b.x + b.w)) + 100;
+          maxY = Math.max(...bounds.map(b => b.y + b.h)) + 100;
+        }
+        if (edgeDraft) {
+          minX = Math.min(minX, edgeDraft.x - 100);
+          minY = Math.min(minY, edgeDraft.y - 100);
+          maxX = Math.max(maxX, edgeDraft.x + 100);
+          maxY = Math.max(maxY, edgeDraft.y + 100);
+        }
+
+        const w = Math.max(1, maxX - minX), h = Math.max(1, maxY - minY);
+        edgesEl.style.left = minX + 'px';
+        edgesEl.style.top = minY + 'px';
+        edgesEl.setAttribute('width', w);
+        edgesEl.setAttribute('height', h);
+        edgesEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+        edgesEl.innerHTML = '';
+
+        const frag = document.createDocumentFragment();
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+
+        const addPath = (edge, preview = false) => {
+          const a = nodeById(edge.from);
+          if (!a) return;
+          let x1, y1, x2, y2;
+          if (preview) {
+            const am = measureNode(a);
+            x1 = a.x + am.w / 2;
+            y1 = a.y + am.h / 2;
+            x2 = edge.x;
+            y2 = edge.y;
+          } else {
+            const b = nodeById(edge.to);
+            if (!b) return;
+            const an = getAnchor(a, b);
+            x1 = an.x; y1 = an.y; x2 = an.tx; y2 = an.ty;
+          }
+          const d = pathFor(x1 - minX, y1 - minY, x2 - minX, y2 - minY, edge.style || settings.connectorStyle);
+          const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+          if (!preview) {
+            const hit = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            hit.setAttribute('d', d);
+            hit.setAttribute('class', 'edge-hit');
+            hit.dataset.edgeId = edge.id;
+            hit.addEventListener('click', ev => { ev.stopPropagation(); selectEdge(edge.id); });
+            group.appendChild(hit);
+          }
+
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', d);
+          path.setAttribute('class', 'edge-path' + (edge.id === selectedEdge ? ' selected' : ''));
+          path.style.stroke = edge.color || settings.connectorColor;
+          path.style.strokeWidth = (edge.width || settings.connectorWidth) + 'px';
+          path.style.opacity = preview ? '.85' : edge.id === selectedEdge ? '1' : '.72';
+          if (preview) path.style.pointerEvents = 'none';
+
+          const dash = edge.dash || settings.connectorDash;
+          if (dash === 'dashed') path.style.strokeDasharray = '7 6';
+          if (dash === 'dotted') path.style.strokeDasharray = '1 5';
+
+          if ((edge.arrow ?? settings.arrows) && !preview) {
+            const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+            const mid = 'arrow-' + edge.id.replace(/[^a-z0-9_-]/gi, '');
+            marker.id = mid;
+            marker.setAttribute('markerWidth', '7');
+            marker.setAttribute('markerHeight', '7');
+            marker.setAttribute('refX', '5');
+            marker.setAttribute('refY', '3.5');
+            marker.setAttribute('orient', 'auto');
+            marker.setAttribute('markerUnits', 'strokeWidth');
+            const poly = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            poly.setAttribute('d', 'M0,0 L7,3.5 L0,7 Z');
+            poly.setAttribute('fill', edge.color || settings.connectorColor);
+            marker.appendChild(poly);
+            defs.appendChild(marker);
+            path.setAttribute('marker-end', `url(#${mid})`);
+          }
+
+          if (!preview && edge.label) {
+            const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            t.setAttribute('x', ((x1 + x2) / 2) - minX);
+            t.setAttribute('y', ((y1 + y2) / 2) - minY - 6);
+            t.setAttribute('text-anchor', 'middle');
+            t.setAttribute('class', 'edge-label');
+            t.textContent = edge.label;
+            group.appendChild(t);
+          }
+
+          group.appendChild(path);
+          frag.appendChild(group);
+        };
+
+        state.edges.forEach(e => addPath(e));
+        if (edgeDraft) {
+          addPath({ from: edgeDraft.from, x: edgeDraft.x, y: edgeDraft.y, style: edgeDraft.style || settings.connectorStyle }, true);
+        }
+
+        edgesEl.appendChild(defs);
+        edgesEl.appendChild(frag);
+      }
+
+      function renderSelection() {
+        $$('.node', nodesEl).forEach(el => el.classList.toggle('selected', el.dataset.id === selectedNode));
+        $('#connect-btn').classList.toggle('active', tool === 'connect');
+        $$('.rail-btn[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === tool));
+        viewport.classList.toggle('connect-mode', tool === 'connect');
+      }
+
+      function updateCounts() {
+        $('#node-count').textContent = state.nodes.length + ' ' + (state.nodes.length === 1 ? 'card' : 'cards');
+        $('#edge-count').textContent = state.edges.length + ' ' + (state.edges.length === 1 ? 'link' : 'links');
+      }
+
+      /* ------------------------------------------------------------------ *
+       * Inspector
+       * ------------------------------------------------------------------ */
+      function htmlSection(title, content) {
+        return `<section class="panel-section"><h4 class="section-label">${title}</h4>${content}</section>`;
+      }
+      function field(label, content) {
+        return `<div class="field"><label>${label}</label>${content}</div>`;
+      }
+      function selectedOptions(items, selected) {
+        return items.map(([v, l]) => `<option value="${v}" ${v === selected ? 'selected' : ''}>${l}</option>`).join('');
+      }
+      function segBtns(key, items, selected, cls = '') {
+        return `<div class="segmented ${cls}" data-seg="${key}">${items.map(([v, l]) =>
+          `<button type="button" class="segment-btn ${v === selected ? 'active' : ''}" data-value="${v}">${l}</button>`).join('')}</div>`;
+      }
+      function switchRow(label, sub, key, checked) {
+        return `<div class="toggle-row"><div><div class="toggle-text">${label}</div>${sub ? `<div class="toggle-sub">${sub}</div>` : ''}</div><label class="switch"><input type="checkbox" data-setting="${key}" ${checked ? 'checked' : ''}><span></span></label></div>`;
+      }
+      function colorField(label, key, value, overridden) {
+        return `<div class="field"><label>${label}</label><div class="color-row"><input class="color-input" type="color" data-node-style="${key}" value="${value}"><span class="override-dot ${overridden ? 'on' : ''}" title="Overridden"></span></div></div>`;
+      }
+
+      function renderInspector() {
+        const n = selectedNode ? nodeById(selectedNode) : null;
+        const e = selectedEdge ? edgeById(selectedEdge) : null;
+
+        $('#inspector-tabs').style.display = n || e ? 'flex' : 'none';
+        $('#inspector-kicker').textContent = n ? 'CARD' : e ? 'CONNECTOR' : 'WORKSPACE';
+        $('#inspector-title').textContent = n
+          ? (plainText(n.title) || TYPE_LABELS[n.type] || 'Card')
+          : e ? 'Connection' : 'Nothing selected';
+
+        $$('.inspector-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === inspectorTab));
+
+        if (n) {
+          if (inspectorTab === 'details') inspectorContent.innerHTML = nodeDetails(n);
+          else if (inspectorTab === 'style') inspectorContent.innerHTML = nodeStylePanel(n);
+          else inspectorContent.innerHTML = nodeLinks(n);
+        } else if (e) {
+          inspectorTab = 'details';
+          $$('.inspector-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === inspectorTab));
+          inspectorContent.innerHTML = edgeDetails(e);
+        } else {
+          inspectorContent.innerHTML = workspaceDetails();
+        }
+      }
+
+      function nodeDetails(n) {
+        const m = measureNode(n);
+        let html = '';
+
+        html += htmlSection('Card size', `
+          <div class="input-row">
+            ${field('Width (px)', `<input class="input" type="number" min="170" max="900" step="10" data-node-prop="w" value="${Math.round(n.w)}">`)}
+            ${field('Height (px)', `<input class="input" type="number" min="70" max="1600" step="10" data-node-prop="h" value="${Math.round(n.autoHeight ? m.h : (n.h || m.h))}">`)}
+          </div>
+          ${switchRow('Fit text automatically', 'Keep the card height matched to its content.', 'autoHeight', n.autoHeight)}
+        `);
+
+        if (n.type === 'checklist') {
+          const total = n.items.length;
+          const done = n.items.filter(i => i.done).length;
+          html += htmlSection('Checklist', `
+            <div class="toggle-sub" style="margin-bottom:8px">${done} of ${total} complete</div>
+            <div class="action-row">
+              <button class="subtle-btn" data-action="checklist-add">${icon('plus')} Add item</button>
+              <button class="subtle-btn" data-action="checklist-clear">${icon('check')} Clear done</button>
+            </div>
+          `);
+        }
+
+        html += htmlSection('Actions', `
+          <div class="action-row">
+            <button class="subtle-btn" data-action="add-child">${icon('plus')} Add child</button>
+            <button class="subtle-btn" data-action="duplicate">${icon('duplicate')} Duplicate</button>
+          </div>
+          <div class="action-row" style="margin-top:7px">
+            <button class="subtle-btn" data-action="connect-selected">${icon('link')} Connect</button>
+            <button class="subtle-btn danger" data-action="delete-selected">${icon('trash')} Delete</button>
+          </div>
+        `);
+
+        if (n.type === 'note' || n.type === 'section' || n.type === 'quote' || n.type === 'code') {
+          html += htmlSection('Text formatting', `
+            <div class="format-tools">
+              <button data-format="bold" title="Bold"><b>B</b></button>
+              <button data-format="italic" title="Italic"><i>I</i></button>
+              <button data-format="underline" title="Underline"><u>U</u></button>
+              <button data-format="insertUnorderedList" title="Bulleted list">${icon('bullet')}</button>
+              <button data-format="formatBlock" data-format-value="H2" title="Heading">H2</button>
+              <button data-format="formatBlock" data-format-value="P" title="Paragraph">P</button>
+            </div>
+            <div class="field"><label>Text colour</label><div class="color-row"><input class="color-input" type="color" data-text-color="true" value="#e6e8ec"><span class="color-hex">Selected text</span></div></div>
+            <div class="field"><label>Text size</label><select class="select" data-text-size="true"><option value="2">Small</option><option value="3" selected>Normal</option><option value="4">Large</option><option value="5">Extra large</option></select></div>
+            <div class="toggle-sub">Select text inside a card first, then apply formatting. Standard keyboard shortcuts work too.</div>
+          `);
+        }
+
+        html += `<div class="toggle-sub">Drag the header to move this card. Drag the bottom-right corner to resize. Use the small edge dots to connect cards.</div>`;
+        return html;
+      }
+
+      function nodeStylePanel(n) {
+        const s = n.style || {};
+        const has = k => s[k] !== undefined && s[k] !== '' && s[k] !== null;
+        const effRadius = s.radius == null ? settings.radius : s.radius;
+        const effOutlineWidth = s.outlineWidth == null ? settings.outlineWidth : s.outlineWidth;
+
+        return `
+          ${htmlSection('Card type', segBtns('node-type', [
+            ['note', 'Note'], ['section', 'Title'], ['quote', 'Quote'],
+            ['code', 'Code'], ['checklist', 'List'], ['image', 'Image'],
+          ], n.type, 'three'))}
+
+          ${htmlSection('Card surface', `
+            ${colorField('Background', 'card', s.card || settings.card, has('card'))}
+            ${colorField('Text colour', 'text', s.text || '#eef0f3', has('text'))}
+            ${colorField('Accent', 'accent', s.accent || n.color || settings.accent, has('accent') || !!n.color)}
+            ${colorField('Border', 'border', s.border || '#22262c', has('border'))}
+            ${field('Corner radius', `<div class="range-row"><input type="range" min="0" max="30" step="1" data-node-style="radius" value="${effRadius}"><span class="range-value">${effRadius}px</span></div>`)}
+          `)}
+
+          ${htmlSection('Outline', `
+            ${field('Outline style', `<select class="select" data-node-style="outline">${selectedOptions([['', 'Use global']].concat(OUTLINE_OPTIONS), s.outline || '')}</select>`)}
+            <div class="input-row">
+              ${field('Colour A', `<input class="color-input" type="color" data-node-style="outlineA" value="${s.outlineA || settings.outlineA}">`)}
+              ${field('Colour B', `<input class="color-input" type="color" data-node-style="outlineB" value="${s.outlineB || settings.outlineB}">`)}
+            </div>
+            ${field('Outline width', `<div class="range-row"><input type="range" min="0" max="3" step=".25" data-node-style="outlineWidth" value="${effOutlineWidth}"><span class="range-value">${effOutlineWidth.toFixed(2)}px</span></div>`)}
+          `)}
+
+          <button class="subtle-btn" style="width:100%;margin-top:4px" data-action="reset-style-all">${icon('undo')} Reset card appearance</button>
+          <div class="toggle-sub" style="margin-top:8px">These changes apply only to this card. Use the appearance menu in the top bar to change every card at once.</div>
+        `;
+      }
+
+      function nodeLinks(n) {
+        const links = state.edges.filter(e => e.from === n.id || e.to === n.id);
+        return `
+          ${htmlSection('Connections', links.length ? links.map(e => {
+            const other = nodeById(e.from === n.id ? e.to : e.from);
+            const label = plainText(other?.title) || plainText(other?.body) || plainText(other?.caption) || 'Untitled card';
+            return `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+              <span class="node-kind-mark" style="background:${other?.style?.accent || other?.color || settings.accent}"></span>
+              <button class="subtle-btn" style="text-align:left;justify-content:flex-start" data-focus-node="${e.from === n.id ? e.to : e.from}">${escapeHTML(label.slice(0, 32))}</button>
+              <button class="icon-btn" style="width:29px;height:29px;min-width:29px" data-focus-edge="${e.id}" title="Edit connection">${icon('link')}</button>
+            </div>`;
+          }).join('') : '<div class="toggle-sub">No connections yet. Use the edge dots or the Connect tool to link this card to another.</div>')}
+
+          ${htmlSection('Create a connection', `<button class="subtle-btn" data-action="connect-selected" style="width:100%">${icon('link')} Choose another card</button>`)}
+
+          ${htmlSection('Connection behaviour', switchRow('Show connector arrows', 'Use arrowheads for new links.', 'arrows', settings.arrows))}
+        `;
+      }
+
+      function edgeDetails(e) {
+        return `
+          ${htmlSection('Line style', `
+            ${field('Connector type', segBtns('edge-style', [['straight', 'Straight'], ['elbow', 'Elbow'], ['curved', 'Smooth curve']], e.style || settings.connectorStyle))}
+            ${field('Line pattern', segBtns('edge-dash', [['solid', 'Solid'], ['dashed', 'Dashed'], ['dotted', 'Dotted']], e.dash || settings.connectorDash, 'three'))}
+            ${field('Line colour', `<div class="color-row"><input class="color-input" type="color" data-edge-prop="color" value="${e.color || settings.connectorColor}"><span class="color-hex">${e.color || settings.connectorColor}</span></div>`)}
+            ${field('Line weight', `<div class="range-row"><input type="range" min=".5" max="8" step=".25" data-edge-prop="width" value="${e.width || settings.connectorWidth}"><span class="range-value">${(e.width || settings.connectorWidth).toFixed(2)}px</span></div>`)}
+            ${switchRow('Arrowhead', 'Add an arrow to the destination.', 'edge-arrow', e.arrow ?? settings.arrows)}
+          `)}
+
+          ${htmlSection('Label', `<div class="field"><label>Optional connector label</label><input class="input" data-edge-prop="label" maxlength="240" value="${escapeHTML(e.label)}" placeholder="e.g. leads to, supports, contradicts"></div>`)}
+
+          ${htmlSection('Actions', `
+            <div class="action-row">
+              <button class="subtle-btn" data-action="reverse-edge">${icon('undo')} Reverse direction</button>
+              <button class="subtle-btn danger" data-action="delete-edge">${icon('trash')} Remove link</button>
+            </div>
+          `)}
+        `;
+      }
+
+      function workspaceDetails() {
+        return `
+          <div class="inspector-empty">
+            <h3>A workspace without limits.</h3>
+            <p>Build a connected map of ideas, research, study notes and references. Cards can sit anywhere on the canvas, and links follow them when you move things around.</p>
+            <button class="primary-btn" style="width:100%;height:37px" data-action="add-root">${icon('plus')} Add main point</button>
+          </div>
+          ${htmlSection('Quick controls', `
+            <div class="shortcut-line"><span>Move canvas</span><span class="key">Space + drag</span></div>
+            <div class="shortcut-line"><span>Zoom</span><span class="key">Wheel / pinch</span></div>
+            <div class="shortcut-line"><span>Connect cards</span><span class="key">C</span></div>
+            <div class="shortcut-line"><span>Delete selection</span><span class="key">Del</span></div>
+            <div class="shortcut-line"><span>Undo / redo</span><span class="key">⌘ Z / ⇧ ⌘ Z</span></div>
+          `)}
+          ${htmlSection('Workspace', `
+            <div class="action-row">
+              <button class="subtle-btn" data-action="open-settings">${icon('settings')} Appearance</button>
+              <button class="subtle-btn" data-action="fit">${icon('fit')} Fit canvas</button>
+            </div>
+            <div class="action-row" style="margin-top:7px">
+              <button class="subtle-btn" data-action="export">${icon('export')} Export JSON</button>
+              <button class="subtle-btn" data-action="import">${icon('import')} Import JSON</button>
+            </div>
+          `)}
+        `;
+      }
+
+      /* ------------------------------------------------------------------ *
+       * Focus helpers
+       * ------------------------------------------------------------------ */
+      function focusEditable(id, fieldName) {
+        if (!fieldName) return;
+        requestAnimationFrame(() => {
+          const el = $(`.node[data-id="${CSS.escape(id)}"] [data-field="${fieldName}"]`);
+          if (!el) return;
+          el.focus();
+          try {
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            range.collapse(false);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+          } catch (e) { /* noop */ }
+        });
+      }
+
+      function focusCheckItem(nodeId, itemId, end = true) {
+        requestAnimationFrame(() => {
+          const el = $(`.node[data-id="${CSS.escape(nodeId)}"] .check-item[data-item-id="${CSS.escape(itemId)}"] .check-text`);
+          if (!el) return;
+          el.focus();
+          if (end) {
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            range.collapse(false);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }
+        });
+      }
+
+      /* ------------------------------------------------------------------ *
+       * Node operations
+       * ------------------------------------------------------------------ */
+      function createChildFromSelected() {
+        const n = nodeById(selectedNode);
+        if (!n) return;
+        addNote('note', n.id);
+      }
+
+      function duplicateNode(id) {
+        const n = nodeById(id);
+        if (!n) return;
+        commitHistory();
+        const cp = clone(n);
+        cp.id = makeId('n');
+        cp.x += 38;
+        cp.y += 42;
+        cp.created = Date.now();
+        state.nodes.push(cp);
+        selectNode(cp.id);
+        renderAll();
+        saveSoon();
+        toast('Card duplicated');
+      }
+
+      function deleteNode(id) {
+        const ix = state.nodes.findIndex(n => n.id === id);
+        if (ix < 0) return;
+        commitHistory();
+        state.nodes.splice(ix, 1);
+        state.edges = state.edges.filter(e => e.from !== id && e.to !== id);
+        selectedNode = null;
+        selectedEdge = null;
+        renderAll();
+        saveSoon();
+      }
+
+      function deleteEdge(id) {
+        if (!edgeById(id)) return;
+        commitHistory();
+        state.edges = state.edges.filter(e => e.id !== id);
+        selectedEdge = null;
+        renderAll();
+        saveSoon();
+      }
+
+      function setTool(next) {
+        tool = next;
+        connectFrom = null;
+        edgeDraft = null;
+        renderSelection();
+        renderEdges();
+        if (next === 'connect') toast('Choose a starting card, then the destination.');
+      }
+
+      /* ------------------------------------------------------------------ *
+       * Camera
+       * ------------------------------------------------------------------ */
+      function worldPoint(clientX, clientY) {
+        const r = viewport.getBoundingClientRect();
+        return {
+          x: (clientX - r.left - camera.x) / camera.zoom,
+          y: (clientY - r.top - camera.y) / camera.zoom,
+        };
+      }
+
+      function zoomAt(nextZoom, cx, cy) {
+        const old = camera.zoom;
+        const z = Math.max(.18, Math.min(3.5, nextZoom));
+        if (Math.abs(z - old) < .0001) return;
+        const rect = viewport.getBoundingClientRect();
+        const px = (cx ?? (rect.left + rect.width / 2)) - rect.left;
+        const py = (cy ?? (rect.top + rect.height / 2)) - rect.top;
+        const wx = (px - camera.x) / old;
+        const wy = (py - camera.y) / old;
+        camera.zoom = z;
+        camera.x = px - wx * z;
+        camera.y = py - wy * z;
+        updateCamera();
+        saveSoon();
+      }
+
+      function fitView() {
+        if (!state.nodes.length) {
+          camera.zoom = 1;
+          camera.x = viewport.clientWidth / 2;
+          camera.y = viewport.clientHeight / 2;
+          updateCamera();
+          return;
+        }
+        const rect = viewport.getBoundingClientRect();
+        const ms = state.nodes.map(n => ({ n, m: measureNode(n) }));
+        const minX = Math.min(...ms.map(o => o.n.x));
+        const minY = Math.min(...ms.map(o => o.n.y));
+        const maxX = Math.max(...ms.map(o => o.n.x + o.m.w));
+        const maxY = Math.max(...ms.map(o => o.n.y + o.m.h));
+        const bw = Math.max(1, maxX - minX), bh = Math.max(1, maxY - minY);
+        camera.zoom = Math.max(.18, Math.min(1.8, (rect.width - 110) / bw, (rect.height - 110) / bh));
+        camera.x = (rect.width - bw * camera.zoom) / 2 - minX * camera.zoom;
+        camera.y = (rect.height - bh * camera.zoom) / 2 - minY * camera.zoom;
+        updateCamera();
+        saveSoon();
+      }
+
+      /* ------------------------------------------------------------------ *
+       * Node click (connect tool)
+       * ------------------------------------------------------------------ */
+      function nodeClick(el, ev) {
+        const id = el.dataset.id;
+        if (tool === 'connect') {
+          ev.preventDefault();
+          if (!connectFrom) {
+            connectFrom = id;
+            selectedNode = id;
+            selectedEdge = null;
+            renderSelection();
+            renderInspector();
+            toast('Now choose the card to connect to.');
+            return;
+          }
+          if (connectFrom === id) {
+            connectFrom = null;
+            renderSelection();
+            renderEdges();
+            toast('Connection cancelled');
+            return;
+          }
+          createEdge(connectFrom, id, true);
+          setTool('select');
+          return;
+        }
+        selectNode(id);
+      }
+
+      /* ------------------------------------------------------------------ *
+       * Pointer interactions
+       * ------------------------------------------------------------------ */
+      const pointerMap = new Map();
+      let gesture = null;
+
+      viewport.addEventListener('pointerdown', ev => {
+        pointerMap.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+
+        if (pointerMap.size >= 2) {
+          activeAction = null;
+          const pts = [...pointerMap.values()];
+          const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+          const mid = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
+          gesture = { type: 'pinch', dist: Math.max(1, dist), zoom: camera.zoom, world: worldPoint(mid.x, mid.y) };
+          return;
+        }
+        if (activeAction) return;
+
+        const onNode = ev.target.closest?.('.node');
+        const onEdge = ev.target.closest?.('.edge-hit');
+        if (onNode || onEdge) return;
+        if (ev.button !== 0 && ev.pointerType === 'mouse') return;
+
+        if (tool === 'pan' || ev.target === viewport || ev.target === world || ev.target === nodesEl || ev.target === edgesEl) {
+          activeAction = {
+            type: 'pan',
+            pointerId: ev.pointerId,
+            startX: ev.clientX,
+            startY: ev.clientY,
+            camX: camera.x,
+            camY: camera.y,
+          };
+          viewport.classList.add('dragging');
+          try { viewport.setPointerCapture(ev.pointerId); } catch (e) { /* noop */ }
+        }
+      });
+
+      nodesEl.addEventListener('pointerdown', ev => {
+        const article = ev.target.closest('.node');
+        if (!article) return;
+        const id = article.dataset.id;
+        const n = nodeById(id);
+        if (!n) return;
+
+        const port = ev.target.closest('.node-port');
+        if (port) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          if (tool === 'connect' && connectFrom) {
+            if (connectFrom !== id) {
+              createEdge(connectFrom, id, true);
+              setTool('select');
+            }
+            return;
+          }
+          connectFrom = id;
+          const pt = worldPoint(ev.clientX, ev.clientY);
+          edgeDraft = { from: id, x: pt.x, y: pt.y };
+          activeAction = { type: 'edge-drag', pointerId: ev.pointerId, from: id };
+          try { article.setPointerCapture(ev.pointerId); } catch (e) { /* noop */ }
+          renderEdges();
+          return;
+        }
+
+        if (ev.target.closest('.resize-handle')) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          commitHistory();
+          const startH = measureNode(n).h;
+          activeAction = {
+            type: 'resize',
+            pointerId: ev.pointerId,
+            id,
+            startX: ev.clientX,
+            startY: ev.clientY,
+            startW: n.w,
+            startH,
+          };
+          n.autoHeight = false;
+          n.h = startH;
+          article.style.height = n.h + 'px';
+          try { article.setPointerCapture(ev.pointerId); } catch (e) { /* noop */ }
+          return;
+        }
+
+        const action = ev.target.closest('[data-node-action]');
+        if (action) {
+          const a = action.dataset.nodeAction;
+          if (a === 'toggle') {
+            ev.preventDefault();
+            ev.stopPropagation();
+            commitHistory();
+            n.collapsed = !n.collapsed;
+            renderAll();
+            saveSoon();
+            return;
+          }
+          if (a === 'delete') {
+            ev.preventDefault();
+            ev.stopPropagation();
+            deleteNode(id);
+            return;
+          }
+          if (a === 'duplicate') {
+            ev.preventDefault();
+            ev.stopPropagation();
+            duplicateNode(id);
+            return;
+          }
+          if (a === 'choose-image') return;
+          if (a === 'resize') return;
+        }
+
+        if (ev.target.closest('[contenteditable="true"]')) {
+          if (tool === 'connect') nodeClick(article, ev);
+          else if (tool === 'select') selectNode(id);
+          return;
+        }
+
+        if (tool === 'connect') {
+          nodeClick(article, ev);
+          return;
+        }
+
+        selectNode(id);
+        if (tool !== 'pan' && ev.button === 0) {
+          commitHistory();
+          activeAction = {
+            type: 'node-drag',
+            pointerId: ev.pointerId,
+            id,
+            startX: ev.clientX,
+            startY: ev.clientY,
+            nodeX: n.x,
+            nodeY: n.y,
+          };
+          try { article.setPointerCapture(ev.pointerId); } catch (e) { /* noop */ }
+        }
+      });
+
+      viewport.addEventListener('pointermove', ev => {
+        if (pointerMap.has(ev.pointerId)) pointerMap.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+
+        if (gesture && pointerMap.size >= 2) {
+          const pts = [...pointerMap.values()];
+          const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+          const mid = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
+          const rect = viewport.getBoundingClientRect();
+          const z = Math.max(.18, Math.min(3.5, gesture.zoom * dist / gesture.dist));
+          camera.zoom = z;
+          camera.x = (mid.x - rect.left) - gesture.world.x * z;
+          camera.y = (mid.y - rect.top) - gesture.world.y * z;
+          updateCamera();
+          return;
+        }
+
+        if (!activeAction) return;
+        const a = activeAction;
+        if (a.pointerId !== ev.pointerId) return;
+
+        if (a.type === 'pan') {
+          camera.x = a.camX + (ev.clientX - a.startX);
+          camera.y = a.camY + (ev.clientY - a.startY);
+          updateCamera();
+        } else if (a.type === 'node-drag') {
+          const n = nodeById(a.id);
+          if (!n) return;
+          n.x = a.nodeX + (ev.clientX - a.startX) / camera.zoom;
+          n.y = a.nodeY + (ev.clientY - a.startY) / camera.zoom;
+          const el = $(`.node[data-id="${CSS.escape(n.id)}"]`);
+          if (el) {
+            el.style.left = n.x + 'px';
+            el.style.top = n.y + 'px';
+          }
+          scheduleRenderEdges();
+        } else if (a.type === 'resize') {
+          const n = nodeById(a.id);
+          if (!n) return;
+          n.w = safeNum(a.startW + (ev.clientX - a.startX) / camera.zoom, 170, 900, a.startW);
+          n.h = safeNum(a.startH + (ev.clientY - a.startY) / camera.zoom, 70, 1600, a.startH);
+          const el = $(`.node[data-id="${CSS.escape(n.id)}"]`);
+          if (el) {
+            el.style.width = n.w + 'px';
+            el.style.height = n.h + 'px';
+          }
+          scheduleRenderEdges();
+        } else if (a.type === 'edge-drag') {
+          const p = worldPoint(ev.clientX, ev.clientY);
+          edgeDraft = { from: a.from, x: p.x, y: p.y };
+          scheduleRenderEdges();
+        }
+      });
+
+      function finishPointer(ev) {
+        pointerMap.delete(ev.pointerId);
+
+        if (gesture) {
+          if (pointerMap.size < 2) gesture = null;
+          if (pointerMap.size === 1) {
+            const p = [...pointerMap.values()][0];
+            activeAction = {
+              type: 'pan',
+              pointerId: [...pointerMap.keys()][0],
+              startX: p.x,
+              startY: p.y,
+              camX: camera.x,
+              camY: camera.y,
+            };
+          }
+          return;
+        }
+
+        if (!activeAction || activeAction.pointerId !== ev.pointerId) return;
+        const a = activeAction;
+
+        if (a.type === 'edge-drag') {
+          edgeDraft = null;
+          activeAction = null;
+          // Search the whole element stack so an existing edge/preview can't block the drop.
+          const stack = document.elementsFromPoint ? document.elementsFromPoint(ev.clientX, ev.clientY) : [];
+          let target = null;
+          for (const el of stack) {
+            const node = el.closest?.('.node');
+            if (node) { target = node; break; }
+          }
+          const to = target?.dataset.id;
+          if (to && to !== a.from) {
+            createEdge(a.from, to, true);
+            setTool('select');
+          } else {
+            connectFrom = null;
+            renderEdges();
+          }
+        } else {
+          activeAction = null;
+          viewport.classList.remove('dragging');
+          if (a.type === 'node-drag' || a.type === 'resize') {
+            renderEdges();
+            renderInspector();
+            saveSoon();
+          }
+        }
+      }
+
+      viewport.addEventListener('pointerup', finishPointer);
+      viewport.addEventListener('pointercancel', finishPointer);
+
+      viewport.addEventListener('wheel', ev => {
+        ev.preventDefault();
+        const scale = Math.exp(-ev.deltaY * .0015);
+        zoomAt(camera.zoom * scale, ev.clientX, ev.clientY);
+      }, { passive: false });
+
+      viewport.addEventListener('click', ev => {
+        if (ev.target === viewport || ev.target === world || ev.target === nodesEl || ev.target === edgesEl || ev.target.id === 'connection-preview') {
+          if (tool === 'select') {
+            selectedNode = null;
+            selectedEdge = null;
+            renderSelection();
+            renderInspector();
+          }
+        }
+      });
+
+      /* ------------------------------------------------------------------ *
+       * Content editing
+       * ------------------------------------------------------------------ */
+      nodesEl.addEventListener('input', ev => {
+        const el = ev.target.closest('[contenteditable="true"]');
+        if (!el) return;
+        const art = el.closest('.node');
+        const n = nodeById(art?.dataset.id);
+        if (!n) return;
+
+        if (el.dataset.checkText) {
+          const row = el.closest('.check-item');
+          const item = n.items.find(i => i.id === row.dataset.itemId);
+          if (item) { item.text = el.textContent || ''; saveSoon(); }
+          return;
+        }
+
+        const fieldName = el.dataset.field;
+        if (!fieldName) return;
+        n[fieldName] = sanitizeHTML(el.innerHTML);
+        if (n.autoHeight) {
+          art.style.height = '';
+          n.h = null;
+        }
+        scheduleRenderEdges();
+        saveSoon();
+        $('#save-status').textContent = 'Unsaved changes';
+      });
+
+      nodesEl.addEventListener('focusout', ev => {
+        const el = ev.target.closest('[contenteditable="true"]');
+        if (el && !el.dataset.checkText) el.innerHTML = sanitizeHTML(el.innerHTML);
+      });
+
+      nodesEl.addEventListener('click', ev => {
+        const art = ev.target.closest('.node');
+        if (!art) return;
+        const n = nodeById(art.dataset.id);
+        if (!n) return;
+
+        if (ev.target.closest('[data-check-toggle]') && n.type === 'checklist') {
+          const row = ev.target.closest('.check-item');
+          const item = n.items.find(i => i.id === row.dataset.itemId);
+          if (item) {
+            commitHistory();
+            item.done = !item.done;
+            row.classList.toggle('done', item.done);
+            ev.target.closest('[data-check-toggle]').setAttribute('aria-label', item.done ? 'Mark as not done' : 'Mark as done');
+            saveSoon();
+          }
+          return;
+        }
+
+        if (ev.target.closest('[data-check-delete]') && n.type === 'checklist') {
+          const row = ev.target.closest('.check-item');
+          const idx = n.items.findIndex(i => i.id === row.dataset.itemId);
+          if (idx >= 0) {
+            commitHistory();
+            n.items.splice(idx, 1);
+            renderAll();
+            saveSoon();
+          }
+          return;
+        }
+
+        if (ev.target.closest('[data-check-add]') && n.type === 'checklist') {
+          commitHistory();
+          const item = { id: makeId('i'), text: '', done: false };
+          n.items.push(item);
+          renderAll();
+          focusCheckItem(n.id, item.id);
+          saveSoon();
+          return;
+        }
+
+        const area = ev.target.closest('[data-node-action="choose-image"]');
+        if (area) {
+          pendingImageParent = art.dataset.id;
+          $('#image-file').click();
+        }
+      });
+
+      nodesEl.addEventListener('keydown', ev => {
+        if (ev.key === 'Escape') { ev.target.blur(); return; }
+
+        const checkEl = ev.target.closest?.('[data-check-text]');
+        if (checkEl) {
+          const art = checkEl.closest('.node');
+          const n = nodeById(art?.dataset.id);
+          if (!n) return;
+          const row = checkEl.closest('.check-item');
+          const idx = n.items.findIndex(i => i.id === row.dataset.itemId);
+          if (ev.key === 'Enter' && !ev.shiftKey) {
+            ev.preventDefault();
+            commitHistory();
+            const item = { id: makeId('i'), text: '', done: false };
+            n.items.splice(idx + 1, 0, item);
+            renderAll();
+            focusCheckItem(n.id, item.id);
+            saveSoon();
+            return;
+          }
+          if (ev.key === 'Backspace' && (checkEl.textContent || '') === '' && n.items.length > 1) {
+            ev.preventDefault();
+            commitHistory();
+            n.items.splice(idx, 1);
+            const prev = n.items[Math.max(0, idx - 1)];
+            renderAll();
+            if (prev) focusCheckItem(n.id, prev.id, true);
+            saveSoon();
+            return;
+          }
+        }
+
+        if (ev.key === 'Enter' && ev.target.classList.contains('node-title') && !ev.shiftKey) {
+          ev.preventDefault();
+          const id = ev.target.closest('.node').dataset.id;
+          const n = nodeById(id);
+          if (n?.collapsed) {
+            n.collapsed = false;
+            renderAll();
+            saveSoon();
+          }
+          requestAnimationFrame(() => {
+            $(`.node[data-id="${CSS.escape(id)}"] .node-body`)?.focus();
+          });
+        }
+      });
+
+      nodesEl.addEventListener('focusin', ev => {
+        if (ev.target.closest('[contenteditable="true"]')) commitHistory();
+      });
+
+      /* Text selection memory for inspector formatting */
+      function textOffset(root, container, offset) {
+        try {
+          const r = document.createRange();
+          r.selectNodeContents(root);
+          r.setEnd(container, offset);
+          return r.toString().length;
+        } catch (e) { return 0; }
+      }
+
+      function pointAtTextOffset(root, targetOffset) {
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        let left = Math.max(0, targetOffset), last = null;
+        while (walker.nextNode()) {
+          const node = walker.currentNode;
+          last = node;
+          if (left <= node.nodeValue.length) return { node, offset: left };
+          left -= node.nodeValue.length;
+        }
+        if (last) return { node: last, offset: last.nodeValue.length };
+        return { node: root, offset: 0 };
+      }
+
+      function restoreTextSelection(target) {
+        if (!lastEditSelection || lastEditSelection.target !== target) return false;
+        const a = pointAtTextOffset(target, lastEditSelection.start);
+        const b = pointAtTextOffset(target, lastEditSelection.end);
+        try {
+          const r = document.createRange();
+          r.setStart(a.node, a.offset);
+          r.setEnd(b.node, b.offset);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(r);
+          return true;
+        } catch (e) { return false; }
+      }
+
+      document.addEventListener('selectionchange', () => {
+        const sel = window.getSelection();
+        if (!sel || !sel.rangeCount || sel.isCollapsed) return;
+        const range = sel.getRangeAt(0);
+        const node = sel.anchorNode;
+        const el = (node?.nodeType === Node.ELEMENT_NODE ? node : node?.parentElement)?.closest?.('[contenteditable="true"]');
+        if (el && nodesEl.contains(el)) {
+          lastEditTarget = el;
+          lastEditSelection = {
+            target: el,
+            start: textOffset(el, range.startContainer, range.startOffset),
+            end: textOffset(el, range.endContainer, range.endOffset),
+          };
+        }
+      });
+
+      function applyInspectorFormat(command, value) {
+        let target = lastEditTarget && nodesEl.contains(lastEditTarget) ? lastEditTarget : document.activeElement?.closest?.('[contenteditable="true"]');
+        if (!target) target = $('.node.selected [contenteditable="true"]');
+        if (!target) { toast('Tap into the text you want to format first.'); return; }
+        target.focus();
+        try {
+          restoreTextSelection(target);
+          document.execCommand('styleWithCSS', false, true);
+          document.execCommand(command, false, value || null);
+          target.dispatchEvent(new Event('input', { bubbles: true }));
+        } catch (e) {
+          toast('This format is not available in this browser.');
+        }
+      }
+
+      /* ------------------------------------------------------------------ *
+       * Inspector events
+       * ------------------------------------------------------------------ */
+      $('#inspector-tabs').addEventListener('click', ev => {
+        const tab = ev.target.closest('[data-tab]');
+        if (tab) {
+          inspectorTab = tab.dataset.tab;
+          renderInspector();
+        }
+      });
+
+      inspectorContent.addEventListener('pointerdown', ev => {
+        if (ev.target.closest('[data-format]')) ev.preventDefault();
+        if (ev.target.closest('[data-setting],[data-node-prop],[data-edge-prop],[data-node-style]')) commitHistory();
+      });
+
+      inspectorContent.addEventListener('click', ev => {
+        const tab = ev.target.closest('[data-tab]');
+        if (tab) { inspectorTab = tab.dataset.tab; renderInspector(); return; }
+
+        const format = ev.target.closest('[data-format]');
+        if (format) { applyInspectorFormat(format.dataset.format, format.dataset.formatValue || null); return; }
+
+        const seg = ev.target.closest('[data-seg] .segment-btn');
+        if (seg) {
+          const group = seg.closest('[data-seg]');
+          const key = group.dataset.seg;
+          const val = seg.dataset.value;
+          commitHistory();
+          if (key === 'node-type') {
+            const n = nodeById(selectedNode);
+            if (!n) return;
+            if (val === 'image' && !n.image) {
+              n.type = 'image';
+              pendingImageParent = n.id;
+              renderAll();
+              $('#image-file').click();
+              return;
+            }
+            n.type = val;
+            if (val === 'section' && !plainText(n.title)) n.title = 'New topic';
+            if (val !== 'section') n.collapsed = false;
+            if (val === 'checklist' && (!n.items || !n.items.length)) {
+              n.items = [{ id: makeId('i'), text: '', done: false }];
+            }
+          } else if (key === 'edge-style') {
+            const e = edgeById(selectedEdge);
+            if (e) e.style = val;
+          } else if (key === 'edge-dash') {
+            const e = edgeById(selectedEdge);
+            if (e) e.dash = val;
+          }
+          renderAll();
+          saveSoon();
+          return;
+        }
+
+        const action = ev.target.closest('[data-action]');
+        if (action) { doAction(action.dataset.action); return; }
+
+        const focus = ev.target.closest('[data-focus-node]');
+        if (focus) {
+          selectNode(focus.dataset.focusNode);
+          inspectorTab = 'details';
+          renderInspector();
+          return;
+        }
+
+        const focusEdge = ev.target.closest('[data-focus-edge]');
+        if (focusEdge) { selectEdge(focusEdge.dataset.focusEdge); return; }
+      });
+
+      inspectorContent.addEventListener('change', ev => {
+        const input = ev.target;
+
+        if (input.dataset.nodeStyle) { saveSoon(); return; }
+
+        if (input.dataset.nodeProp) {
+          const n = nodeById(selectedNode);
+          if (!n) return;
+          commitHistory();
+          if (input.dataset.nodeProp === 'w') {
+            n.w = safeNum(input.value, 170, 900, n.w);
+            const el = $(`.node[data-id="${CSS.escape(n.id)}"]`);
+            if (el) el.style.width = n.w + 'px';
+            renderEdges();
+          } else if (input.dataset.nodeProp === 'h') {
+            n.autoHeight = false;
+            n.h = safeNum(input.value, 70, 1600, measureNode(n).h);
+            const el = $(`.node[data-id="${CSS.escape(n.id)}"]`);
+            if (el) el.style.height = n.h + 'px';
+            renderEdges();
+          }
+          renderInspector();
+          saveSoon();
+          return;
+        }
+
+        if (input.dataset.edgeProp) {
+          const e = edgeById(selectedEdge);
+          if (!e) return;
+          if (input.type !== 'range') commitHistory();
+          if (input.dataset.edgeProp === 'width') e.width = safeNum(input.value, .5, 8, 1.65);
+          else if (input.dataset.edgeProp === 'color') e.color = input.value;
+          else if (input.dataset.edgeProp === 'label') e.label = input.value;
+          renderEdges();
+          renderInspector();
+          saveSoon();
+          return;
+        }
+
+        if (input.dataset.setting) {
+          const key = input.dataset.setting;
+          if (input.type !== 'range') commitHistory();
+          if (key === 'autoHeight') {
+            const n = nodeById(selectedNode);
+            if (n) {
+              n.autoHeight = input.checked;
+              if (input.checked) {
+                n.h = null;
+                const el = $(`.node[data-id="${CSS.escape(n.id)}"]`);
+                if (el) el.style.height = '';
+              }
+            }
+          } else if (key === 'arrows') {
+            settings.arrows = input.checked;
+          } else if (key === 'edge-arrow') {
+            const e = edgeById(selectedEdge);
+            if (e) e.arrow = input.checked;
+          } else {
+            settings[key] = input.value;
+          }
+          applySettings();
+          renderEdges();
+          renderInspector();
+          saveSoon();
+          return;
+        }
+
+        if (input.dataset.textColor) { applyInspectorFormat('foreColor', input.value); return; }
+        if (input.dataset.textSize) { applyInspectorFormat('fontSize', input.value); return; }
+      });
+
+      inspectorContent.addEventListener('input', ev => {
+        const input = ev.target;
+
+        if (input.dataset.nodeStyle) {
+          const n = nodeById(selectedNode);
+          if (!n) return;
+          n.style = n.style || {};
+          const k = input.dataset.nodeStyle;
+          if (k === 'radius' || k === 'outlineWidth') {
+            n.style[k] = Number(input.value);
+            const rv = input.closest('.field')?.querySelector('.range-value');
+            if (rv) rv.textContent = Number(input.value).toFixed(k === 'radius' ? 0 : 2) + 'px';
+          } else {
+            n.style[k] = input.value;
+          }
+          const el = $(`.node[data-id="${CSS.escape(n.id)}"]`);
+          applyNodeStyle(el, n);
+          return;
+        }
+
+        if (input.dataset.setting && input.type === 'range') {
+          const key = input.dataset.setting;
+          settings[key] = Number(input.value);
+          applySettings();
+          const valueEl = input.closest('.field')?.querySelector('.range-value');
+          if (valueEl) {
+            valueEl.textContent = key === 'innerShadow'
+              ? Math.round(settings.innerShadow * 100) + '%'
+              : key === 'radius'
+                ? settings.radius + 'px'
+                : Number(settings[key]).toFixed(2) + (key === 'outlineWidth' ? 'px' : '');
+          }
+          renderEdges();
+          saveSoon();
+          return;
+        }
+
+        if (input.dataset.edgeProp === 'width') {
+          const e = edgeById(selectedEdge);
+          if (e) {
+            e.width = Number(input.value);
+            const v = input.closest('.field')?.querySelector('.range-value');
+            if (v) v.textContent = e.width.toFixed(2) + 'px';
+            renderEdges();
+            saveSoon();
+          }
+        }
+      });
+
+      /* ------------------------------------------------------------------ *
+       * Actions
+       * ------------------------------------------------------------------ */
+      function doAction(action) {
+        if (action === 'add-root') addRoot('section');
+        else if (action === 'add-child') createChildFromSelected();
+        else if (action === 'duplicate' && selectedNode) duplicateNode(selectedNode);
+        else if (action === 'delete-selected' && selectedNode) deleteNode(selectedNode);
+        else if (action === 'delete-edge' && selectedEdge) deleteEdge(selectedEdge);
+        else if (action === 'connect-selected') setTool('connect');
+        else if (action === 'open-settings') openSettings();
+        else if (action === 'fit') fitView();
+        else if (action === 'export') exportProject();
+        else if (action === 'import') $('#import-file').click();
+        else if (action === 'reverse-edge') {
+          const e = edgeById(selectedEdge);
+          if (e) {
+            commitHistory();
+            [e.from, e.to] = [e.to, e.from];
+            renderEdges();
+            saveSoon();
+          }
+        } else if (action === 'reset-style-all') {
+          const n = nodeById(selectedNode);
+          if (!n) return;
+          commitHistory();
+          n.style = normalizeStyle({});
+          n.color = '';
+          applyNodeStyle($(`.node[data-id="${CSS.escape(n.id)}"]`), n);
+          renderInspector();
+          saveSoon();
+          toast('Card appearance reset');
+        } else if (action === 'checklist-add') {
+          const n = nodeById(selectedNode);
+          if (!n) return;
+          commitHistory();
+          const item = { id: makeId('i'), text: '', done: false };
+          n.items.push(item);
+          renderAll();
+          focusCheckItem(n.id, item.id);
+          saveSoon();
+        } else if (action === 'checklist-clear') {
+          const n = nodeById(selectedNode);
+          if (!n) return;
+          commitHistory();
+          n.items = n.items.filter(i => !i.done);
+          if (!n.items.length) n.items.push({ id: makeId('i'), text: '', done: false });
+          renderAll();
+          saveSoon();
+          toast('Completed items cleared');
+        }
+      }
+
+      /* ------------------------------------------------------------------ *
+       * Settings modal
+       * ------------------------------------------------------------------ */
+      function settingsMarkup() {
+        return `
+          ${htmlSection('Canvas', `
+            ${field('Canvas colour', `<div class="color-row"><input class="color-input" type="color" data-setting="canvas" value="${settings.canvas}"><span class="color-hex">${settings.canvas}</span></div>`)}
+            ${field('Grid style', segBtns('setting-grid', [['dots', 'Dots'], ['lines', 'Lines'], ['none', 'Off']], settings.gridStyle, 'three'))}
+            ${field('Grid spacing', `<div class="range-row"><input type="range" min="14" max="52" step="2" data-setting="gridSpacing" value="${settings.gridSpacing}"><span class="range-value">${settings.gridSpacing}px</span></div>`)}
+            ${switchRow('Show workspace grid', 'Keep a quiet visual guide while arranging cards.', 'showGrid', settings.showGrid)}
+          `)}
+
+          ${htmlSection('Cards & outlines', `
+            ${field('Card surface', `<div class="color-row"><input class="color-input" type="color" data-setting="card" value="${settings.card}"><span class="color-hex">${settings.card}</span></div>`)}
+            ${field('Outline style', `<div class="segmented">${OUTLINE_OPTIONS.map(([v, l]) =>
+              `<button type="button" class="segment-btn ${v === settings.outlineStyle ? 'active' : ''}" data-modal-outline="${v}">${l}</button>`).join('')}</div>`)}
+            <div class="input-row">
+              ${field('Outline colour A', `<input class="color-input" type="color" data-setting="outlineA" value="${settings.outlineA}">`)}
+              ${field('Outline colour B', `<input class="color-input" type="color" data-setting="outlineB" value="${settings.outlineB}">`)}
+            </div>
+            ${field('Outline width', `<div class="range-row"><input type="range" min="0" max="3" step=".25" data-setting="outlineWidth" value="${settings.outlineWidth}"><span class="range-value">${settings.outlineWidth}px</span></div>`)}
+            ${field('Inner shadow · all sides', `<div class="range-row"><input type="range" min="0" max="1" step=".05" data-setting="innerShadow" value="${settings.innerShadow}"><span class="range-value">${Math.round(settings.innerShadow * 100)}%</span></div>`)}
+            ${field('Corner radius', `<div class="range-row"><input type="range" min="4" max="26" step="1" data-setting="radius" value="${settings.radius}"><span class="range-value">${settings.radius}px</span></div>`)}
+          `)}
+
+          ${htmlSection('Connections', `
+            ${field('New connector type', segBtns('setting-connector', [['straight', 'Straight'], ['elbow', 'Elbow'], ['curved', 'Smooth curve']], settings.connectorStyle))}
+            ${field('Default line colour', `<div class="color-row"><input class="color-input" type="color" data-setting="connectorColor" value="${settings.connectorColor}"><span class="color-hex">${settings.connectorColor}</span></div>`)}
+            ${field('Line weight', `<div class="range-row"><input type="range" min=".5" max="5" step=".25" data-setting="connectorWidth" value="${settings.connectorWidth}"><span class="range-value">${settings.connectorWidth}px</span></div>`)}
+            ${field('Line pattern', segBtns('setting-dash', [['solid', 'Solid'], ['dashed', 'Dashed'], ['dotted', 'Dotted']], settings.connectorDash, 'three'))}
+            ${switchRow('Arrowheads by default', 'Apply to new connections unless changed per link.', 'arrows', settings.arrows)}
+          `)}
+
+          <div class="toggle-sub">These are the defaults for every card. Select a card and open the Style tab to customise it individually.</div>
+        `;
+      }
+
+      function openSettings() {
+        settingsBody.innerHTML = settingsMarkup();
+        settingsModal.classList.add('open');
+      }
+
+      function closeSettings() {
+        settingsModal.classList.remove('open');
+        renderAll();
+        saveSoon();
+      }
+
+      settingsBody.addEventListener('click', ev => {
+        const outline = ev.target.closest('[data-modal-outline]');
+        if (outline) {
+          commitHistory();
+          settings.outlineStyle = outline.dataset.modalOutline;
+          applySettings();
+          settingsBody.innerHTML = settingsMarkup();
+          saveSoon();
+          return;
+        }
+        const seg = ev.target.closest('[data-seg] .segment-btn');
+        if (seg) {
+          const key = seg.closest('[data-seg]').dataset.seg;
+          const val = seg.dataset.value;
+          commitHistory();
+          if (key === 'setting-grid') settings.gridStyle = val;
+          if (key === 'setting-connector') settings.connectorStyle = val;
+          if (key === 'setting-dash') settings.connectorDash = val;
+          applySettings();
+          settingsBody.innerHTML = settingsMarkup();
+          renderEdges();
+          saveSoon();
+        }
+      });
+
+      settingsBody.addEventListener('pointerdown', ev => {
+        if (ev.target.closest('[data-setting]')) commitHistory();
+      });
+
+      settingsBody.addEventListener('change', ev => {
+        const input = ev.target;
+        if (!input.dataset.setting) return;
+        if (input.type !== 'range') commitHistory();
+        const k = input.dataset.setting;
+        settings[k] = input.type === 'checkbox' ? input.checked
+          : input.type === 'range' ? Number(input.value)
+            : input.value;
+        applySettings();
+        settingsBody.innerHTML = settingsMarkup();
+        renderEdges();
+        saveSoon();
+      });
+
+      settingsBody.addEventListener('input', ev => {
+        const input = ev.target;
+        if (!input.dataset.setting || input.type !== 'range') return;
+        const k = input.dataset.setting;
+        settings[k] = Number(input.value);
+        applySettings();
+        const v = input.closest('.field')?.querySelector('.range-value');
+        if (v) {
+          v.textContent = k === 'innerShadow'
+            ? Math.round(settings[k] * 100) + '%'
+            : settings[k] + (k === 'radius' || k === 'gridSpacing' || k === 'outlineWidth' || k === 'connectorWidth' ? 'px' : '');
+        }
+        renderEdges();
+      });
+
+      $('#settings-btn').addEventListener('click', openSettings);
+      $('#rail-settings-btn').addEventListener('click', openSettings);
+      $('#done-settings').addEventListener('click', closeSettings);
+      $('#reset-settings').addEventListener('click', () => {
+        commitHistory();
+        settings = { ...DEFAULT_SETTINGS };
+        applySettings();
+        settingsBody.innerHTML = settingsMarkup();
+        renderEdges();
+        saveSoon();
+        toast('Appearance reset');
+      });
+      settingsModal.addEventListener('click', ev => {
+        if (ev.target === settingsModal || ev.target.closest('[data-close-modal]')) closeSettings();
+      });
+
+      /* ------------------------------------------------------------------ *
+       * Import / export
+       * ------------------------------------------------------------------ */
+      function exportProject() {
+        const json = JSON.stringify(currentJSON(), null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        const base = (state.name || 'thoughtspace').trim().replace(/[^\w\-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 70) || 'thoughtspace';
+        a.download = base + '.thoughtspace.json';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1200);
+        toast('Workspace exported with notes, links and images');
+      }
+
+      $('#import-file').addEventListener('change', async ev => {
+        const file = ev.target.files?.[0];
+        ev.target.value = '';
+        if (!file) return;
+        try {
+          if (file.size > 60 * 1024 * 1024) throw new Error('That project is over 60 MB. Try splitting very large image collections.');
+          const text = await file.text();
+          const data = JSON.parse(text);
+          commitHistory();
+          loadProject(data, true);
+        } catch (e) {
+          toast(e.message || 'Could not import that project');
+        }
+      });
+
+      function readImage(file) {
+        return new Promise((resolve, reject) => {
+          const fr = new FileReader();
+          fr.onload = () => {
+            const img = new Image();
+            img.onload = () => {
+              try {
+                const max = 2400;
+                const scale = Math.min(1, max / Math.max(img.width, img.height));
+                const c = document.createElement('canvas');
+                c.width = Math.max(1, Math.round(img.width * scale));
+                c.height = Math.max(1, Math.round(img.height * scale));
+                c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+                resolve(c.toDataURL('image/jpeg', .9));
+              } catch (e) {
+                resolve(fr.result);
+              }
+            };
+            img.onerror = () => resolve(fr.result);
+            img.src = fr.result;
+          };
+          fr.onerror = () => reject(new Error('Unable to read that image.'));
+          fr.readAsDataURL(file);
+        });
+      }
+
+      $('#image-file').addEventListener('change', async ev => {
+        const file = ev.target.files?.[0];
+        ev.target.value = '';
+        if (!file) return;
+        const n = pendingImageParent ? nodeById(pendingImageParent) : null;
+        try {
+          if (!file.type.startsWith('image/')) throw new Error('Choose an image file.');
+          if (file.size > 20 * 1024 * 1024) throw new Error('Images must be 20 MB or smaller.');
+          const data = await readImage(file);
+          if (n) {
+            commitHistory();
+            n.type = 'image';
+            n.image = data;
+            renderAll();
+            selectNode(n.id);
+            saveSoon();
+          } else {
+            commitHistory();
+            const p = findSpawnPosition();
+            const im = makeNode('image', p.x, p.y, { image: data });
+            state.nodes.push(im);
+            selectNode(im.id);
+            renderAll();
+            saveSoon();
+          }
+          toast('Image added');
+        } catch (e) {
+          toast(e.message || 'Could not add image');
+        } finally {
+          pendingImageParent = null;
+        }
+      });
+
+      /* ------------------------------------------------------------------ *
+       * Add popover
+       * ------------------------------------------------------------------ */
+      const ADD_ITEMS = [
+        { type: 'note', label: 'Note', ic: 'note' },
+        { type: 'section', label: 'Title card', ic: 'section' },
+        { type: 'checklist', label: 'Checklist', ic: 'checklist' },
+        { type: 'quote', label: 'Quote', ic: 'quote' },
+        { type: 'code', label: 'Code', ic: 'code' },
+        { sep: true },
+        { type: 'image', label: 'Image', ic: 'image' },
+      ];
+
+      function renderAddPopover() {
+        addPopover.innerHTML = ADD_ITEMS.map(item => {
+          if (item.sep) return '<div class="add-sep"></div>';
+          return `<button type="button" data-add-type="${item.type}"><span class="add-ic">${icon(item.ic)}</span>${item.label}</button>`;
+        }).join('');
+      }
+      renderAddPopover();
+
+      function openAddMenu() {
+        addPopover.hidden = false;
+        const btn = $('#add-btn');
+        const r = btn.getBoundingClientRect();
+        const mw = addPopover.offsetWidth;
+        const mh = addPopover.offsetHeight;
+        let x = r.right + 8;
+        let y = r.top;
+        if (x + mw > window.innerWidth - 8) x = r.left - mw - 8;
+        if (x < 8) x = 8;
+        if (y + mh > window.innerHeight - 8) y = window.innerHeight - mh - 8;
+        if (y < 8) y = 8;
+        addPopover.style.left = x + 'px';
+        addPopover.style.top = y + 'px';
+      }
+
+      function closeAddMenu() { addPopover.hidden = true; }
+
+      $('#add-btn').addEventListener('click', ev => {
+        ev.stopPropagation();
+        if (addPopover.hidden) openAddMenu();
+        else closeAddMenu();
+      });
+
+      addPopover.addEventListener('click', ev => {
+        const b = ev.target.closest('[data-add-type]');
+        if (!b) return;
+        const type = b.dataset.addType;
+        closeAddMenu();
+        addNote(type);
+      });
+
+      document.addEventListener('pointerdown', ev => {
+        if (addPopover.hidden) return;
+        if (ev.target.closest('#add-popover') || ev.target.closest('#add-btn')) return;
+        closeAddMenu();
+      }, true);
+
+      /* ------------------------------------------------------------------ *
+       * Topbar / rail wiring
+       * ------------------------------------------------------------------ */
+      $('#project-name').addEventListener('change', ev => {
+        commitHistory();
+        state.name = ev.target.value.trim().slice(0, 100) || 'Untitled workspace';
+        ev.target.value = state.name;
+        saveSoon();
+      });
+
+      $('#undo-btn').addEventListener('click', undo);
+      $('#redo-btn').addEventListener('click', redo);
+      $('#fit-btn').addEventListener('click', fitView);
+      $('#canvas-fit').addEventListener('click', fitView);
+      $('#zoom-out-btn').addEventListener('click', () => zoomAt(camera.zoom / 1.15));
+      $('#canvas-minus').addEventListener('click', () => zoomAt(camera.zoom / 1.15));
+      $('#zoom-in-btn').addEventListener('click', () => zoomAt(camera.zoom * 1.15));
+      $('#canvas-plus').addEventListener('click', () => zoomAt(camera.zoom * 1.15));
+      $('#zoom-reset-btn').addEventListener('click', () => zoomAt(1));
+      $('#canvas-zoom').addEventListener('click', () => zoomAt(1));
+      $('#import-btn').addEventListener('click', () => $('#import-file').click());
+      $('#export-btn').addEventListener('click', exportProject);
+      $('#connect-btn').addEventListener('click', () => setTool(tool === 'connect' ? 'select' : 'connect'));
+      $('#inspector-toggle').addEventListener('click', () => {
+        inspector.classList.toggle('open');
+        renderInspector();
+      });
+      $('#inspector-close').addEventListener('click', () => inspector.classList.remove('open'));
+
+      $('#empty-root-btn').addEventListener('click', () => addRoot('section'));
+      $('#empty-note-btn').addEventListener('click', () => addRoot('note'));
+      $('#empty-import-btn').addEventListener('click', () => $('#import-file').click());
+
+      $('#layers-btn').addEventListener('click', () => {
+        inspector.classList.toggle('open');
+        selectedNode = null;
+        selectedEdge = null;
+        renderInspector();
+      });
+
+      $$('.rail-btn[data-tool]').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
+
+      /* ------------------------------------------------------------------ *
+       * Keyboard shortcuts
+       * ------------------------------------------------------------------ */
+      window.addEventListener('keydown', ev => {
+        const tag = ev.target?.tagName?.toLowerCase();
+        const editing = ev.target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
+
+        if (ev.key === 'Escape') {
+          if (!addPopover.hidden) { closeAddMenu(); return; }
+          if (settingsModal.classList.contains('open')) closeSettings();
+          else if (connectFrom) { connectFrom = null; edgeDraft = null; setTool('select'); }
+          else if (inspector.classList.contains('open')) inspector.classList.remove('open');
+          return;
+        }
+
+        if (editing) return;
+
+        if ((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 'z') {
+          ev.preventDefault();
+          if (ev.shiftKey) redo(); else undo();
+          return;
+        }
+        if ((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 'y') { ev.preventDefault(); redo(); return; }
+        if (ev.code === 'Space') { ev.preventDefault(); setTool('pan'); return; }
+        if (ev.key === 'Delete' || ev.key === 'Backspace') {
+          if (selectedNode) deleteNode(selectedNode);
+          else if (selectedEdge) deleteEdge(selectedEdge);
+        }
+        if (ev.key.toLowerCase() === 'v') setTool('select');
+        if (ev.key.toLowerCase() === 'c') setTool('connect');
+        if (ev.key.toLowerCase() === 'n') addNote('note');
+        if (ev.key.toLowerCase() === 't') addNote('section');
+        if (ev.key === '+' || ev.key === '=') zoomAt(camera.zoom * 1.15);
+        if (ev.key === '-') zoomAt(camera.zoom / 1.15);
+        if (ev.key === '0') fitView();
+      });
+
+      window.addEventListener('keyup', ev => {
+        if (ev.code === 'Space' && tool === 'pan') setTool('select');
+      });
+
+      window.addEventListener('resize', () => {
+        updateCamera();
+        scheduleRenderEdges();
+      });
+
+      window.addEventListener('beforeunload', () => {
+        clearTimeout(saveTimer);
+        saveLocal();
+      });
+
+      /* ------------------------------------------------------------------ *
+       * Icons
+       * ------------------------------------------------------------------ */
+      function fillIcon(el, name) { if (el) el.innerHTML = icon(name); }
+      [
+        ['undo-btn', 'undo'], ['redo-btn', 'redo'], ['fit-btn', 'fit'],
+        ['zoom-out-btn', 'minus'], ['zoom-in-btn', 'plus'],
+        ['import-btn', 'import'], ['export-btn', 'export'],
+        ['settings-btn', 'settings'], ['inspector-toggle', 'layers'],
+        ['add-btn', 'plus'], ['layers-btn', 'layers'], ['rail-settings-btn', 'settings'],
+        ['canvas-minus', 'minus'], ['canvas-plus', 'plus'], ['canvas-fit', 'fit'],
+        ['empty-mark', 'layers'], ['inspector-close', 'close'],
+      ].forEach(([id, ic]) => fillIcon(document.getElementById(id), ic));
+
+      $('#export-btn').innerHTML = icon('export') + '<span class="export-label">Export</span>';
+      $('#connect-btn').innerHTML = icon('connect') + '<span>Connect</span>';
+      $$('.rail-btn[data-tool]').forEach(b => {
+        const ic = b.dataset.tool === 'select' ? 'select' : b.dataset.tool === 'pan' ? 'pan' : 'connect';
+        b.innerHTML = icon(ic) + `<span class="rail-tip">${b.title}</span>`;
+      });
+      $$('[data-close-modal]').forEach(b => fillIcon(b, 'close'));
+
+      /* ------------------------------------------------------------------ *
+       * Init
+       * ------------------------------------------------------------------ */
+      applySettings();
+      if (!loadLocal()) {
+        camera.x = Math.max(80, window.innerWidth * .2);
+        camera.y = Math.max(80, window.innerHeight * .2);
+        renderAll();
+        history = [];
+        updateHistoryButtons();
+      } else {
+        history = [];
+        future = [];
+        updateHistoryButtons();
+      }
+    })();
+  </script>
+</body>
+
+</html>
