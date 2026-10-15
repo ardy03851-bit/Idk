@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-outline="divided-gradient">
+<html lang="en">
 
 <head>
   <meta charset="utf-8">
@@ -10,22 +10,26 @@
     :root {
       color-scheme: dark;
       --bg: #090a0c;
-      --panel: #0e1013;
       --card: #101216;
-      --line: rgba(255, 255, 255, .085);
-      --line-strong: rgba(255, 255, 255, .15);
-      --text: #eef0f3;
-      --muted: #9298a2;
+      --card-text: #cdd1d8;
+      --card-border: #22262c;
       --accent: #d4d7dd;
       --outline-a: #ffffff;
       --outline-b: #8b94a4;
       --outline-width: 1px;
       --radius: 14px;
       --inner-shadow: .58;
+      --shadow-amount: .5;
+      --border-width: 1px;
+      --border-style: solid;
       --grid-size: 24px;
+      --line: rgba(255, 255, 255, .085);
+      --line-strong: rgba(255, 255, 255, .15);
+      --text: #eef0f3;
+      --muted: #9298a2;
       --topbar-h: 58px;
       --rail-w: 58px;
-      --inspector-w: 296px;
+      --inspector-w: 300px;
       --shadow: 0 18px 60px rgba(0, 0, 0, .42);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
@@ -74,10 +78,10 @@
       width: 100%;
       display: grid;
       grid-template-rows: var(--topbar-h) minmax(0, 1fr);
-      background: var(--bg);
+      background: var(--bg)
     }
 
-    /* ---------- Topbar ---------- */
+    /* Topbar */
     .topbar {
       z-index: 30;
       display: flex;
@@ -108,7 +112,7 @@
     .project-name:hover,
     .project-name:focus {
       border-color: var(--line-strong);
-      background: rgba(255, 255, 255, .025);
+      background: rgba(255, 255, 255, .025)
     }
 
     .top-divider {
@@ -168,7 +172,7 @@
     .icon-btn svg,
     .tool-btn svg,
     .primary-btn svg,
-    .select-btn svg {
+    .subtle-btn svg {
       width: 17px;
       height: 17px;
       stroke: currentColor;
@@ -180,8 +184,7 @@
     }
 
     .tool-btn {
-      font-size: 12px;
-      min-width: 34px
+      font-size: 12px
     }
 
     .tool-btn span {
@@ -214,7 +217,7 @@
       transform: translateY(1px)
     }
 
-    /* ---------- Workspace shell ---------- */
+    /* Workspace shell */
     .workspace-shell {
       display: grid;
       grid-template-columns: var(--rail-w) minmax(0, 1fr) var(--inspector-w);
@@ -364,7 +367,7 @@
       stroke: transparent;
       stroke-width: 18;
       pointer-events: stroke;
-      cursor: pointer;
+      cursor: pointer
     }
 
     .edge-label {
@@ -380,7 +383,7 @@
       pointer-events: none
     }
 
-    /* ---------- Node ---------- */
+    /* Node */
     .node {
       position: absolute;
       width: 260px;
@@ -389,9 +392,17 @@
       user-select: text;
       -webkit-user-select: text;
       touch-action: pan-y;
-      --node-text: #cdd1d8;
-      --node-text-strong: #f1f2f5;
+      --node-card: var(--card);
+      --node-text: var(--card-text);
+      --node-border: var(--card-border);
+      --node-border-width: 1px;
+      --node-border-style: solid;
+      --node-radius: var(--radius);
       --node-accent: var(--accent);
+      --node-outline-a: var(--outline-a);
+      --node-outline-b: var(--outline-b);
+      --node-outline-width: var(--outline-width);
+      --node-shadow: var(--shadow-amount);
       color: var(--node-text);
     }
 
@@ -402,9 +413,9 @@
       width: 100%;
       height: 100%;
       min-height: 95px;
-      background: var(--card);
-      border: 1px solid var(--node-border, rgba(255, 255, 255, .035));
-      border-radius: var(--radius);
+      background: var(--node-card);
+      border: var(--node-border-width) var(--node-border-style) var(--node-border);
+      border-radius: var(--node-radius);
       overflow: visible;
       box-shadow:
         inset 0 0 calc(var(--inner-shadow)*30px) rgba(255, 255, 255, .055),
@@ -412,7 +423,7 @@
         inset 1px 0 0 rgba(255, 255, 255, calc(var(--inner-shadow)*.12)),
         inset -1px 0 0 rgba(255, 255, 255, calc(var(--inner-shadow)*.13)),
         inset 0 -1px 0 rgba(255, 255, 255, calc(var(--inner-shadow)*.12)),
-        0 9px 26px rgba(0, 0, 0, .19);
+        0 calc(var(--node-shadow) * 10px) calc(var(--node-shadow) * 28px) rgba(0, 0, 0, calc(var(--node-shadow) * .38));
       transition: box-shadow .16s, border-color .16s;
       background-image: linear-gradient(145deg, rgba(255, 255, 255, .022), transparent 42%);
     }
@@ -422,7 +433,7 @@
       position: absolute;
       inset: 0;
       z-index: 3;
-      padding: var(--outline-width);
+      padding: var(--node-outline-width);
       border-radius: inherit;
       pointer-events: none;
       background: linear-gradient(135deg, rgba(255, 255, 255, .34), rgba(255, 255, 255, .08) 45%, rgba(255, 255, 255, .025) 70%, rgba(255, 255, 255, .16));
@@ -437,23 +448,44 @@
     }
 
     .node[data-outline="soft"] .node-card::before {
-      background: linear-gradient(140deg, rgba(255, 255, 255, .38), rgba(255, 255, 255, .04) 45%, rgba(255, 255, 255, .19));
+      background: linear-gradient(140deg, var(--node-outline-a), rgba(255, 255, 255, .04) 45%, var(--node-outline-b))
+    }
+
+    .node[data-outline="solid"] .node-card::before {
+      background: var(--node-outline-a)
     }
 
     .node[data-outline="divided"] .node-card::before {
-      background: repeating-conic-gradient(from 12deg, rgba(255, 255, 255, .55) 0 38deg, rgba(255, 255, 255, .08) 38deg 100deg, rgba(255, 255, 255, .24) 100deg 137deg, rgba(255, 255, 255, .04) 137deg 180deg);
+      background: repeating-conic-gradient(from 12deg, var(--node-outline-a) 0 38deg, rgba(255, 255, 255, .08) 38deg 100deg, var(--node-outline-b) 100deg 137deg, rgba(255, 255, 255, .04) 137deg 180deg);
     }
 
     .node[data-outline="gradient"] .node-card::before {
-      background: conic-gradient(from 15deg, var(--outline-a), rgba(255, 255, 255, .05), var(--outline-b), rgba(255, 255, 255, .12), var(--outline-a));
+      background: conic-gradient(from 15deg, var(--node-outline-a), rgba(255, 255, 255, .05), var(--node-outline-b), rgba(255, 255, 255, .12), var(--node-outline-a));
     }
 
     .node[data-outline="divided-gradient"] .node-card::before {
-      background: repeating-conic-gradient(from 7deg, var(--outline-a) 0 37deg, rgba(255, 255, 255, .075) 37deg 78deg, var(--outline-b) 78deg 111deg, rgba(255, 255, 255, .035) 111deg 180deg);
+      background: repeating-conic-gradient(from 7deg, var(--node-outline-a) 0 37deg, rgba(255, 255, 255, .075) 37deg 78deg, var(--node-outline-b) 78deg 111deg, rgba(255, 255, 255, .035) 111deg 180deg);
+    }
+
+    .node[data-outline="dashed"] .node-card::before {
+      background: repeating-conic-gradient(from 0deg, var(--node-outline-a) 0 10deg, transparent 10deg 22deg);
+    }
+
+    .node[data-outline="rainbow"] .node-card::before {
+      background: conic-gradient(from 0deg, #ff5757, #ffb757, #f7ff57, #7dff57, #57ffd8, #57a4ff, #b557ff, #ff57c3, #ff5757);
+    }
+
+    .node[data-outline="neon"] .node-card::before {
+      background: linear-gradient(135deg, #00f0ff, #ff00e0 50%, #00f0ff);
+    }
+
+    .node[data-outline="grid"] .node-card::before {
+      background:
+        repeating-linear-gradient(0deg, var(--node-outline-a) 0 1px, transparent 1px 8px),
+        repeating-linear-gradient(90deg, var(--node-outline-b) 0 1px, transparent 1px 8px);
     }
 
     .node.selected .node-card {
-      border-color: rgba(255, 255, 255, .25);
       box-shadow:
         0 0 0 1px rgba(255, 255, 255, .13),
         0 0 0 4px rgba(255, 255, 255, .035),
@@ -586,7 +618,7 @@
     .node-title:empty::before {
       content: attr(data-placeholder);
       color: #59606b;
-      pointer-events: none;
+      pointer-events: none
     }
 
     .node-body p {
@@ -600,9 +632,10 @@
     .node-body h1,
     .node-body h2,
     .node-body h3 {
-      color: var(--node-text-strong);
+      color: inherit;
       line-height: 1.25;
       margin: .25em 0 .5em;
+      font-weight: 640
     }
 
     .node-body h1 {
@@ -635,7 +668,7 @@
       font-weight: 640;
       letter-spacing: -.015em;
       line-height: 1.35;
-      color: var(--node-text-strong);
+      color: inherit;
       outline: none;
       overflow-wrap: anywhere;
       cursor: text;
@@ -797,7 +830,7 @@
       gap: 8px;
       padding: 5px 6px;
       border-radius: 7px;
-      transition: background .12s;
+      transition: background .12s
     }
 
     .check-item:hover {
@@ -945,7 +978,7 @@
     }
 
     .node-port:hover {
-      background: var(--accent);
+      background: var(--node-accent);
       transform: scale(1.16)
     }
 
@@ -1275,7 +1308,7 @@
     .select:focus,
     .textarea:focus {
       border-color: rgba(255, 255, 255, .32);
-      box-shadow: 0 0 0 2px rgba(255, 255, 255, .04);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, .04)
     }
 
     .input-row {
@@ -1300,7 +1333,7 @@
       text-align: right;
       color: #bfc4cc;
       font-size: 10px;
-      font-variant-numeric: tabular-nums;
+      font-variant-numeric: tabular-nums
     }
 
     .color-row {
@@ -1333,7 +1366,7 @@
       background: var(--accent);
       opacity: 0;
       transition: opacity .15s;
-      flex-shrink: 0;
+      flex-shrink: 0
     }
 
     .override-dot.on {
@@ -1350,9 +1383,13 @@
       grid-template-columns: repeat(3, minmax(0, 1fr))
     }
 
+    .segmented.four {
+      grid-template-columns: repeat(4, minmax(0, 1fr))
+    }
+
     .segment-btn {
       min-height: 33px;
-      padding: 6px 8px;
+      padding: 6px 6px;
       text-align: center;
       background: #121519;
       border: 1px solid rgba(255, 255, 255, .09);
@@ -1371,7 +1408,7 @@
       background: #20242a;
       border-color: rgba(255, 255, 255, .27);
       color: #f0f1f4;
-      box-shadow: inset 0 1px rgba(255, 255, 255, .06);
+      box-shadow: inset 0 1px rgba(255, 255, 255, .06)
     }
 
     .action-row {
@@ -1520,6 +1557,58 @@
       border-radius: 5px;
     }
 
+    /* Theme grid */
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px
+    }
+
+    .theme-btn {
+      padding: 0;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: transparent;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .theme-btn:hover {
+      border-color: rgba(255, 255, 255, .3)
+    }
+
+    .theme-btn.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), 0 0 12px color-mix(in srgb, var(--accent) 30%, transparent)
+    }
+
+    .theme-preview {
+      display: block;
+      height: 42px;
+      position: relative;
+      overflow: hidden
+    }
+
+    .theme-preview .tp-dot {
+      position: absolute;
+      border-radius: 50%;
+      border: 1.5px solid;
+      opacity: .9;
+    }
+
+    .theme-preview .tp-card {
+      position: absolute;
+      border-radius: 4px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .3);
+    }
+
+    .theme-name {
+      display: block;
+      padding: 6px 4px 7px;
+      font-size: 10px;
+      color: #c9ced6
+    }
+
     /* Modal */
     .modal-backdrop {
       position: fixed;
@@ -1538,8 +1627,8 @@
     }
 
     .modal {
-      width: min(540px, 100%);
-      max-height: min(88dvh, 760px);
+      width: min(560px, 100%);
+      max-height: min(88dvh, 780px);
       display: flex;
       flex-direction: column;
       background: #0e1013;
@@ -1672,7 +1761,7 @@
     .add-popover {
       position: fixed;
       z-index: 80;
-      min-width: 176px;
+      min-width: 186px;
       padding: 5px;
       background: #14171c;
       border: 1px solid var(--line-strong);
@@ -1741,14 +1830,76 @@
       margin: 4px 6px
     }
 
+    /* Export menu */
+    .export-popover {
+      position: fixed;
+      z-index: 80;
+      min-width: 200px;
+      padding: 5px;
+      background: #14171c;
+      border: 1px solid var(--line-strong);
+      border-radius: 11px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .5);
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      animation: pop .12s ease;
+    }
+
+    .export-popover[hidden] {
+      display: none
+    }
+
+    .export-popover button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border: 0;
+      background: transparent;
+      color: #d3d7de;
+      font-size: 12px;
+      border-radius: 7px;
+      text-align: left;
+    }
+
+    .export-popover button:hover {
+      background: rgba(255, 255, 255, .07);
+      color: #fff
+    }
+
+    .export-popover .export-ic {
+      width: 16px;
+      height: 16px;
+      display: grid;
+      place-items: center;
+      color: #9aa1ac
+    }
+
+    .export-popover .export-ic svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round
+    }
+
+    .export-popover .export-desc {
+      font-size: 10px;
+      color: #7d8490;
+      margin-top: 2px
+    }
+
     .mobile-close {
       display: none
     }
 
-    /* ---------- Responsive ---------- */
+    /* Responsive */
     @media(max-width:1100px) {
       :root {
-        --inspector-w: 268px
+        --inspector-w: 272px
       }
 
       .project-name {
@@ -1969,6 +2120,10 @@
       .check-del {
         opacity: 1
       }
+
+      .theme-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+      }
     }
 
     @media(prefers-reduced-motion:reduce) {
@@ -2004,7 +2159,7 @@
       <div class="top-group">
         <button class="tool-btn wide-action" id="connect-btn" title="Connect two cards"><span>Connect</span></button>
         <button class="icon-btn" id="import-btn" title="Import workspace" aria-label="Import workspace"></button>
-        <button class="primary-btn" id="export-btn" title="Export entire workspace"><span class="export-label">Export</span></button>
+        <button class="primary-btn" id="export-btn" title="Export workspace"><span class="export-label">Export</span></button>
         <button class="icon-btn" id="settings-btn" title="Workspace appearance" aria-label="Workspace appearance"></button>
         <button class="icon-btn" id="inspector-toggle" title="Toggle properties" aria-label="Toggle properties"></button>
       </div>
@@ -2071,6 +2226,7 @@
   </div>
 
   <div class="add-popover" id="add-popover" hidden role="menu"></div>
+  <div class="export-popover" id="export-popover" hidden role="menu"></div>
 
   <input type="file" id="import-file" accept=".json,application/json,.thoughtspace" hidden>
   <input type="file" id="image-file" accept="image/*" hidden>
@@ -2080,7 +2236,7 @@
       <div class="modal-head">
         <div style="flex:1">
           <div class="modal-heading" id="settings-title">Workspace appearance</div>
-          <div class="modal-desc">Global defaults for the canvas, cards, outlines and connections.</div>
+          <div class="modal-desc">Themes, cards, outlines, and connections.</div>
         </div>
         <button class="modal-x" data-close-modal aria-label="Close settings"></button>
       </div>
@@ -2098,9 +2254,9 @@
     (() => {
       'use strict';
 
-      /* ------------------------------------------------------------------ *
+      /* ============================================================== *
        * Helpers
-       * ------------------------------------------------------------------ */
+       * ============================================================== */
       const $ = (q, root = document) => root.querySelector(q);
       const $$ = (q, root = document) => [...root.querySelectorAll(q)];
       const svg = (paths) => `<svg viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
@@ -2124,6 +2280,8 @@
         minus: '<path d="M5 12h14"/>',
         import: '<path d="M12 15V3m-4 4 4-4 4 4"/><path d="M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/>',
         export: '<path d="M12 3v12m-4-4 4 4 4-4"/><path d="M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/>',
+        image_export: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>',
+        json_export: '<path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M3 16v3a2 2 0 0 0 2 2h3"/><path d="m9 13 3-3 3 3M12 10v7"/>',
         close: '<path d="m6 6 12 12M18 6 6 18"/>',
         expand: '<path d="m7 10 5 5 5-5"/>',
         trash: '<path d="M4 7h16M10 11v6M14 11v6M5.5 7l1 13h11l1-13M9 7V4h6v3"/>',
@@ -2189,44 +2347,159 @@
         return (t.textContent || '').trim();
       }
 
-      /* ------------------------------------------------------------------ *
-       * Configuration & state
-       * ------------------------------------------------------------------ */
+      /* ============================================================== *
+       * Themes
+       * ============================================================== */
+      const THEMES = {
+        dark: {
+          label: 'Dark',
+          swatch: ['#101216', '#090a0c', '#d4d7dd'],
+          settings: {
+            canvas: '#090a0c', card: '#101216', text: '#eef0f3',
+            cardBorder: '#22262c', accent: '#d4d7dd',
+            outlineA: '#ffffff', outlineB: '#8b94a4',
+            connectorColor: '#aeb6c3',
+          }
+        },
+        midnight: {
+          label: 'Midnight',
+          swatch: ['#0e1228', '#080b1a', '#a78bfa'],
+          settings: {
+            canvas: '#080b1a', card: '#0e1228', text: '#e4e6f0',
+            cardBorder: '#1c2344', accent: '#a78bfa',
+            outlineA: '#a78bfa', outlineB: '#6366f1',
+            connectorColor: '#818cf8',
+          }
+        },
+        cozy: {
+          label: 'Cozy',
+          swatch: ['#3a2b20', '#2a1f18', '#e8b98a'],
+          settings: {
+            canvas: '#221812', card: '#3a2b20', text: '#f5e6d3',
+            cardBorder: '#4a382b', accent: '#e8b98a',
+            outlineA: '#e8b98a', outlineB: '#a06840',
+            connectorColor: '#c9a678',
+          }
+        },
+        forest: {
+          label: 'Forest',
+          swatch: ['#18271e', '#0f1a14', '#7dd3a0'],
+          settings: {
+            canvas: '#0f1a14', card: '#18271e', text: '#d8efe0',
+            cardBorder: '#24382c', accent: '#7dd3a0',
+            outlineA: '#7dd3a0', outlineB: '#3d7a56',
+            connectorColor: '#6ab88a',
+          }
+        },
+        ocean: {
+          label: 'Ocean',
+          swatch: ['#0f2438', '#0a1929', '#7dd3fc'],
+          settings: {
+            canvas: '#0a1929', card: '#0f2438', text: '#e0f2fe',
+            cardBorder: '#1e3a54', accent: '#7dd3fc',
+            outlineA: '#7dd3fc', outlineB: '#0369a1',
+            connectorColor: '#60a5fa',
+          }
+        },
+        sunset: {
+          label: 'Sunset',
+          swatch: ['#2a1529', '#1c0e1f', '#fb923c'],
+          settings: {
+            canvas: '#1c0e1f', card: '#2a1529', text: '#fde4d4',
+            cardBorder: '#3d2038', accent: '#fb923c',
+            outlineA: '#fb923c', outlineB: '#c026d3',
+            connectorColor: '#f472b6',
+          }
+        },
+        nord: {
+          label: 'Nord',
+          swatch: ['#3b4252', '#2e3440', '#88c0d0'],
+          settings: {
+            canvas: '#2e3440', card: '#3b4252', text: '#eceff4',
+            cardBorder: '#434c5e', accent: '#88c0d0',
+            outlineA: '#88c0d0', outlineB: '#5e81ac',
+            connectorColor: '#81a1c1',
+          }
+        },
+        paper: {
+          label: 'Paper',
+          swatch: ['#faf3e5', '#f0e6d2', '#8b5a2b'],
+          settings: {
+            canvas: '#f0e6d2', card: '#faf3e5', text: '#3a2e1f',
+            cardBorder: '#d4c4a8', accent: '#8b5a2b',
+            outlineA: '#8b5a2b', outlineB: '#b8956a',
+            connectorColor: '#8b5a2b',
+          }
+        },
+        light: {
+          label: 'Light',
+          swatch: ['#ffffff', '#f4f5f7', '#4a5568'],
+          settings: {
+            canvas: '#f4f5f7', card: '#ffffff', text: '#1a202c',
+            cardBorder: '#e2e8f0', accent: '#4a5568',
+            outlineA: '#ffffff', outlineB: '#cbd5e0',
+            connectorColor: '#718096',
+          }
+        },
+        mono: {
+          label: 'Mono',
+          swatch: ['#ffffff', '#f5f5f5', '#000000'],
+          settings: {
+            canvas: '#f5f5f5', card: '#ffffff', text: '#111111',
+            cardBorder: '#d4d4d4', accent: '#000000',
+            outlineA: '#000000', outlineB: '#737373',
+            connectorColor: '#525252',
+          }
+        },
+        rose: {
+          label: 'Rose',
+          swatch: ['#2a1219', '#1a0a10', '#fb7185'],
+          settings: {
+            canvas: '#1a0a10', card: '#2a1219', text: '#fde2e7',
+            cardBorder: '#3d1a24', accent: '#fb7185',
+            outlineA: '#fb7185', outlineB: '#9f1239',
+            connectorColor: '#f472b6',
+          }
+        },
+        amber: {
+          label: 'Amber',
+          swatch: ['#2a1e08', '#1a1204', '#fbbf24'],
+          settings: {
+            canvas: '#1a1204', card: '#2a1e08', text: '#fef3c7',
+            cardBorder: '#3d2c10', accent: '#fbbf24',
+            outlineA: '#fbbf24', outlineB: '#b45309',
+            connectorColor: '#f59e0b',
+          }
+        },
+      };
+
+      /* ============================================================== *
+       * Settings defaults
+       * ============================================================== */
       const DEFAULT_SETTINGS = {
-        canvas: '#090a0c',
-        card: '#101216',
-        accent: '#d4d7dd',
-        outlineA: '#ffffff',
-        outlineB: '#8b94a4',
-        outlineStyle: 'divided-gradient',
-        outlineWidth: 1,
-        innerShadow: 0.58,
+        canvas: '#090a0c', card: '#101216', text: '#eef0f3',
+        cardBorder: '#22262c', accent: '#d4d7dd',
+        outlineA: '#ffffff', outlineB: '#8b94a4',
+        outlineStyle: 'divided-gradient', outlineWidth: 1,
+        innerShadow: 0.58, shadowAmount: 0.5,
+        borderWidth: 1, borderStyle: 'solid',
         radius: 14,
-        gridStyle: 'dots',
-        gridSpacing: 24,
-        connectorStyle: 'curved',
-        connectorColor: '#aeb6c3',
-        connectorWidth: 1.65,
-        connectorDash: 'solid',
-        showGrid: true,
-        arrows: false,
+        gridStyle: 'dots', gridSpacing: 24,
+        connectorStyle: 'curved', connectorColor: '#aeb6c3',
+        connectorWidth: 1.65, connectorDash: 'solid',
+        showGrid: true, arrows: false,
       };
 
       const OUTLINE_OPTIONS = [
-        ['soft', 'Soft highlight'],
-        ['divided', 'Divided segments'],
-        ['gradient', 'Gradient'],
-        ['divided-gradient', 'Divided gradient'],
-        ['none', 'No outline'],
+        ['soft', 'Soft'], ['divided', 'Divided'], ['gradient', 'Gradient'],
+        ['divided-gradient', 'Div gradient'], ['dashed', 'Dashed'],
+        ['rainbow', 'Rainbow'], ['neon', 'Neon'], ['grid', 'Grid'],
+        ['solid', 'Solid'], ['none', 'None'],
       ];
 
       const TYPE_LABELS = {
-        note: 'TEXT NOTE',
-        section: 'TITLE & NOTES',
-        image: 'IMAGE NOTE',
-        quote: 'QUOTE',
-        code: 'CODE',
-        checklist: 'CHECKLIST',
+        note: 'TEXT NOTE', section: 'TITLE & NOTES', image: 'IMAGE NOTE',
+        quote: 'QUOTE', code: 'CODE', checklist: 'CHECKLIST',
       };
 
       let settings = { ...DEFAULT_SETTINGS };
@@ -2250,9 +2523,9 @@
       let lastEditTarget = null;
       let lastEditSelection = null;
 
-      /* ------------------------------------------------------------------ *
-       * DOM references
-       * ------------------------------------------------------------------ */
+      /* ============================================================== *
+       * DOM refs
+       * ============================================================== */
       const viewport = $('#workspace');
       const world = $('#world');
       const nodesEl = $('#nodes');
@@ -2262,15 +2535,25 @@
       const settingsModal = $('#settings-modal');
       const settingsBody = $('#settings-body');
       const addPopover = $('#add-popover');
+      const exportPopover = $('#export-popover');
 
       const nodeById = id => state.nodes.find(n => n.id === id);
       const edgeById = id => state.edges.find(e => e.id === id);
-      const makeId = prefix => prefix + '_' + (state.nextId++).toString(36) + '_' + Math.random().toString(36).slice(2, 6);
 
-      /* ------------------------------------------------------------------ *
+      // ID generator. The state counter is updated via state.nextId.
+      function makeId(prefix) {
+        return prefix + '_' + (state.nextId++).toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+      }
+      // Local generator used during normalization so it doesn't touch live state.
+      function localIdGen() {
+        let c = 1;
+        return prefix => prefix + '_' + (c++).toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+      }
+
+      /* ============================================================== *
        * History
-       * ------------------------------------------------------------------ */
-      function snapshot() { return JSON.stringify({ state, settings, camera: { ...camera } }); }
+       * ============================================================== */
+      const snapshot = () => JSON.stringify({ state, settings, camera: { ...camera } });
 
       function commitHistory() {
         const s = snapshot();
@@ -2290,6 +2573,7 @@
           selectedEdge = null;
           connectFrom = null;
           edgeDraft = null;
+          activeAction = null;
           applySettings();
           renderAll();
           saveSoon();
@@ -2320,17 +2604,14 @@
         $('#redo-btn').disabled = future.length === 0;
       }
 
-      /* ------------------------------------------------------------------ *
+      /* ============================================================== *
        * Persistence
-       * ------------------------------------------------------------------ */
+       * ============================================================== */
       function currentJSON() {
         return {
-          format: 'ThoughtspaceProject',
-          version: 1,
+          format: 'ThoughtspaceProject', version: 2,
           exportedAt: new Date().toISOString(),
-          state: clone(state),
-          settings: clone(settings),
-          camera: clone(camera),
+          state: clone(state), settings: clone(settings), camera: clone(camera),
         };
       }
 
@@ -2342,7 +2623,7 @@
 
       function saveLocal() {
         try {
-          localStorage.setItem('thoughtspace-project-v1', JSON.stringify(currentJSON()));
+          localStorage.setItem('thoughtspace-project-v2', JSON.stringify(currentJSON()));
           $('#save-status').textContent = 'Saved locally';
         } catch (e) {
           $('#save-status').textContent = 'Local save limited';
@@ -2352,7 +2633,9 @@
 
       function loadLocal() {
         try {
-          const raw = localStorage.getItem('thoughtspace-project-v1');
+          // try v2 then v1
+          let raw = localStorage.getItem('thoughtspace-project-v2');
+          if (!raw) raw = localStorage.getItem('thoughtspace-project-v1');
           if (!raw) return false;
           loadProject(JSON.parse(raw), false);
           return true;
@@ -2362,9 +2645,9 @@
         }
       }
 
-      /* ------------------------------------------------------------------ *
-       * Normalisation
-       * ------------------------------------------------------------------ */
+      /* ============================================================== *
+       * Normalization
+       * ============================================================== */
       function normalizeStyle(s) {
         s = s && typeof s === 'object' ? s : {};
         const color = v => /^#[0-9a-f]{3,8}$/i.test(v || '') ? v : '';
@@ -2378,6 +2661,9 @@
           outline: OUTLINE_OPTIONS.some(([v]) => v === s.outline) ? s.outline : '',
           radius: s.radius == null ? null : safeNum(s.radius, 0, 40, null),
           outlineWidth: s.outlineWidth == null ? null : safeNum(s.outlineWidth, 0, 4, null),
+          borderWidth: s.borderWidth == null ? null : safeNum(s.borderWidth, 0, 4, null),
+          borderStyle: ['none', 'solid', 'dashed', 'dotted'].includes(s.borderStyle) ? s.borderStyle : '',
+          shadowAmount: s.shadowAmount == null ? null : safeNum(s.shadowAmount, 0, 1, null),
         };
       }
 
@@ -2387,6 +2673,7 @@
         if (!Array.isArray(src.nodes) || !Array.isArray(src.edges)) {
           throw new Error('This file does not contain a node and connector list.');
         }
+        const gen = localIdGen();
         const used = new Set();
         const nodes = src.nodes.slice(0, 2000).map((n, i) => {
           const id = String(n.id || `n_${i + 1}`);
@@ -2394,13 +2681,12 @@
           used.add(id);
           const type = ['note', 'section', 'image', 'quote', 'code', 'checklist'].includes(n.type) ? n.type : 'note';
           const items = Array.isArray(n.items) ? n.items.slice(0, 200).map(it => ({
-            id: String(it.id || makeId('i')),
+            id: String(it.id || gen('i')),
             text: String(it.text || '').slice(0, 2000),
             done: !!it.done,
           })) : [];
           return {
-            id,
-            type,
+            id, type,
             x: safeNum(n.x, -100000, 100000, 0),
             y: safeNum(n.y, -100000, 100000, 0),
             w: safeNum(n.w, 170, 900, 250),
@@ -2467,6 +2753,7 @@
         selectedEdge = null;
         connectFrom = null;
         edgeDraft = null;
+        activeAction = null;
         applySettings();
         $('#project-name').value = state.name;
         renderAll();
@@ -2475,19 +2762,24 @@
         if (notify) toast('Workspace imported');
       }
 
-      /* ------------------------------------------------------------------ *
+      /* ============================================================== *
        * Settings
-       * ------------------------------------------------------------------ */
+       * ============================================================== */
       function applySettings() {
         const root = document.documentElement;
         root.style.setProperty('--bg', settings.canvas);
         root.style.setProperty('--card', settings.card);
+        root.style.setProperty('--card-text', settings.text);
+        root.style.setProperty('--card-border', settings.cardBorder);
         root.style.setProperty('--accent', settings.accent);
         root.style.setProperty('--outline-a', settings.outlineA);
         root.style.setProperty('--outline-b', settings.outlineB);
         root.style.setProperty('--outline-width', settings.outlineWidth + 'px');
         root.style.setProperty('--inner-shadow', settings.innerShadow);
         root.style.setProperty('--radius', settings.radius + 'px');
+        root.style.setProperty('--border-width', settings.borderWidth + 'px');
+        root.style.setProperty('--border-style', settings.borderStyle);
+        root.style.setProperty('--shadow-amount', settings.shadowAmount);
 
         let bg = 'none';
         if (settings.showGrid && settings.gridStyle !== 'none') {
@@ -2502,6 +2794,7 @@
 
         updateCamera();
 
+        // Refresh every node's derived style.
         $$('.node', nodesEl).forEach(el => {
           const n = nodeById(el.dataset.id);
           if (n) applyNodeStyle(el, n);
@@ -2519,44 +2812,43 @@
         $('#zoom-reset-btn').textContent = Math.round(camera.zoom * 100) + '%';
       }
 
-      /* ------------------------------------------------------------------ *
+      /* ============================================================== *
        * Per-node style
-       * ------------------------------------------------------------------ */
+       * ============================================================== */
       function applyNodeStyle(el, n) {
         if (!el) return;
         const s = n.style || {};
         const eff = {
           card: s.card || settings.card,
-          radius: s.radius == null ? settings.radius : s.radius,
-          text: s.text || '',
+          text: s.text || settings.text,
+          border: s.border || settings.cardBorder,
+          borderWidth: s.borderWidth != null ? s.borderWidth : settings.borderWidth,
+          borderStyle: s.borderStyle || settings.borderStyle,
+          radius: s.radius != null ? s.radius : settings.radius,
           accent: s.accent || n.color || settings.accent,
-          border: s.border || '',
           outline: s.outline || settings.outlineStyle,
           outlineA: s.outlineA || settings.outlineA,
           outlineB: s.outlineB || settings.outlineB,
-          outlineWidth: s.outlineWidth == null ? settings.outlineWidth : s.outlineWidth,
+          outlineWidth: s.outlineWidth != null ? s.outlineWidth : settings.outlineWidth,
+          shadow: s.shadowAmount != null ? s.shadowAmount : settings.shadowAmount,
         };
-        el.style.setProperty('--card', eff.card);
-        el.style.setProperty('--radius', eff.radius + 'px');
-        el.style.setProperty('--outline-a', eff.outlineA);
-        el.style.setProperty('--outline-b', eff.outlineB);
-        el.style.setProperty('--outline-width', eff.outlineWidth + 'px');
+        el.style.setProperty('--node-card', eff.card);
+        el.style.setProperty('--node-text', eff.text);
+        el.style.setProperty('--node-border', eff.border);
+        el.style.setProperty('--node-border-width', eff.borderWidth + 'px');
+        el.style.setProperty('--node-border-style', eff.borderStyle);
+        el.style.setProperty('--node-radius', eff.radius + 'px');
         el.style.setProperty('--node-accent', eff.accent);
-        if (eff.text) {
-          el.style.setProperty('--node-text', eff.text);
-          el.style.setProperty('--node-text-strong', eff.text);
-        } else {
-          el.style.removeProperty('--node-text');
-          el.style.removeProperty('--node-text-strong');
-        }
-        if (eff.border) el.style.setProperty('--node-border', eff.border);
-        else el.style.removeProperty('--node-border');
+        el.style.setProperty('--node-outline-a', eff.outlineA);
+        el.style.setProperty('--node-outline-b', eff.outlineB);
+        el.style.setProperty('--node-outline-width', eff.outlineWidth + 'px');
+        el.style.setProperty('--node-shadow', eff.shadow);
         el.dataset.outline = eff.outline;
       }
 
-      /* ------------------------------------------------------------------ *
+      /* ============================================================== *
        * Toast
-       * ------------------------------------------------------------------ */
+       * ============================================================== */
       function toast(msg) {
         const el = $('#toast');
         el.textContent = msg;
@@ -2565,21 +2857,16 @@
         toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
       }
 
-      /* ------------------------------------------------------------------ *
-       * Node creation
-       * ------------------------------------------------------------------ */
+      /* ============================================================== *
+       * Node factory
+       * ============================================================== */
       function makeNode(type, x, y, options = {}) {
         return {
-          id: makeId('n'),
-          type,
-          x, y,
-          w: options.w || (type === 'section' ? 275 : type === 'image' ? 250 : 250),
-          h: null,
-          autoHeight: true,
-          title: options.title || '',
-          body: options.body || '',
-          caption: options.caption || '',
-          image: options.image || '',
+          id: makeId('n'), type, x, y,
+          w: options.w || (type === 'section' ? 275 : 250),
+          h: null, autoHeight: true,
+          title: options.title || '', body: options.body || '',
+          caption: options.caption || '', image: options.image || '',
           collapsed: type === 'section' ? options.collapsed !== false : false,
           color: options.color || '',
           style: normalizeStyle(options.style),
@@ -2595,11 +2882,11 @@
       }
 
       function findSpawnPosition(anchor = null) {
-        const rect = viewport.getBoundingClientRect();
         if (anchor) {
           const m = measureNode(anchor);
           return { x: anchor.x + m.w + 110, y: anchor.y + Math.max(0, (m.h - 130) / 2) };
         }
+        const rect = viewport.getBoundingClientRect();
         return {
           x: (rect.width / 2 - camera.x) / camera.zoom - 125,
           y: (rect.height / 2 - camera.y) / camera.zoom - 65,
@@ -2609,11 +2896,8 @@
       function addRoot(type = 'section') {
         commitHistory();
         const p = findSpawnPosition();
-        const opts = type === 'section'
-          ? { title: 'Main point', collapsed: true }
-          : type === 'checklist'
-            ? { items: [{ id: makeId('i'), text: '', done: false }] }
-            : {};
+        const opts = type === 'section' ? { title: 'Main point', collapsed: true }
+          : type === 'checklist' ? { items: [{ id: makeId('i'), text: '', done: false }] } : {};
         const n = makeNode(type, p.x, p.y, opts);
         state.nodes.push(n);
         selectNode(n.id);
@@ -2627,22 +2911,15 @@
         commitHistory();
         const parent = parentId ? nodeById(parentId) : null;
         const p = findSpawnPosition(parent);
-        const opts = type === 'section'
-          ? { title: 'New topic', collapsed: true }
-          : type === 'checklist'
-            ? { items: [{ id: makeId('i'), text: '', done: false }] }
-            : {};
+        const opts = type === 'section' ? { title: 'New topic', collapsed: true }
+          : type === 'checklist' ? { items: [{ id: makeId('i'), text: '', done: false }] } : {};
         const n = makeNode(type, p.x, p.y, opts);
         state.nodes.push(n);
         if (parent) createEdge(parent.id, n.id, false);
         selectNode(n.id);
         renderAll();
-        if (type === 'image') {
-          pendingImageParent = n.id;
-          $('#image-file').click();
-        } else {
-          focusEditable(n.id, type === 'section' ? 'title' : type === 'checklist' ? null : 'body');
-        }
+        if (type === 'image') { pendingImageParent = n.id; $('#image-file').click(); }
+        else focusEditable(n.id, type === 'section' ? 'title' : type === 'checklist' ? null : 'body');
         saveSoon();
         return n;
       }
@@ -2655,14 +2932,9 @@
         }
         if (record) commitHistory();
         const e = {
-          id: makeId('e'),
-          from, to,
-          style: null,
-          color: '',
-          width: settings.connectorWidth,
-          dash: null,
-          arrow: settings.arrows,
-          label: '',
+          id: makeId('e'), from, to, style: null, color: '',
+          width: settings.connectorWidth, dash: null,
+          arrow: settings.arrows, label: '',
         };
         state.edges.push(e);
         selectedEdge = e.id;
@@ -2674,16 +2946,12 @@
         return e;
       }
 
-      /* ------------------------------------------------------------------ *
-       * Selection
-       * ------------------------------------------------------------------ */
       function selectNode(id) {
         selectedNode = id;
         selectedEdge = null;
         renderSelection();
         renderInspector();
       }
-
       function selectEdge(id) {
         selectedEdge = id;
         selectedNode = null;
@@ -2691,9 +2959,9 @@
         renderInspector();
       }
 
-      /* ------------------------------------------------------------------ *
+      /* ============================================================== *
        * Rendering
-       * ------------------------------------------------------------------ */
+       * ============================================================== */
       function renderAll() {
         $('#project-name').value = state.name;
         renderNodes();
@@ -2810,9 +3078,7 @@
             area.setAttribute('aria-label', n.image ? 'Change image' : 'Choose an image');
             if (n.image) {
               const img = document.createElement('img');
-              img.src = n.image;
-              img.alt = '';
-              img.draggable = false;
+              img.src = n.image; img.alt = ''; img.draggable = false;
               area.appendChild(img);
               const cover = document.createElement('span');
               cover.textContent = 'Click to replace image';
@@ -2955,10 +3221,8 @@
           let x1, y1, x2, y2;
           if (preview) {
             const am = measureNode(a);
-            x1 = a.x + am.w / 2;
-            y1 = a.y + am.h / 2;
-            x2 = edge.x;
-            y2 = edge.y;
+            x1 = a.x + am.w / 2; y1 = a.y + am.h / 2;
+            x2 = edge.x; y2 = edge.y;
           } else {
             const b = nodeById(edge.to);
             if (!b) return;
@@ -3042,9 +3306,9 @@
         $('#edge-count').textContent = state.edges.length + ' ' + (state.edges.length === 1 ? 'link' : 'links');
       }
 
-      /* ------------------------------------------------------------------ *
+      /* ============================================================== *
        * Inspector
-       * ------------------------------------------------------------------ */
+       * ============================================================== */
       function htmlSection(title, content) {
         return `<section class="panel-section"><h4 class="section-label">${title}</h4>${content}</section>`;
       }
@@ -3061,8 +3325,8 @@
       function switchRow(label, sub, key, checked) {
         return `<div class="toggle-row"><div><div class="toggle-text">${label}</div>${sub ? `<div class="toggle-sub">${sub}</div>` : ''}</div><label class="switch"><input type="checkbox" data-setting="${key}" ${checked ? 'checked' : ''}><span></span></label></div>`;
       }
-      function colorField(label, key, value, overridden) {
-        return `<div class="field"><label>${label}</label><div class="color-row"><input class="color-input" type="color" data-node-style="${key}" value="${value}"><span class="override-dot ${overridden ? 'on' : ''}" title="Overridden"></span></div></div>`;
+      function colorField(label, dataAttr, value, overridden) {
+        return `<div class="field"><label>${label}</label><div class="color-row"><input class="color-input" type="color" ${dataAttr} value="${value}"><span class="override-dot ${overridden ? 'on' : ''}" title="Overridden from theme"></span></div></div>`;
       }
 
       function renderInspector() {
@@ -3150,6 +3414,9 @@
         const has = k => s[k] !== undefined && s[k] !== '' && s[k] !== null;
         const effRadius = s.radius == null ? settings.radius : s.radius;
         const effOutlineWidth = s.outlineWidth == null ? settings.outlineWidth : s.outlineWidth;
+        const effBorderWidth = s.borderWidth == null ? settings.borderWidth : s.borderWidth;
+        const effBorderStyle = s.borderStyle || settings.borderStyle;
+        const effShadow = s.shadowAmount == null ? settings.shadowAmount : s.shadowAmount;
 
         return `
           ${htmlSection('Card type', segBtns('node-type', [
@@ -3158,11 +3425,19 @@
           ], n.type, 'three'))}
 
           ${htmlSection('Card surface', `
-            ${colorField('Background', 'card', s.card || settings.card, has('card'))}
-            ${colorField('Text colour', 'text', s.text || '#eef0f3', has('text'))}
-            ${colorField('Accent', 'accent', s.accent || n.color || settings.accent, has('accent') || !!n.color)}
-            ${colorField('Border', 'border', s.border || '#22262c', has('border'))}
-            ${field('Corner radius', `<div class="range-row"><input type="range" min="0" max="30" step="1" data-node-style="radius" value="${effRadius}"><span class="range-value">${effRadius}px</span></div>`)}
+            ${colorField('Background', 'data-node-style="card"', s.card || settings.card, has('card'))}
+            ${colorField('Text colour', 'data-node-style="text"', s.text || settings.text, has('text'))}
+            ${colorField('Accent', 'data-node-style="accent"', s.accent || n.color || settings.accent, has('accent') || !!n.color)}
+            ${field('Corner radius', `<div class="range-row"><input type="range" min="0" max="32" step="1" data-node-style="radius" value="${effRadius}"><span class="range-value">${effRadius}px</span></div>`)}
+            ${field('Shadow', `<div class="range-row"><input type="range" min="0" max="1" step=".05" data-node-style="shadowAmount" value="${effShadow}"><span class="range-value">${Math.round(effShadow * 100)}%</span></div>`)}
+          `)}
+
+          ${htmlSection('Border', `
+            ${colorField('Border colour', 'data-node-style="border"', s.border || settings.cardBorder, has('border'))}
+            <div class="input-row">
+              ${field('Width', `<div class="range-row"><input type="range" min="0" max="4" step=".5" data-node-style="borderWidth" value="${effBorderWidth}"><span class="range-value">${effBorderWidth}px</span></div>`)}
+              ${field('Style', segBtns('node-border-style', [['solid', 'Solid'], ['dashed', 'Dash'], ['dotted', 'Dot'], ['none', 'None']], effBorderStyle, 'four'))}
+            </div>
           `)}
 
           ${htmlSection('Outline', `
@@ -3171,7 +3446,7 @@
               ${field('Colour A', `<input class="color-input" type="color" data-node-style="outlineA" value="${s.outlineA || settings.outlineA}">`)}
               ${field('Colour B', `<input class="color-input" type="color" data-node-style="outlineB" value="${s.outlineB || settings.outlineB}">`)}
             </div>
-            ${field('Outline width', `<div class="range-row"><input type="range" min="0" max="3" step=".25" data-node-style="outlineWidth" value="${effOutlineWidth}"><span class="range-value">${effOutlineWidth.toFixed(2)}px</span></div>`)}
+            ${field('Outline width', `<div class="range-row"><input type="range" min="0" max="4" step=".25" data-node-style="outlineWidth" value="${effOutlineWidth}"><span class="range-value">${effOutlineWidth.toFixed(2)}px</span></div>`)}
           `)}
 
           <button class="subtle-btn" style="width:100%;margin-top:4px" data-action="reset-style-all">${icon('undo')} Reset card appearance</button>
@@ -3185,8 +3460,9 @@
           ${htmlSection('Connections', links.length ? links.map(e => {
             const other = nodeById(e.from === n.id ? e.to : e.from);
             const label = plainText(other?.title) || plainText(other?.body) || plainText(other?.caption) || 'Untitled card';
+            const accent = other?.style?.accent || other?.color || settings.accent;
             return `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">
-              <span class="node-kind-mark" style="background:${other?.style?.accent || other?.color || settings.accent}"></span>
+              <span class="node-kind-mark" style="background:${accent}"></span>
               <button class="subtle-btn" style="text-align:left;justify-content:flex-start" data-focus-node="${e.from === n.id ? e.to : e.from}">${escapeHTML(label.slice(0, 32))}</button>
               <button class="icon-btn" style="width:29px;height:29px;min-width:29px" data-focus-edge="${e.id}" title="Edit connection">${icon('link')}</button>
             </div>`;
@@ -3240,15 +3516,15 @@
             </div>
             <div class="action-row" style="margin-top:7px">
               <button class="subtle-btn" data-action="export">${icon('export')} Export JSON</button>
-              <button class="subtle-btn" data-action="import">${icon('import')} Import JSON</button>
+              <button class="subtle-btn" data-action="export-image">${icon('image_export')} Export PNG</button>
             </div>
           `)}
         `;
       }
 
-      /* ------------------------------------------------------------------ *
-       * Focus helpers
-       * ------------------------------------------------------------------ */
+      /* ============================================================== *
+       * Focus / edit
+       * ============================================================== */
       function focusEditable(id, fieldName) {
         if (!fieldName) return;
         requestAnimationFrame(() => {
@@ -3282,9 +3558,9 @@
         });
       }
 
-      /* ------------------------------------------------------------------ *
-       * Node operations
-       * ------------------------------------------------------------------ */
+      /* ============================================================== *
+       * Node ops
+       * ============================================================== */
       function createChildFromSelected() {
         const n = nodeById(selectedNode);
         if (!n) return;
@@ -3297,8 +3573,7 @@
         commitHistory();
         const cp = clone(n);
         cp.id = makeId('n');
-        cp.x += 38;
-        cp.y += 42;
+        cp.x += 38; cp.y += 42;
         cp.created = Date.now();
         state.nodes.push(cp);
         selectNode(cp.id);
@@ -3337,9 +3612,9 @@
         if (next === 'connect') toast('Choose a starting card, then the destination.');
       }
 
-      /* ------------------------------------------------------------------ *
+      /* ============================================================== *
        * Camera
-       * ------------------------------------------------------------------ */
+       * ============================================================== */
       function worldPoint(clientX, clientY) {
         const r = viewport.getBoundingClientRect();
         return {
@@ -3386,9 +3661,6 @@
         saveSoon();
       }
 
-      /* ------------------------------------------------------------------ *
-       * Node click (connect tool)
-       * ------------------------------------------------------------------ */
       function nodeClick(el, ev) {
         const id = el.dataset.id;
         if (tool === 'connect') {
@@ -3416,17 +3688,28 @@
         selectNode(id);
       }
 
-      /* ------------------------------------------------------------------ *
-       * Pointer interactions
-       * ------------------------------------------------------------------ */
+      /* ============================================================== *
+       * Pointer handling
+       * ============================================================== */
       const pointerMap = new Map();
       let gesture = null;
+
+      function cancelActiveAction() {
+        if (activeAction && activeAction.pointerId) {
+          const art = activeAction.id ? $(`.node[data-id="${CSS.escape(activeAction.id)}"]`) : null;
+          if (art) { try { art.releasePointerCapture(activeAction.pointerId); } catch (e) { /* noop */ } }
+        }
+        activeAction = null;
+        edgeDraft = null;
+        viewport.classList.remove('dragging');
+      }
 
       viewport.addEventListener('pointerdown', ev => {
         pointerMap.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
 
         if (pointerMap.size >= 2) {
-          activeAction = null;
+          // A pinch should abort any drag and re-anchor the gesture from here.
+          cancelActiveAction();
           const pts = [...pointerMap.values()];
           const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
           const mid = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
@@ -3442,12 +3725,9 @@
 
         if (tool === 'pan' || ev.target === viewport || ev.target === world || ev.target === nodesEl || ev.target === edgesEl) {
           activeAction = {
-            type: 'pan',
-            pointerId: ev.pointerId,
-            startX: ev.clientX,
-            startY: ev.clientY,
-            camX: camera.x,
-            camY: camera.y,
+            type: 'pan', pointerId: ev.pointerId,
+            startX: ev.clientX, startY: ev.clientY,
+            camX: camera.x, camY: camera.y,
           };
           viewport.classList.add('dragging');
           try { viewport.setPointerCapture(ev.pointerId); } catch (e) { /* noop */ }
@@ -3487,13 +3767,9 @@
           commitHistory();
           const startH = measureNode(n).h;
           activeAction = {
-            type: 'resize',
-            pointerId: ev.pointerId,
-            id,
-            startX: ev.clientX,
-            startY: ev.clientY,
-            startW: n.w,
-            startH,
+            type: 'resize', pointerId: ev.pointerId, id,
+            startX: ev.clientX, startY: ev.clientY,
+            startW: n.w, startH,
           };
           n.autoHeight = false;
           n.h = startH;
@@ -3506,28 +3782,16 @@
         if (action) {
           const a = action.dataset.nodeAction;
           if (a === 'toggle') {
-            ev.preventDefault();
-            ev.stopPropagation();
+            ev.preventDefault(); ev.stopPropagation();
             commitHistory();
             n.collapsed = !n.collapsed;
             renderAll();
             saveSoon();
             return;
           }
-          if (a === 'delete') {
-            ev.preventDefault();
-            ev.stopPropagation();
-            deleteNode(id);
-            return;
-          }
-          if (a === 'duplicate') {
-            ev.preventDefault();
-            ev.stopPropagation();
-            duplicateNode(id);
-            return;
-          }
-          if (a === 'choose-image') return;
-          if (a === 'resize') return;
+          if (a === 'delete') { ev.preventDefault(); ev.stopPropagation(); deleteNode(id); return; }
+          if (a === 'duplicate') { ev.preventDefault(); ev.stopPropagation(); duplicateNode(id); return; }
+          if (a === 'choose-image' || a === 'resize') return;
         }
 
         if (ev.target.closest('[contenteditable="true"]')) {
@@ -3536,22 +3800,15 @@
           return;
         }
 
-        if (tool === 'connect') {
-          nodeClick(article, ev);
-          return;
-        }
+        if (tool === 'connect') { nodeClick(article, ev); return; }
 
         selectNode(id);
         if (tool !== 'pan' && ev.button === 0) {
           commitHistory();
           activeAction = {
-            type: 'node-drag',
-            pointerId: ev.pointerId,
-            id,
-            startX: ev.clientX,
-            startY: ev.clientY,
-            nodeX: n.x,
-            nodeY: n.y,
+            type: 'node-drag', pointerId: ev.pointerId, id,
+            startX: ev.clientX, startY: ev.clientY,
+            nodeX: n.x, nodeY: n.y,
           };
           try { article.setPointerCapture(ev.pointerId); } catch (e) { /* noop */ }
         }
@@ -3587,10 +3844,7 @@
           n.x = a.nodeX + (ev.clientX - a.startX) / camera.zoom;
           n.y = a.nodeY + (ev.clientY - a.startY) / camera.zoom;
           const el = $(`.node[data-id="${CSS.escape(n.id)}"]`);
-          if (el) {
-            el.style.left = n.x + 'px';
-            el.style.top = n.y + 'px';
-          }
+          if (el) { el.style.left = n.x + 'px'; el.style.top = n.y + 'px'; }
           scheduleRenderEdges();
         } else if (a.type === 'resize') {
           const n = nodeById(a.id);
@@ -3598,10 +3852,7 @@
           n.w = safeNum(a.startW + (ev.clientX - a.startX) / camera.zoom, 170, 900, a.startW);
           n.h = safeNum(a.startH + (ev.clientY - a.startY) / camera.zoom, 70, 1600, a.startH);
           const el = $(`.node[data-id="${CSS.escape(n.id)}"]`);
-          if (el) {
-            el.style.width = n.w + 'px';
-            el.style.height = n.h + 'px';
-          }
+          if (el) { el.style.width = n.w + 'px'; el.style.height = n.h + 'px'; }
           scheduleRenderEdges();
         } else if (a.type === 'edge-drag') {
           const p = worldPoint(ev.clientX, ev.clientY);
@@ -3618,12 +3869,9 @@
           if (pointerMap.size === 1) {
             const p = [...pointerMap.values()][0];
             activeAction = {
-              type: 'pan',
-              pointerId: [...pointerMap.keys()][0],
-              startX: p.x,
-              startY: p.y,
-              camX: camera.x,
-              camY: camera.y,
+              type: 'pan', pointerId: [...pointerMap.keys()][0],
+              startX: p.x, startY: p.y,
+              camX: camera.x, camY: camera.y,
             };
           }
           return;
@@ -3635,10 +3883,13 @@
         if (a.type === 'edge-drag') {
           edgeDraft = null;
           activeAction = null;
-          // Search the whole element stack so an existing edge/preview can't block the drop.
-          const stack = document.elementsFromPoint ? document.elementsFromPoint(ev.clientX, ev.clientY) : [];
+          // Use element stack so ports, previews, and edges don't shadow the target.
+          const stack = document.elementsFromPoint
+            ? document.elementsFromPoint(ev.clientX, ev.clientY)
+            : [document.elementFromPoint(ev.clientX, ev.clientY)];
           let target = null;
           for (const el of stack) {
+            if (!el) continue;
             const node = el.closest?.('.node');
             if (node) { target = node; break; }
           }
@@ -3649,6 +3900,9 @@
           } else {
             connectFrom = null;
             renderEdges();
+            // Keep tool consistent. If we were in connect mode and cancelled,
+            // stay in connect mode so the user can try again.
+            if (tool !== 'connect') setTool('select');
           }
         } else {
           activeAction = null;
@@ -3681,9 +3935,9 @@
         }
       });
 
-      /* ------------------------------------------------------------------ *
+      /* ============================================================== *
        * Content editing
-       * ------------------------------------------------------------------ */
+       * ============================================================== */
       nodesEl.addEventListener('input', ev => {
         const el = ev.target.closest('[contenteditable="true"]');
         if (!el) return;
@@ -3701,10 +3955,7 @@
         const fieldName = el.dataset.field;
         if (!fieldName) return;
         n[fieldName] = sanitizeHTML(el.innerHTML);
-        if (n.autoHeight) {
-          art.style.height = '';
-          n.h = null;
-        }
+        if (n.autoHeight) { art.style.height = ''; n.h = null; }
         scheduleRenderEdges();
         saveSoon();
         $('#save-status').textContent = 'Unsaved changes';
@@ -3799,14 +4050,8 @@
           ev.preventDefault();
           const id = ev.target.closest('.node').dataset.id;
           const n = nodeById(id);
-          if (n?.collapsed) {
-            n.collapsed = false;
-            renderAll();
-            saveSoon();
-          }
-          requestAnimationFrame(() => {
-            $(`.node[data-id="${CSS.escape(id)}"] .node-body`)?.focus();
-          });
+          if (n?.collapsed) { n.collapsed = false; renderAll(); saveSoon(); }
+          requestAnimationFrame(() => { $(`.node[data-id="${CSS.escape(id)}"] .node-body`)?.focus(); });
         }
       });
 
@@ -3814,7 +4059,9 @@
         if (ev.target.closest('[contenteditable="true"]')) commitHistory();
       });
 
-      /* Text selection memory for inspector formatting */
+      /* ============================================================== *
+       * Text selection memory
+       * ============================================================== */
       function textOffset(root, container, offset) {
         try {
           const r = document.createRange();
@@ -3883,15 +4130,12 @@
         }
       }
 
-      /* ------------------------------------------------------------------ *
+      /* ============================================================== *
        * Inspector events
-       * ------------------------------------------------------------------ */
+       * ============================================================== */
       $('#inspector-tabs').addEventListener('click', ev => {
         const tab = ev.target.closest('[data-tab]');
-        if (tab) {
-          inspectorTab = tab.dataset.tab;
-          renderInspector();
-        }
+        if (tab) { inspectorTab = tab.dataset.tab; renderInspector(); }
       });
 
       inspectorContent.addEventListener('pointerdown', ev => {
@@ -3928,6 +4172,12 @@
             if (val === 'checklist' && (!n.items || !n.items.length)) {
               n.items = [{ id: makeId('i'), text: '', done: false }];
             }
+          } else if (key === 'node-border-style') {
+            const n = nodeById(selectedNode);
+            if (!n) return;
+            n.style = n.style || {};
+            n.style.borderStyle = val;
+            applyNodeStyle($(`.node[data-id="${CSS.escape(n.id)}"]`), n);
           } else if (key === 'edge-style') {
             const e = edgeById(selectedEdge);
             if (e) e.style = val;
@@ -3944,12 +4194,7 @@
         if (action) { doAction(action.dataset.action); return; }
 
         const focus = ev.target.closest('[data-focus-node]');
-        if (focus) {
-          selectNode(focus.dataset.focusNode);
-          inspectorTab = 'details';
-          renderInspector();
-          return;
-        }
+        if (focus) { selectNode(focus.dataset.focusNode); inspectorTab = 'details'; renderInspector(); return; }
 
         const focusEdge = ev.target.closest('[data-focus-edge]');
         if (focusEdge) { selectEdge(focusEdge.dataset.focusEdge); return; }
@@ -4001,20 +4246,11 @@
             const n = nodeById(selectedNode);
             if (n) {
               n.autoHeight = input.checked;
-              if (input.checked) {
-                n.h = null;
-                const el = $(`.node[data-id="${CSS.escape(n.id)}"]`);
-                if (el) el.style.height = '';
-              }
+              if (input.checked) { n.h = null; const el = $(`.node[data-id="${CSS.escape(n.id)}"]`); if (el) el.style.height = ''; }
             }
-          } else if (key === 'arrows') {
-            settings.arrows = input.checked;
-          } else if (key === 'edge-arrow') {
-            const e = edgeById(selectedEdge);
-            if (e) e.arrow = input.checked;
-          } else {
-            settings[key] = input.value;
-          }
+          } else if (key === 'arrows') settings.arrows = input.checked;
+          else if (key === 'edge-arrow') { const e = edgeById(selectedEdge); if (e) e.arrow = input.checked; }
+          else settings[key] = input.value;
           applySettings();
           renderEdges();
           renderInspector();
@@ -4034,15 +4270,18 @@
           if (!n) return;
           n.style = n.style || {};
           const k = input.dataset.nodeStyle;
-          if (k === 'radius' || k === 'outlineWidth') {
+          if (k === 'radius' || k === 'outlineWidth' || k === 'borderWidth' || k === 'shadowAmount') {
             n.style[k] = Number(input.value);
             const rv = input.closest('.field')?.querySelector('.range-value');
-            if (rv) rv.textContent = Number(input.value).toFixed(k === 'radius' ? 0 : 2) + 'px';
+            if (rv) {
+              rv.textContent = (k === 'radius' || k === 'borderWidth') ? Number(input.value) + 'px'
+                : k === 'shadowAmount' ? Math.round(Number(input.value) * 100) + '%'
+                : Number(input.value).toFixed(2) + 'px';
+            }
           } else {
             n.style[k] = input.value;
           }
-          const el = $(`.node[data-id="${CSS.escape(n.id)}"]`);
-          applyNodeStyle(el, n);
+          applyNodeStyle($(`.node[data-id="${CSS.escape(n.id)}"]`), n);
           return;
         }
 
@@ -4052,11 +4291,10 @@
           applySettings();
           const valueEl = input.closest('.field')?.querySelector('.range-value');
           if (valueEl) {
-            valueEl.textContent = key === 'innerShadow'
-              ? Math.round(settings.innerShadow * 100) + '%'
-              : key === 'radius'
-                ? settings.radius + 'px'
-                : Number(settings[key]).toFixed(2) + (key === 'outlineWidth' ? 'px' : '');
+            valueEl.textContent = key === 'innerShadow' ? Math.round(settings.innerShadow * 100) + '%'
+              : key === 'shadowAmount' ? Math.round(settings.shadowAmount * 100) + '%'
+              : key === 'radius' ? settings.radius + 'px'
+              : Number(settings[key]).toFixed(2) + (key === 'outlineWidth' ? 'px' : '');
           }
           renderEdges();
           saveSoon();
@@ -4075,9 +4313,9 @@
         }
       });
 
-      /* ------------------------------------------------------------------ *
+      /* ============================================================== *
        * Actions
-       * ------------------------------------------------------------------ */
+       * ============================================================== */
       function doAction(action) {
         if (action === 'add-root') addRoot('section');
         else if (action === 'add-child') createChildFromSelected();
@@ -4088,15 +4326,11 @@
         else if (action === 'open-settings') openSettings();
         else if (action === 'fit') fitView();
         else if (action === 'export') exportProject();
+        else if (action === 'export-image') exportImage();
         else if (action === 'import') $('#import-file').click();
         else if (action === 'reverse-edge') {
           const e = edgeById(selectedEdge);
-          if (e) {
-            commitHistory();
-            [e.from, e.to] = [e.to, e.from];
-            renderEdges();
-            saveSoon();
-          }
+          if (e) { commitHistory(); [e.from, e.to] = [e.to, e.from]; renderEdges(); saveSoon(); }
         } else if (action === 'reset-style-all') {
           const n = nodeById(selectedNode);
           if (!n) return;
@@ -4128,11 +4362,44 @@
         }
       }
 
-      /* ------------------------------------------------------------------ *
+      /* ============================================================== *
        * Settings modal
-       * ------------------------------------------------------------------ */
+       * ============================================================== */
+      function themeSwatchMarkup(id) {
+        const t = THEMES[id];
+        if (!t) return '';
+        const [card, canvas, accent] = t.swatch;
+        return `<span class="theme-preview" style="background:${canvas}">
+          <span class="tp-card" style="left:8%;top:26%;width:44%;height:44%;background:${card};border:1px solid ${accent}66"></span>
+          <span class="tp-dot" style="right:11%;top:30%;width:14%;padding-top:14%;background:${accent};border-color:${accent}"></span>
+        </span>
+        <span class="theme-name">${t.label}</span>`;
+      }
+
+      function currentThemeId() {
+        let best = null, bestScore = -1;
+        for (const [id, t] of Object.entries(THEMES)) {
+          let score = 0;
+          for (const [k, v] of Object.entries(t.settings)) {
+            if (settings[k] === v) score++;
+          }
+          if (score > bestScore) { bestScore = score; best = id; }
+        }
+        return best;
+      }
+
       function settingsMarkup() {
+        const activeTheme = currentThemeId();
         return `
+          ${htmlSection('Theme', `
+            <div class="theme-grid">
+              ${Object.keys(THEMES).map(id =>
+                `<button type="button" class="theme-btn ${id === activeTheme ? 'active' : ''}" data-theme-id="${id}">${themeSwatchMarkup(id)}</button>`
+              ).join('')}
+            </div>
+            <div class="toggle-sub" style="margin-top:10px">Themes set global defaults. Individual cards keep their own customisations.</div>
+          `)}
+
           ${htmlSection('Canvas', `
             ${field('Canvas colour', `<div class="color-row"><input class="color-input" type="color" data-setting="canvas" value="${settings.canvas}"><span class="color-hex">${settings.canvas}</span></div>`)}
             ${field('Grid style', segBtns('setting-grid', [['dots', 'Dots'], ['lines', 'Lines'], ['none', 'Off']], settings.gridStyle, 'three'))}
@@ -4140,17 +4407,29 @@
             ${switchRow('Show workspace grid', 'Keep a quiet visual guide while arranging cards.', 'showGrid', settings.showGrid)}
           `)}
 
-          ${htmlSection('Cards & outlines', `
+          ${htmlSection('Cards', `
             ${field('Card surface', `<div class="color-row"><input class="color-input" type="color" data-setting="card" value="${settings.card}"><span class="color-hex">${settings.card}</span></div>`)}
-            ${field('Outline style', `<div class="segmented">${OUTLINE_OPTIONS.map(([v, l]) =>
-              `<button type="button" class="segment-btn ${v === settings.outlineStyle ? 'active' : ''}" data-modal-outline="${v}">${l}</button>`).join('')}</div>`)}
+            ${field('Text colour', `<div class="color-row"><input class="color-input" type="color" data-setting="text" value="${settings.text}"><span class="color-hex">${settings.text}</span></div>`)}
+            ${field('Border colour', `<div class="color-row"><input class="color-input" type="color" data-setting="cardBorder" value="${settings.cardBorder}"><span class="color-hex">${settings.cardBorder}</span></div>`)}
+            <div class="input-row">
+              ${field('Border width', `<div class="range-row"><input type="range" min="0" max="4" step=".5" data-setting="borderWidth" value="${settings.borderWidth}"><span class="range-value">${settings.borderWidth}px</span></div>`)}
+              ${field('Border style', segBtns('setting-border-style', [['solid', 'Solid'], ['dashed', 'Dash'], ['dotted', 'Dot'], ['none', 'None']], settings.borderStyle, 'four'))}
+            </div>
+            ${field('Corner radius', `<div class="range-row"><input type="range" min="0" max="32" step="1" data-setting="radius" value="${settings.radius}"><span class="range-value">${settings.radius}px</span></div>`)}
+            ${field('Shadow', `<div class="range-row"><input type="range" min="0" max="1" step=".05" data-setting="shadowAmount" value="${settings.shadowAmount}"><span class="range-value">${Math.round(settings.shadowAmount * 100)}%</span></div>`)}
+            ${field('Inner shadow', `<div class="range-row"><input type="range" min="0" max="1" step=".05" data-setting="innerShadow" value="${settings.innerShadow}"><span class="range-value">${Math.round(settings.innerShadow * 100)}%</span></div>`)}
+          `)}
+
+          ${htmlSection('Outlines', `
+            <div class="segmented" style="margin-bottom:10px">
+              ${OUTLINE_OPTIONS.map(([v, l]) =>
+                `<button type="button" class="segment-btn ${v === settings.outlineStyle ? 'active' : ''}" data-modal-outline="${v}">${l}</button>`).join('')}
+            </div>
             <div class="input-row">
               ${field('Outline colour A', `<input class="color-input" type="color" data-setting="outlineA" value="${settings.outlineA}">`)}
               ${field('Outline colour B', `<input class="color-input" type="color" data-setting="outlineB" value="${settings.outlineB}">`)}
             </div>
-            ${field('Outline width', `<div class="range-row"><input type="range" min="0" max="3" step=".25" data-setting="outlineWidth" value="${settings.outlineWidth}"><span class="range-value">${settings.outlineWidth}px</span></div>`)}
-            ${field('Inner shadow · all sides', `<div class="range-row"><input type="range" min="0" max="1" step=".05" data-setting="innerShadow" value="${settings.innerShadow}"><span class="range-value">${Math.round(settings.innerShadow * 100)}%</span></div>`)}
-            ${field('Corner radius', `<div class="range-row"><input type="range" min="4" max="26" step="1" data-setting="radius" value="${settings.radius}"><span class="range-value">${settings.radius}px</span></div>`)}
+            ${field('Outline width', `<div class="range-row"><input type="range" min="0" max="4" step=".25" data-setting="outlineWidth" value="${settings.outlineWidth}"><span class="range-value">${settings.outlineWidth}px</span></div>`)}
           `)}
 
           ${htmlSection('Connections', `
@@ -4161,7 +4440,7 @@
             ${switchRow('Arrowheads by default', 'Apply to new connections unless changed per link.', 'arrows', settings.arrows)}
           `)}
 
-          <div class="toggle-sub">These are the defaults for every card. Select a card and open the Style tab to customise it individually.</div>
+          <div class="toggle-sub">Appearance choices are included in JSON exports.</div>
         `;
       }
 
@@ -4169,7 +4448,6 @@
         settingsBody.innerHTML = settingsMarkup();
         settingsModal.classList.add('open');
       }
-
       function closeSettings() {
         settingsModal.classList.remove('open');
         renderAll();
@@ -4177,6 +4455,21 @@
       }
 
       settingsBody.addEventListener('click', ev => {
+        const theme = ev.target.closest('[data-theme-id]');
+        if (theme) {
+          const t = THEMES[theme.dataset.themeId];
+          if (t) {
+            commitHistory();
+            Object.assign(settings, t.settings);
+            applySettings();
+            settingsBody.innerHTML = settingsMarkup();
+            renderEdges();
+            saveSoon();
+            toast('Theme: ' + t.label);
+          }
+          return;
+        }
+
         const outline = ev.target.closest('[data-modal-outline]');
         if (outline) {
           commitHistory();
@@ -4186,6 +4479,7 @@
           saveSoon();
           return;
         }
+
         const seg = ev.target.closest('[data-seg] .segment-btn');
         if (seg) {
           const key = seg.closest('[data-seg]').dataset.seg;
@@ -4194,6 +4488,7 @@
           if (key === 'setting-grid') settings.gridStyle = val;
           if (key === 'setting-connector') settings.connectorStyle = val;
           if (key === 'setting-dash') settings.connectorDash = val;
+          if (key === 'setting-border-style') settings.borderStyle = val;
           applySettings();
           settingsBody.innerHTML = settingsMarkup();
           renderEdges();
@@ -4212,7 +4507,7 @@
         const k = input.dataset.setting;
         settings[k] = input.type === 'checkbox' ? input.checked
           : input.type === 'range' ? Number(input.value)
-            : input.value;
+          : input.value;
         applySettings();
         settingsBody.innerHTML = settingsMarkup();
         renderEdges();
@@ -4227,9 +4522,9 @@
         applySettings();
         const v = input.closest('.field')?.querySelector('.range-value');
         if (v) {
-          v.textContent = k === 'innerShadow'
-            ? Math.round(settings[k] * 100) + '%'
-            : settings[k] + (k === 'radius' || k === 'gridSpacing' || k === 'outlineWidth' || k === 'connectorWidth' ? 'px' : '');
+          v.textContent = k === 'innerShadow' ? Math.round(settings[k] * 100) + '%'
+            : k === 'shadowAmount' ? Math.round(settings[k] * 100) + '%'
+            : settings[k] + (k === 'radius' || k === 'gridSpacing' || k === 'outlineWidth' || k === 'connectorWidth' || k === 'borderWidth' ? 'px' : '');
         }
         renderEdges();
       });
@@ -4250,21 +4545,316 @@
         if (ev.target === settingsModal || ev.target.closest('[data-close-modal]')) closeSettings();
       });
 
-      /* ------------------------------------------------------------------ *
-       * Import / export
-       * ------------------------------------------------------------------ */
+      /* ============================================================== *
+       * Export / import
+       * ============================================================== */
+      function filenameBase() {
+        return (state.name || 'thoughtspace').trim().replace(/[^\w\-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 70) || 'thoughtspace';
+      }
+
       function exportProject() {
         const json = JSON.stringify(currentJSON(), null, 2);
         const blob = new Blob([json], { type: 'application/json' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        const base = (state.name || 'thoughtspace').trim().replace(/[^\w\-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 70) || 'thoughtspace';
-        a.download = base + '.thoughtspace.json';
+        a.download = filenameBase() + '.thoughtspace.json';
         document.body.appendChild(a);
         a.click();
         a.remove();
         setTimeout(() => URL.revokeObjectURL(a.href), 1200);
-        toast('Workspace exported with notes, links and images');
+        toast('Workspace exported');
+      }
+
+      async function exportImage() {
+        if (!state.nodes.length) { toast('Add some cards first'); return; }
+        closeExportPopover();
+
+        // Preload images (nodes of type image).
+        const imageCache = new Map();
+        await Promise.all(state.nodes.filter(n => n.type === 'image' && n.image).map(n =>
+          new Promise(resolve => {
+            const img = new Image();
+            img.onload = () => { imageCache.set(n.id, img); resolve(); };
+            img.onerror = () => resolve();
+            img.src = n.image;
+          })
+        ));
+
+        // Compute bounds.
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        const measures = new Map();
+        state.nodes.forEach(n => {
+          const m = measureNode(n);
+          measures.set(n.id, m);
+          minX = Math.min(minX, n.x);
+          minY = Math.min(minY, n.y);
+          maxX = Math.max(maxX, n.x + m.w);
+          maxY = Math.max(maxY, n.y + m.h);
+        });
+        const PAD = 60;
+        const width = Math.ceil(maxX - minX + PAD * 2);
+        const height = Math.ceil(maxY - minY + PAD * 2);
+
+        // Cap dimensions to keep the canvas within browser limits.
+        const maxDim = 8192;
+        let scale = 2;
+        if (width * scale > maxDim) scale = maxDim / width;
+        if (height * scale > maxDim) scale = Math.min(scale, maxDim / height);
+        scale = Math.max(0.5, Math.min(2, scale));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(width * scale);
+        canvas.height = Math.round(height * scale);
+        const ctx = canvas.getContext('2d');
+        ctx.scale(scale, scale);
+
+        // Background
+        ctx.fillStyle = settings.canvas;
+        ctx.fillRect(0, 0, width, height);
+
+        // Subtle grid
+        if (settings.showGrid && settings.gridStyle !== 'none') {
+          ctx.save();
+          ctx.strokeStyle = 'rgba(255,255,255,.05)';
+          ctx.lineWidth = 1;
+          const g = settings.gridSpacing;
+          const startX = Math.floor((minX - PAD) / g) * g;
+          const startY = Math.floor((minY - PAD) / g) * g;
+          for (let x = startX; x < maxX + PAD; x += g) {
+            ctx.beginPath();
+            ctx.moveTo(x - minX + PAD, 0);
+            ctx.lineTo(x - minX + PAD, height);
+            ctx.stroke();
+          }
+          for (let y = startY; y < maxY + PAD; y += g) {
+            ctx.beginPath();
+            ctx.moveTo(0, y - minY + PAD);
+            ctx.lineTo(width, y - minY + PAD);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        ctx.translate(-minX + PAD, -minY + PAD);
+
+        // Edges
+        state.edges.forEach(e => {
+          const a = nodeById(e.from);
+          const b = nodeById(e.to);
+          if (!a || !b) return;
+          const an = getAnchor(a, b);
+          const style = e.style || settings.connectorStyle;
+          const stroke = e.color || settings.connectorColor;
+          const lineWidth = e.width || settings.connectorWidth;
+          const dash = e.dash || settings.connectorDash;
+
+          ctx.save();
+          ctx.beginPath();
+          if (style === 'straight') {
+            ctx.moveTo(an.x, an.y);
+            ctx.lineTo(an.tx, an.ty);
+          } else if (style === 'elbow') {
+            const dx = an.tx - an.x, dy = an.ty - an.y;
+            if (Math.abs(dx) >= Math.abs(dy)) {
+              const mid = an.x + dx / 2;
+              ctx.moveTo(an.x, an.y); ctx.lineTo(mid, an.y);
+              ctx.lineTo(mid, an.ty); ctx.lineTo(an.tx, an.ty);
+            } else {
+              const mid = an.y + dy / 2;
+              ctx.moveTo(an.x, an.y); ctx.lineTo(an.x, mid);
+              ctx.lineTo(an.tx, mid); ctx.lineTo(an.tx, an.ty);
+            }
+          } else {
+            const dx = an.tx - an.x, dy = an.ty - an.y;
+            if (Math.abs(dx) >= Math.abs(dy)) {
+              const c = Math.max(38, Math.abs(dx) * .42);
+              const s = dx >= 0 ? 1 : -1;
+              ctx.moveTo(an.x, an.y);
+              ctx.bezierCurveTo(an.x + c * s, an.y, an.tx - c * s, an.ty, an.tx, an.ty);
+            } else {
+              const c = Math.max(38, Math.abs(dy) * .42);
+              const s = dy >= 0 ? 1 : -1;
+              ctx.moveTo(an.x, an.y);
+              ctx.bezierCurveTo(an.x, an.y + c * s, an.tx, an.ty - c * s, an.tx, an.ty);
+            }
+          }
+          ctx.strokeStyle = stroke;
+          ctx.lineWidth = lineWidth;
+          if (dash === 'dashed') ctx.setLineDash([7, 6]);
+          else if (dash === 'dotted') ctx.setLineDash([1, 5]);
+          else ctx.setLineDash([]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          if (e.arrow ?? settings.arrows) {
+            // Arrowhead at destination.
+            const dx = an.tx - an.x, dy = an.ty - an.y;
+            const angle = Math.atan2(dy, dx);
+            ctx.beginPath();
+            ctx.moveTo(an.tx, an.ty);
+            ctx.lineTo(an.tx - Math.cos(angle - Math.PI / 6) * 10, an.ty - Math.sin(angle - Math.PI / 6) * 10);
+            ctx.lineTo(an.tx - Math.cos(angle + Math.PI / 6) * 10, an.ty - Math.sin(angle + Math.PI / 6) * 10);
+            ctx.closePath();
+            ctx.fillStyle = stroke;
+            ctx.fill();
+          }
+
+          if (e.label) {
+            const mx = (an.x + an.tx) / 2;
+            const my = (an.y + an.ty) / 2 - 6;
+            ctx.font = '11px Inter, sans-serif';
+            ctx.fillStyle = '#c3c7ce';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(e.label, mx, my);
+          }
+          ctx.restore();
+        });
+
+        // Nodes
+        for (const n of state.nodes) {
+          const m = measures.get(n.id) || measureNode(n);
+          const s = n.style || {};
+          const cardColor = s.card || settings.card;
+          const textColor = s.text || settings.text;
+          const borderColor = s.border || settings.cardBorder;
+          const borderWidth = s.borderWidth != null ? s.borderWidth : settings.borderWidth;
+          const borderStyle = s.borderStyle || settings.borderStyle;
+          const radius = Math.max(0, s.radius != null ? s.radius : settings.radius);
+          const accent = s.accent || n.color || settings.accent;
+          const shadow = s.shadowAmount != null ? s.shadowAmount : settings.shadowAmount;
+
+          // Shadow + fill
+          ctx.save();
+          if (shadow > 0.02) {
+            ctx.shadowColor = `rgba(0,0,0,${0.35 * shadow})`;
+            ctx.shadowBlur = 22 * shadow;
+            ctx.shadowOffsetY = 8 * shadow;
+          }
+          roundRectPath(ctx, n.x, n.y, m.w, m.h, radius);
+          ctx.fillStyle = cardColor;
+          ctx.fill();
+          ctx.restore();
+
+          // Border
+          if (borderWidth > 0 && borderStyle !== 'none') {
+            ctx.save();
+            roundRectPath(ctx, n.x, n.y, m.w, m.h, radius);
+            ctx.strokeStyle = borderColor;
+            ctx.lineWidth = borderWidth;
+            if (borderStyle === 'dashed') ctx.setLineDash([6, 4]);
+            else if (borderStyle === 'dotted') ctx.setLineDash([2, 3]);
+            ctx.stroke();
+            ctx.restore();
+          }
+
+          // Accent bar
+          ctx.save();
+          roundRectPath(ctx, n.x, n.y, m.w, m.h, radius);
+          ctx.clip();
+          ctx.fillStyle = accent;
+          ctx.fillRect(n.x, n.y, 3, m.h);
+          ctx.restore();
+
+          // Text content
+          ctx.save();
+          roundRectPath(ctx, n.x, n.y, m.w, m.h, radius);
+          ctx.clip();
+
+          ctx.fillStyle = textColor;
+          ctx.textBaseline = 'top';
+
+          if (n.type === 'section') {
+            ctx.font = '600 14px Inter, sans-serif';
+            let y = n.y + 18;
+            y = drawWrappedText(ctx, plainText(n.title), n.x + 14, y, m.w - 26, 18);
+            if (!n.collapsed) {
+              ctx.font = '400 12.5px Inter, sans-serif';
+              y += 6;
+              drawWrappedText(ctx, plainText(n.body), n.x + 14, y, m.w - 26, 18);
+            }
+          } else if (n.type === 'image') {
+            const img = imageCache.get(n.id);
+            if (img) {
+              const availW = m.w - 20;
+              const availH = Math.max(40, m.h - 60);
+              const ratio = Math.min(availW / img.width, availH / img.height);
+              const iw = img.width * ratio, ih = img.height * ratio;
+              const ix = n.x + (m.w - iw) / 2;
+              const iy = n.y + 10;
+              ctx.drawImage(img, ix, iy, iw, ih);
+            }
+            if (n.caption) {
+              ctx.font = '11px Inter, sans-serif';
+              drawWrappedText(ctx, plainText(n.caption), n.x + 12, n.y + m.h - 38, m.w - 24, 16);
+            }
+          } else if (n.type === 'checklist') {
+            let y = n.y + 14;
+            ctx.font = '400 12.5px Inter, sans-serif';
+            n.items.forEach(item => {
+              const prefix = item.done ? '✓  ' : '○  ';
+              const line = prefix + (item.text || '');
+              ctx.globalAlpha = item.done ? 0.5 : 1;
+              y = drawWrappedText(ctx, line, n.x + 14, y, m.w - 28, 18);
+              ctx.globalAlpha = 1;
+            });
+          } else {
+            ctx.font = n.type === 'code' ? '11.5px ui-monospace, Menlo, monospace'
+              : n.type === 'quote' ? 'italic 13.5px Inter, sans-serif'
+              : '400 12.5px Inter, sans-serif';
+            drawWrappedText(ctx, plainText(n.body), n.x + 14, n.y + 16, m.w - 28, 18);
+          }
+          ctx.restore();
+        }
+
+        canvas.toBlob(blob => {
+          if (!blob) { toast('Could not render image'); return; }
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filenameBase() + '.png';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 1500);
+          toast('Image exported');
+        }, 'image/png');
+      }
+
+      function roundRectPath(ctx, x, y, w, h, r) {
+        r = Math.min(r, w / 2, h / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.arcTo(x + w, y, x + w, y + r, r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+        ctx.lineTo(x + r, y + h);
+        ctx.arcTo(x, y + h, x, y + h - r, r);
+        ctx.lineTo(x, y + r);
+        ctx.arcTo(x, y, x + r, y, r);
+        ctx.closePath();
+      }
+
+      function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
+        if (!text) return y;
+        const words = String(text).split(/(\s+)/);
+        let line = '';
+        for (const word of words) {
+          const test = line + word;
+          if (ctx.measureText(test).width > maxWidth && line) {
+            ctx.fillText(line, x, y);
+            y += lineHeight;
+            line = word;
+          } else {
+            line = test;
+          }
+        }
+        if (line) {
+          ctx.fillText(line, x, y);
+          return y + lineHeight;
+        }
+        return y;
       }
 
       $('#import-file').addEventListener('change', async ev => {
@@ -4296,9 +4886,7 @@
                 c.height = Math.max(1, Math.round(img.height * scale));
                 c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
                 resolve(c.toDataURL('image/jpeg', .9));
-              } catch (e) {
-                resolve(fr.result);
-              }
+              } catch (e) { resolve(fr.result); }
             };
             img.onerror = () => resolve(fr.result);
             img.src = fr.result;
@@ -4341,9 +4929,9 @@
         }
       });
 
-      /* ------------------------------------------------------------------ *
+      /* ============================================================== *
        * Add popover
-       * ------------------------------------------------------------------ */
+       * ============================================================== */
       const ADD_ITEMS = [
         { type: 'note', label: 'Note', ic: 'note' },
         { type: 'section', label: 'Title card', ic: 'section' },
@@ -4366,10 +4954,8 @@
         addPopover.hidden = false;
         const btn = $('#add-btn');
         const r = btn.getBoundingClientRect();
-        const mw = addPopover.offsetWidth;
-        const mh = addPopover.offsetHeight;
-        let x = r.right + 8;
-        let y = r.top;
+        const mw = addPopover.offsetWidth, mh = addPopover.offsetHeight;
+        let x = r.right + 8, y = r.top;
         if (x + mw > window.innerWidth - 8) x = r.left - mw - 8;
         if (x < 8) x = 8;
         if (y + mh > window.innerHeight - 8) y = window.innerHeight - mh - 8;
@@ -4377,32 +4963,77 @@
         addPopover.style.left = x + 'px';
         addPopover.style.top = y + 'px';
       }
-
       function closeAddMenu() { addPopover.hidden = true; }
 
       $('#add-btn').addEventListener('click', ev => {
         ev.stopPropagation();
+        closeExportPopover();
         if (addPopover.hidden) openAddMenu();
         else closeAddMenu();
       });
-
       addPopover.addEventListener('click', ev => {
         const b = ev.target.closest('[data-add-type]');
         if (!b) return;
-        const type = b.dataset.addType;
         closeAddMenu();
-        addNote(type);
+        addNote(b.dataset.addType);
       });
-
       document.addEventListener('pointerdown', ev => {
-        if (addPopover.hidden) return;
-        if (ev.target.closest('#add-popover') || ev.target.closest('#add-btn')) return;
-        closeAddMenu();
+        if (!addPopover.hidden && !ev.target.closest('#add-popover') && !ev.target.closest('#add-btn')) closeAddMenu();
       }, true);
 
-      /* ------------------------------------------------------------------ *
+      /* ============================================================== *
+       * Export popover
+       * ============================================================== */
+      function renderExportPopover() {
+        exportPopover.innerHTML = `
+          <button type="button" data-export="json">
+            <span class="export-ic">${icon('json_export')}</span>
+            <span><span>JSON project</span><div class="export-desc">Full workspace, importable later</div></span>
+          </button>
+          <button type="button" data-export="png">
+            <span class="export-ic">${icon('image_export')}</span>
+            <span><span>PNG image</span><div class="export-desc">A single picture of every card and link</div></span>
+          </button>
+        `;
+      }
+      renderExportPopover();
+
+      function openExportPopover() {
+        exportPopover.hidden = false;
+        const btn = $('#export-btn');
+        const r = btn.getBoundingClientRect();
+        const mw = exportPopover.offsetWidth, mh = exportPopover.offsetHeight;
+        let x = r.right - mw, y = r.bottom + 6;
+        if (x < 8) x = 8;
+        if (x + mw > window.innerWidth - 8) x = window.innerWidth - mw - 8;
+        if (y + mh > window.innerHeight - 8) y = r.top - mh - 6;
+        if (y < 8) y = 8;
+        exportPopover.style.left = x + 'px';
+        exportPopover.style.top = y + 'px';
+      }
+      function closeExportPopover() { exportPopover.hidden = true; }
+
+      $('#export-btn').addEventListener('click', ev => {
+        ev.stopPropagation();
+        closeAddMenu();
+        if (exportPopover.hidden) openExportPopover();
+        else closeExportPopover();
+      });
+      exportPopover.addEventListener('click', ev => {
+        const b = ev.target.closest('[data-export]');
+        if (!b) return;
+        const kind = b.dataset.export;
+        closeExportPopover();
+        if (kind === 'json') exportProject();
+        else if (kind === 'png') exportImage();
+      });
+      document.addEventListener('pointerdown', ev => {
+        if (!exportPopover.hidden && !ev.target.closest('#export-popover') && !ev.target.closest('#export-btn')) closeExportPopover();
+      }, true);
+
+      /* ============================================================== *
        * Topbar / rail wiring
-       * ------------------------------------------------------------------ */
+       * ============================================================== */
       $('#project-name').addEventListener('change', ev => {
         commitHistory();
         state.name = ev.target.value.trim().slice(0, 100) || 'Untitled workspace';
@@ -4421,12 +5052,8 @@
       $('#zoom-reset-btn').addEventListener('click', () => zoomAt(1));
       $('#canvas-zoom').addEventListener('click', () => zoomAt(1));
       $('#import-btn').addEventListener('click', () => $('#import-file').click());
-      $('#export-btn').addEventListener('click', exportProject);
       $('#connect-btn').addEventListener('click', () => setTool(tool === 'connect' ? 'select' : 'connect'));
-      $('#inspector-toggle').addEventListener('click', () => {
-        inspector.classList.toggle('open');
-        renderInspector();
-      });
+      $('#inspector-toggle').addEventListener('click', () => { inspector.classList.toggle('open'); renderInspector(); });
       $('#inspector-close').addEventListener('click', () => inspector.classList.remove('open'));
 
       $('#empty-root-btn').addEventListener('click', () => addRoot('section'));
@@ -4442,15 +5069,16 @@
 
       $$('.rail-btn[data-tool]').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
 
-      /* ------------------------------------------------------------------ *
+      /* ============================================================== *
        * Keyboard shortcuts
-       * ------------------------------------------------------------------ */
+       * ============================================================== */
       window.addEventListener('keydown', ev => {
         const tag = ev.target?.tagName?.toLowerCase();
         const editing = ev.target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
 
         if (ev.key === 'Escape') {
           if (!addPopover.hidden) { closeAddMenu(); return; }
+          if (!exportPopover.hidden) { closeExportPopover(); return; }
           if (settingsModal.classList.contains('open')) closeSettings();
           else if (connectFrom) { connectFrom = null; edgeDraft = null; setTool('select'); }
           else if (inspector.classList.contains('open')) inspector.classList.remove('open');
@@ -4493,9 +5121,9 @@
         saveLocal();
       });
 
-      /* ------------------------------------------------------------------ *
+      /* ============================================================== *
        * Icons
-       * ------------------------------------------------------------------ */
+       * ============================================================== */
       function fillIcon(el, name) { if (el) el.innerHTML = icon(name); }
       [
         ['undo-btn', 'undo'], ['redo-btn', 'redo'], ['fit-btn', 'fit'],
@@ -4515,9 +5143,9 @@
       });
       $$('[data-close-modal]').forEach(b => fillIcon(b, 'close'));
 
-      /* ------------------------------------------------------------------ *
+      /* ============================================================== *
        * Init
-       * ------------------------------------------------------------------ */
+       * ============================================================== */
       applySettings();
       if (!loadLocal()) {
         camera.x = Math.max(80, window.innerWidth * .2);
