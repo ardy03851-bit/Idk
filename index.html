@@ -590,6 +590,7 @@ function normPath(p){
 }
 function resolvePath(base, rel){
   let r = String(rel == null ? '' : rel).trim();
+  try{ r = decodeURIComponent(r); }catch(e){}
   const qi = r.search(/[?#]/);
   if(qi >= 0) r = r.slice(0, qi);
   if(!r) return null;
@@ -613,14 +614,14 @@ const BINARY_EXT = new Set(['png','jpg','jpeg','gif','webp','avif','bmp','ico','
 const MIME = {
   html:'text/html', htm:'text/html', css:'text/css', js:'text/javascript', mjs:'text/javascript',
   cjs:'text/javascript', json:'application/json', map:'application/json', svg:'image/svg+xml',
-  xml:'application/xml', txt:'text/plain', md:'text/markdown', csv:'text/csv',
+  xml:'application/xml', txt:'text/plain', md:'text/markdown', csv:'text/csv', webmanifest:'application/manifest+json', wasm:'application/wasm',
   png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', gif:'image/gif', webp:'image/webp',
   avif:'image/avif', bmp:'image/bmp', ico:'image/x-icon', tif:'image/tiff', tiff:'image/tiff',
   mp4:'video/mp4', webm:'video/webm', mov:'video/quicktime', m4v:'video/mp4', ogv:'video/ogg',
   mp3:'audio/mpeg', wav:'audio/wav', ogg:'audio/ogg', m4a:'audio/mp4', flac:'audio/flac',
   glb:'model/gltf-binary', gltf:'model/gltf+json', obj:'text/plain', stl:'model/stl',
   fbx:'application/octet-stream', usdz:'model/vnd.usdz+zip',
-  woff:'font/woff', woff2:'font/woff2', ttf:'font/ttf', otf:'font/otf',
+  woff:'font/woff', woff2:'font/woff2', ttf:'font/ttf', otf:'font/otf', eot:'application/vnd.ms-fontobject',
   pdf:'application/pdf', wasm:'application/wasm', zip:'application/zip'
 };
 function mimeOf(p){ return MIME[ext(p)] || 'application/octet-stream'; }
@@ -1268,6 +1269,33 @@ function moduleBlobUrl(p, seen){
 const BOOT_SCRIPT = [
 '(function(){',
 '  var P = window.parent;',
+'  var FILES = __IDE_FILE_MAP__;',
+'  var ENTRY_BASE = __IDE_ENTRY_BASE__;',
+'  function localKey(input){',
+'    var raw = input == null ? "" : String(input);',
+'    if(raw.charAt(0) === "#" || raw.indexOf("//") === 0 || /^(data:|blob:|https?:|mailto:|tel:|javascript:)/i.test(raw)) return null;',
+'    var clean = raw.split("#")[0].split("?")[0];',
+'    try { clean = decodeURIComponent(clean); } catch(e) {}',
+'    var absolute = clean.charAt(0) === "/";',
+'    var parts = (absolute ? clean.slice(1) : (ENTRY_BASE ? ENTRY_BASE + "/" : "") + clean).replace(/\\\\/g,"/").split("/");',
+'    var out = [];',
+'    parts.forEach(function(part){ if(!part || part === ".") return; if(part === "..") out.pop(); else out.push(part); });',
+'    return out.join("/");',
+'  }',
+'  function mapped(input){',
+'    var raw = input && typeof input === "object" && "url" in input ? input.url : input;',
+'    if(typeof raw !== "string") return null;',
+'    var key = localKey(raw);',
+'    return key && FILES[key] ? FILES[key] : null;',
+'  }',
+'  if(window.fetch){',
+'    var nativeFetch = window.fetch.bind(window);',
+'    window.fetch = function(input, init){ var u = mapped(input); if(u){ if(input && typeof input === "object" && typeof Request !== "undefined" && input instanceof Request) return nativeFetch(new Request(u, input), init); return nativeFetch(u, init); } return nativeFetch(input, init); };',
+'  }',
+'  if(window.XMLHttpRequest){',
+'    var nativeOpen = XMLHttpRequest.prototype.open;',
+'    XMLHttpRequest.prototype.open = function(method, url){ var args = Array.prototype.slice.call(arguments); var u = mapped(url); if(u) args[1] = u; return nativeOpen.apply(this, args); };',
+'  }',
 '  function fmt(v){',
 '    try{',
 '      if(typeof v === "string") return v;',
@@ -1397,16 +1425,53 @@ function buildDoc(entryPath, opts){
     });
   });
 
-  // 5. background images in style attributes
+  // 5. responsive images: rewrite every local URL in srcset (including <source srcset>).
+  Array.prototype.slice.call(doc.querySelectorAll('[srcset]')).forEach(function(node){
+    const raw = node.getAttribute('srcset') || '';
+    const rewritten = raw.split(',').map(function(candidate){
+      const part = candidate.trim();
+      if(!part) return part;
+      const match = /^(\S+)(\s+.*)?$/.exec(part);
+      if(!match) return part;
+      const url = match[1];
+      if(/^(data:|https?:|blob:|\/\/|#)/i.test(url)) return part;
+      const path = resolvePath(base, url);
+      if(path && state.files.has(path)) return fileURL(path) + (match[2] || '');
+      if(path) missing.push(url);
+      return part;
+    }).join(', ');
+    node.setAttribute('srcset', rewritten);
+  });
+
+  // Rewrite local icon/preload/manifest links too, not only stylesheets.
+  Array.prototype.slice.call(doc.querySelectorAll('link[href]')).forEach(function(link){
+    const rel = (link.getAttribute('rel') || '').toLowerCase();
+    if(rel.indexOf('stylesheet') >= 0) return;
+    const href = link.getAttribute('href');
+    if(!href || /^(data:|https?:|blob:|\/\/|#)/i.test(href)) return;
+    const path = resolvePath(base, href);
+    if(path && state.files.has(path)) link.setAttribute('href', fileURL(path));
+  });
+
+  // 6. background images in style attributes
   Array.prototype.slice.call(doc.querySelectorAll('[style]')).forEach(function(node){
     const st = node.getAttribute('style');
     if(st && st.indexOf('url(') >= 0) node.setAttribute('style', rewriteCssUrls(st, base));
   });
 
-  // 6. boot script (preview only)
+  // 6. Local resource map for runtime fetch()/XHR calls (JSON, data files, etc.).
+  // Relative requests are resolved from the entry HTML directory, like a normal hosted page.
   if(wantBoot){
+    const localMap = {};
+    state.files.forEach(function(f, path){
+      if(!f || !path) return;
+      try { localMap[path] = fileURL(path); } catch(err) { missing.push(path); }
+    });
+    const bootCode = BOOT_SCRIPT
+      .replace('__IDE_FILE_MAP__', JSON.stringify(localMap).replace(/</g, '\\u003c'))
+      .replace('__IDE_ENTRY_BASE__', JSON.stringify(base));
     const boot = doc.createElement('script');
-    boot.textContent = BOOT_SCRIPT;
+    boot.textContent = bootCode;
     doc.head.insertBefore(boot, doc.head.firstChild);
   }
 
