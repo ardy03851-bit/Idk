@@ -1183,18 +1183,34 @@ elCode.addEventListener('keydown', function(e){
 /* =========================================================
    SYNTAX PREVIEW BUILD
    ========================================================= */
+// Blob URLs are cached by workspace path and file-object identity. Recreating a Blob
+// for every reference can duplicate 100 MB assets many times and cause delayed image failures.
 let currentUrls = [];
 let prevUrls = [];
+let staleUrls = [];
+let assetUrlCache = new Map();
 let assetMode = 'blob';
 let buildModuleCache = new Map();
 
 function clearPreviewUrlsLater(){
+  // Keep URLs alive for the current preview. The iframe can load images lazily well
+  // after srcdoc is assigned; revoking them on a short timer makes images disappear.
   const old = prevUrls;
   prevUrls = currentUrls;
   currentUrls = [];
+  if(old.length) staleUrls.push.apply(staleUrls, old);
+  // Only revoke URLs that are no longer in the active asset cache, and do so after
+  // the next iframe load has had time to settle.
   setTimeout(function(){
-    old.forEach(function(u){ try{ URL.revokeObjectURL(u); }catch(e){} });
-  }, 2500);
+    const live = new Set();
+    assetUrlCache.forEach(function(v){ live.add(v.url); });
+    const keep = [];
+    staleUrls.forEach(function(u){
+      if(live.has(u)) keep.push(u);
+      else { try{ URL.revokeObjectURL(u); }catch(e){} }
+    });
+    staleUrls = keep;
+  }, 15000);
 }
 
 function newBlobUrl(blob){
@@ -1207,16 +1223,23 @@ function fileURL(p){
   const f = state.files.get(p);
   if(!f) return '';
   if(assetMode === 'data'){
-    if(typeof f.text === 'string'){
-      const bytes = new TextEncoder().encode(f.text);
-      return bytesToDataURL(bytes, mimeOf(p));
-    }
+    // Inline export is explicit; preview never uses data URLs for large binaries.
+    if(typeof f.text === 'string') return bytesToDataURL(new TextEncoder().encode(f.text), mimeOf(p));
     return bytesToDataURL(f.bytes, mimeOf(p));
   }
-  if(typeof f.text === 'string'){
-    return newBlobUrl(new Blob([f.text], { type: mimeOf(p) }));
+  const cached = assetUrlCache.get(p);
+  if(cached && cached.file === f) return cached.url;
+  if(cached && cached.url){
+    staleUrls.push(cached.url);
+    assetUrlCache.delete(p);
   }
-  return newBlobUrl(new Blob([f.bytes], { type: mimeOf(p) }));
+  // Blob accepts Uint8Array directly; create only one Blob URL per file revision.
+  const blob = typeof f.text === 'string'
+    ? new Blob([f.text], { type: mimeOf(p) })
+    : new Blob([f.bytes], { type: mimeOf(p) });
+  const url = newBlobUrl(blob);
+  assetUrlCache.set(p, { file:f, url:url });
+  return url;
 }
 
 function rewriteCssUrls(css, base){
@@ -1463,8 +1486,11 @@ function buildDoc(entryPath, opts){
   // Relative requests are resolved from the entry HTML directory, like a normal hosted page.
   if(wantBoot){
     const localMap = {};
+    // Runtime fetch/XHR most commonly loads text resources (JSON/config/data). Do not
+    // eagerly turn every binary in a large project into a Blob URL: images and other
+    // static assets are resolved lazily when referenced in HTML/CSS.
     state.files.forEach(function(f, path){
-      if(!f || !path) return;
+      if(!f || !path || typeof f.text !== 'string') return;
       try { localMap[path] = fileURL(path); } catch(err) { missing.push(path); }
     });
     const bootCode = BOOT_SCRIPT
@@ -1500,6 +1526,14 @@ function schedulePreview(){
 }
 
 function buildPreview(force){
+  // Drop cached URLs for removed/replaced files. Old URLs are deferred so an already
+  // rendering iframe does not lose an image mid-paint.
+  assetUrlCache.forEach(function(cached, path){
+    if(!state.files.has(path) || state.files.get(path) !== cached.file){
+      staleUrls.push(cached.url);
+      assetUrlCache.delete(path);
+    }
+  });
   const entry = pickEntry();
   if(!entry){
     elPreview.srcdoc = emptyPreviewDoc('No HTML file', 'Create an index.html file in the workspace to see a live preview.');
