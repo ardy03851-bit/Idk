@@ -2,3223 +2,1213 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="color-scheme" content="dark">
-<title>Studio</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#06121c">
+<title>Aqua · Ocean & Ball Physics Showcase</title>
+
 <style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
 :root{
-  --bg:#100e17;
-  --panel:#191522;
-  --panel2:#14111d;
-  --elev:#211c30;
-  --elev2:#2d2540;
-  --line:#302940;
-  --line2:#49395e;
-  --fg:#eee8f7;
-  --dim:#b6a9cc;
-  --faint:#8b7ca5;
-  --accent:#bd96ff;
-  --accent-soft:rgba(189,150,255,.15);
-  --accent-line:rgba(189,150,255,.38);
-  --var:#e2b6ff;
-  --ok:#79e2b8;
-  --warn:#f5c17d;
-  --err:#ff8799;
-  --radius:10px;
-  --fs:13.5px;
-  --lh:20px;
-  --gutter:54px;
-  --rail:48px;
-  --panel-w:252px;
+  --ink:#e8e6df;--muted:#9ba7a7;--faint:#647477;--panel:rgba(8,17,21,.88);
+  --line:rgba(218,230,220,.16);--accent:#b7d6c8;--accent-strong:#d8e9dc;
+  --sea:#06151b;--warm:#c8a77b;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;margin:0;padding:0}
-body{
-  background:var(--bg);color:var(--fg);
-  font:13px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;
-  overflow:hidden;overscroll-behavior:none;
-  -webkit-font-smoothing:antialiased;
-  text-rendering:optimizeLegibility;
+html,body{margin:0;height:100%;overflow:hidden;background:var(--sea);font-family:'Manrope',-apple-system,sans-serif;color:var(--ink);user-select:none;-webkit-user-select:none;overscroll-behavior:none}
+button,input{font:inherit}
+button{color:inherit}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#top{position:fixed;top:max(22px,env(safe-area-inset-top));left:max(26px,env(safe-area-inset-left));right:max(26px,env(safe-area-inset-right));display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;gap:16px;transition:opacity .45s,transform .55s cubic-bezier(.2,.8,.2,1)}
+.brand{display:flex;align-items:center;gap:13px;padding:7px 0}
+.logo{width:34px;height:34px;display:grid;place-items:center;border:1px solid rgba(183,214,200,.42);color:var(--accent);border-radius:9px}
+.logo svg{width:19px;height:19px}
+.brand h1{margin:0;font-family:Georgia,serif;font-weight:400;font-size:21px;letter-spacing:.035em}
+.brand p{margin:3px 0 0;color:var(--muted);font-size:9px;letter-spacing:.17em;text-transform:uppercase}
+.stats{font:10px/1.8 'DM Mono',monospace;letter-spacing:.04em;color:#d1d8d2;text-align:right;padding:8px 0}
+#hint{position:fixed;left:50%;top:max(94px,calc(env(safe-area-inset-top) + 78px));transform:translateX(-50%);padding:8px 13px;border:1px solid rgba(218,230,220,.16);background:rgba(7,17,21,.62);color:#d0d9d2;font-size:10px;letter-spacing:.055em;white-space:nowrap;pointer-events:none;transition:opacity .8s;max-width:94vw;overflow:hidden;text-overflow:ellipsis}
+#dock{position:fixed;left:50%;bottom:max(22px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(1040px,calc(100% - 52px));padding:17px 19px 16px;background:var(--panel);border:1px solid var(--line);box-shadow:0 18px 60px rgba(0,0,0,.38);display:flex;flex-direction:column;gap:15px;transition:transform .55s cubic-bezier(.2,.8,.2,1),opacity .35s;backdrop-filter:blur(10px)}
+#dock.hidden{transform:translate(-50%,150%);opacity:0;pointer-events:none}
+.dock-head{display:flex;align-items:center;justify-content:space-between;padding-bottom:11px;border-bottom:1px solid var(--line)}
+.eyebrow{font:9px 'DM Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.dock-head strong{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.icon-btn{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;transition:color .2s,border-color .2s,background .2s}
+.icon-btn:hover{color:var(--ink);border-color:rgba(183,214,200,.55);background:rgba(183,214,200,.07)}
+.icon-btn svg,.btn svg,.chip svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.chips{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:1 0 auto;min-width:122px;display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);background:rgba(255,255,255,.025);color:var(--muted);font-size:11px;font-weight:600;text-align:left;cursor:pointer;transition:all .22s}
+.chip small{display:block;color:var(--faint);font:9px 'DM Mono',monospace;margin-top:4px}
+.chip.on{color:var(--ink);border-color:rgba(183,214,200,.62);background:rgba(183,214,200,.09)}
+.sw{width:27px;height:27px;flex:none;position:relative;border-radius:50%;box-shadow:inset -4px -5px 9px rgba(0,0,0,.4),0 2px 6px rgba(0,0,0,.3)}
+.row{display:flex;gap:22px;align-items:flex-end;flex-wrap:wrap}
+.ctl{flex:1 1 150px;display:flex;flex-direction:column;gap:5px;font-size:10px;font-weight:600;min-width:120px}
+.ctl .lab{display:flex;justify-content:space-between;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;font:9px 'DM Mono',monospace}
+.ctl .lab b{color:var(--accent);font-weight:500}
+input[type=range]{appearance:none;width:100%;height:22px;background:transparent;margin:0;touch-action:pan-y}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:linear-gradient(90deg,var(--accent) var(--p,50%),rgba(255,255,255,.18) var(--p,50%))}
+input[type=range]::-moz-range-track{height:2px;background:rgba(255,255,255,.18)}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;border-radius:50%;margin-top:-5px;background:var(--accent-strong);border:2px solid #223b38;box-shadow:0 0 0 3px rgba(183,214,200,.12)}
+input[type=range]::-moz-range-thumb{width:10px;height:10px;border-radius:50%;background:var(--accent-strong);border:2px solid #223b38}
+.acts{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.btn{min-height:39px;padding:0 13px;border:1px solid var(--line);background:transparent;color:#c4ceca;font-size:10px;font-weight:600;letter-spacing:.055em;display:inline-flex;align-items:center;gap:8px;cursor:pointer;transition:background .2s,color .2s,border-color .2s,transform .15s}
+.btn:hover{border-color:rgba(183,214,200,.55);color:var(--ink);background:rgba(183,214,200,.07)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#10211f}
+.btn.primary:hover{background:var(--accent-strong)}
+.btn.on{background:rgba(183,214,200,.13);border-color:rgba(183,214,200,.55);color:var(--accent-strong)}
+#bHide{margin-left:auto}
+#fab{position:fixed;right:max(26px,env(safe-area-inset-right));bottom:max(22px,env(safe-area-inset-bottom));min-height:42px;padding:0 14px;border:1px solid var(--line);background:var(--panel);display:none;align-items:center;gap:9px;color:var(--ink);font:10px 'DM Mono',monospace;letter-spacing:.1em;cursor:pointer;backdrop-filter:blur(10px)}
+#fab.show{display:inline-flex}
+#settings{position:fixed;right:max(26px,env(safe-area-inset-right));top:max(78px,calc(env(safe-area-inset-top) + 70px));width:min(330px,calc(100vw - 40px));padding:17px;background:var(--panel);border:1px solid var(--line);box-shadow:0 18px 60px rgba(0,0,0,.42);backdrop-filter:blur(12px);opacity:0;visibility:hidden;transform:translateY(-8px);transition:opacity .22s,transform .22s,visibility .22s;z-index:5}
+#settings.open{opacity:1;visibility:visible;transform:translateY(0)}
+.settings-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.settings-title strong{font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+.setting{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+.setting-copy b{display:block;font-size:11px;font-weight:600}
+.setting-copy small{display:block;margin-top:3px;color:var(--muted);font-size:9px}
+.toggle{width:34px;height:19px;border:1px solid #53605e;background:#1b282a;padding:2px;cursor:pointer;flex:none;transition:background .2s,border-color .2s}
+.toggle:after{content:"";display:block;width:13px;height:13px;background:#9ba7a7;transition:transform .2s,background .2s}
+.toggle[aria-checked=true]{background:#668f7d;border-color:#9fc8b1}
+.toggle[aria-checked=true]:after{transform:translateX(15px);background:#f0f1e8}
+#immersive-exit{position:fixed;inset:0;z-index:20;display:none;cursor:default;background:transparent}
+body.immersive #top,body.immersive #hint,body.immersive #dock,body.immersive #fab,body.immersive #settings{opacity:0!important;visibility:hidden!important;pointer-events:none!important;transform:translateY(12px)}
+body.immersive #immersive-exit{display:block}
+#fail,#err{position:fixed;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;background:#06121c;z-index:99;font-size:15px;line-height:1.5;white-space:pre-wrap}
+#err{justify-content:flex-start;align-items:flex-start;font:11px/1.35 ui-monospace,Menlo,monospace;overflow:auto;color:#ffb4b4}
+@media(max-width:760px){
+ #top{left:18px;right:18px;top:max(14px,env(safe-area-inset-top))}
+ .brand p{display:none}.brand h1{font-size:18px}.stats{font-size:9px}
+ #dock{width:calc(100% - 24px);bottom:max(10px,env(safe-area-inset-bottom));padding:12px;gap:11px}
+ .chip{min-width:112px}.row{gap:12px}.ctl{flex:1 1 42%;min-width:100px}
+ .btn{min-height:36px;padding:0 10px;font-size:9px}
+ #bHide{margin-left:0}#fab{right:12px;bottom:max(10px,env(safe-area-inset-bottom))}
+ #settings{right:12px;top:max(65px,calc(env(safe-area-inset-top) + 58px))}
+ #hint{font-size:9px;max-width:calc(100% - 24px)}
 }
-button,input,select,textarea{font-family:inherit;color:inherit}
-::-webkit-scrollbar{width:9px;height:9px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:#3b3150;border-radius:6px;border:2px solid transparent;background-clip:content-box}
-::-webkit-scrollbar-thumb:hover{background:#69547f;background-clip:content-box;border:2px solid transparent}
-
-#app{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
-
-/* ---------- TOP BAR ---------- */
-#topbar{
-  flex:0 0 46px;height:46px;display:flex;align-items:center;gap:4px;
-  padding:0 8px;border-bottom:1px solid var(--line);
-  background:linear-gradient(135deg,#1d172a 0%,#14111d 68%,#171421 100%);
-  position:relative;z-index:40;
-}
-.spacer{flex:1}
-.iconbtn{
-  width:32px;height:32px;display:grid;place-items:center;border:1px solid transparent;
-  border-radius:8px;background:transparent;color:var(--dim);cursor:pointer;
-  transition:background .16s,color .16s,transform .1s,border-color .16s;
-  padding:0;flex:0 0 auto;
-}
-.iconbtn svg{width:17px;height:17px;display:block}
-.iconbtn:hover{background:var(--elev);color:var(--fg)}
-.iconbtn:active{transform:scale(.9)}
-.iconbtn.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-line)}
-.iconbtn.primary{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-line)}
-.iconbtn .dot{position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;background:var(--err)}
-.iconbtn{position:relative}
-
-.seg{display:flex;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:2px;gap:2px}
-.seg button{
-  border:0;background:transparent;color:var(--faint);width:34px;height:26px;border-radius:7px;
-  display:grid;place-items:center;cursor:pointer;transition:.16s;padding:0;
-}
-.seg button svg{width:15px;height:15px}
-.seg button.on{background:var(--elev2);color:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.35)}
-.seg button:active{transform:scale(.92)}
-
-/* ---------- MAIN ---------- */
-main{flex:1;display:flex;min-height:0;min-width:0;position:relative}
-
-#rail{
-  flex:0 0 var(--rail);width:var(--rail);
-  display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0;
-  border-right:1px solid var(--line);background:var(--panel2);z-index:30;
-}
-#rail .iconbtn{width:34px;height:34px;border-radius:9px}
-#rail .iconbtn svg{width:18px;height:18px}
-#rail .badge{
-  position:absolute;top:1px;right:1px;min-width:14px;height:14px;padding:0 3px;
-  border-radius:7px;background:var(--err);color:#fff;font-size:9px;font-weight:700;
-  display:grid;place-items:center;line-height:1;
-}
-#rail .railsep{height:1px;width:22px;background:var(--line);margin:6px 0}
-
-#panel{
-  flex:0 0 var(--panel-w);width:var(--panel-w);min-width:150px;
-  display:flex;flex-direction:column;background:var(--panel);
-  border-right:1px solid var(--line);overflow:hidden;z-index:20;
-}
-#panel.hidden{display:none}
-.panelhead{
-  flex:0 0 38px;height:38px;display:flex;align-items:center;gap:6px;padding:0 6px 0 12px;
-  border-bottom:1px solid var(--line);
-}
-.panelhead h2{
-  font-size:11px;font-weight:650;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--faint);margin:0;flex:1;user-select:none;
-}
-.panelbody{flex:1;overflow:auto;overflow-x:hidden;padding:6px 0 40px}
-
-/* ---------- FILE TREE ---------- */
-.row{
-  display:flex;align-items:center;gap:6px;height:28px;padding-right:8px;
-  cursor:pointer;user-select:none;position:relative;color:var(--dim);
-  transition:background .12s,color .12s;font-size:12.5px;
-}
-.row:hover{background:rgba(255,255,255,.035);color:var(--fg)}
-.row.active{background:var(--accent-soft);color:var(--accent)}
-.row.active::before{content:"";position:absolute;left:0;top:3px;bottom:3px;width:2px;border-radius:2px;background:var(--accent)}
-.row .chev{width:12px;height:12px;flex:0 0 12px;display:grid;place-items:center;opacity:.55;transition:transform .18s}
-.row .chev svg{width:12px;height:12px}
-.row.dir.open .chev{transform:rotate(90deg)}
-.row .ico{width:15px;height:15px;flex:0 0 15px;display:grid;place-items:center;opacity:.85}
-.row .ico svg{width:15px;height:15px}
-.row .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.row.dir .nm{font-weight:520}
-.row .dirty{width:5px;height:5px;border-radius:50%;background:var(--warn);flex:0 0 5px}
-.row .rowdel{
-  width:23px;height:23px;flex:0 0 23px;display:grid;place-items:center;
-  border:1px solid transparent;border-radius:6px;background:transparent;color:var(--faint);
-  opacity:0;cursor:pointer;padding:0;margin-left:auto;transition:opacity .14s,background .14s,color .14s,border-color .14s;
-}
-.row .rowdel svg{width:13px;height:13px}
-.row:hover .rowdel,.row:focus-within .rowdel{opacity:1}
-.row .rowdel:hover{background:rgba(255,135,153,.12);border-color:rgba(255,135,153,.28);color:var(--err)}
-@media (hover:none){.row .rowdel{opacity:.85}}
-
-/* ---------- WORKAREA ---------- */
-#workarea{flex:1;display:flex;min-width:0;min-height:0}
-#editorArea{flex:1 1 0;display:flex;flex-direction:column;min-width:160px;min-height:0;background:var(--bg)}
-#previewArea{flex:1 1 0;display:flex;flex-direction:column;min-width:160px;min-height:0;background:#fff}
-#workarea.mode-code #previewArea,#workarea.mode-code #split2{display:none}
-#workarea.mode-preview #editorArea,#workarea.mode-preview #split2{display:none}
-#workarea.mode-preview #previewArea{flex:1 1 auto}
-
-.splitter{flex:0 0 5px;width:5px;background:var(--line);cursor:col-resize;position:relative;touch-action:none;transition:background .15s}
-.splitter:hover,.splitter.drag{background:var(--accent-line)}
-.splitter::after{content:"";position:absolute;inset:0 -4px}
-
-/* ---------- TABS ---------- */
-#tabs{
-  flex:0 0 36px;height:36px;display:flex;align-items:stretch;overflow-x:auto;overflow-y:hidden;
-  background:var(--panel2);border-bottom:1px solid var(--line);scrollbar-width:none;
-}
-#tabs::-webkit-scrollbar{display:none}
-.tab{
-  display:flex;align-items:center;gap:6px;padding:0 8px 0 12px;border-right:1px solid var(--line);
-  color:var(--faint);font-size:12px;cursor:pointer;white-space:nowrap;user-select:none;
-  transition:background .14s,color .14s;position:relative;flex:0 0 auto;max-width:190px;
-}
-.tab:hover{background:rgba(255,255,255,.03);color:var(--dim)}
-.tab.active{background:var(--bg);color:var(--fg)}
-.tab.active::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--bg)}
-.tab .tname{overflow:hidden;text-overflow:ellipsis}
-.tab .ticon{width:13px;height:13px;display:grid;place-items:center;opacity:.8}
-.tab .ticon svg{width:13px;height:13px}
-.tab .tclose{width:16px;height:16px;border-radius:4px;display:grid;place-items:center;opacity:0;transition:opacity .14s,background .14s}
-.tab .tclose svg{width:11px;height:11px}
-.tab:hover .tclose,.tab.active .tclose{opacity:.7}
-.tab .tclose:hover{background:rgba(255,255,255,.12);opacity:1}
-
-/* ---------- EDITOR TOOLBAR ---------- */
-#etools{
-  flex:0 0 34px;height:34px;display:flex;align-items:center;gap:2px;padding:0 6px;
-  background:var(--panel2);border-bottom:1px solid var(--line);
-}
-#etools .path{
-  font-size:11.5px;color:var(--faint);flex:1;overflow:hidden;text-overflow:ellipsis;
-  white-space:nowrap;user-select:none;padding-left:4px;font-family:ui-monospace,Menlo,monospace;
-}
-#etools .iconbtn{width:28px;height:26px;border-radius:6px}
-#etools .iconbtn svg{width:15px;height:15px}
-
-/* ---------- CODE ---------- */
-#editorWrap{flex:1;display:flex;min-height:0;position:relative;overflow:hidden}
-#gutter{
-  flex:0 0 var(--gutter);width:var(--gutter);overflow:hidden;
-  padding:12px 10px 60px 0;text-align:right;color:#3f4f63;
-  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  font-size:var(--fs);line-height:var(--lh);
-  user-select:none;background:var(--panel2);border-right:1px solid var(--line);
-  white-space:pre;will-change:transform;
-}
-#codeArea{position:relative;flex:1;overflow:hidden;min-width:0}
-#highlight,#code{
-  position:absolute;inset:0;margin:0;border:0;padding:12px 16px 60px 14px;
-  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  font-size:var(--fs);line-height:var(--lh);tab-size:2;-moz-tab-size:2;
-  white-space:pre;overflow:auto;word-break:normal;overflow-wrap:normal;
-}
-#highlight{pointer-events:none;z-index:1;overflow:hidden;color:var(--fg)}
-#code{
-  z-index:2;background:transparent;color:transparent;caret-color:#e8f0fa;
-  resize:none;outline:none;-webkit-text-fill-color:transparent;
-}
-#code::selection{background:rgba(79,156,249,.32);-webkit-text-fill-color:transparent}
-#code::-webkit-scrollbar{width:10px;height:10px}
-
-/* token colors */
-.t-com{color:#546b82;font-style:italic}
-.t-str{color:#a5d6a7}
-.t-num{color:#e0a86a}
-.t-kw{color:#c792ea}
-.t-tag{color:#7fb2f0}
-.t-attr{color:#e8c07d}
-.t-prop{color:#8fd3f4}
-.t-var{color:#f2a8c4}
-.t-punc{color:#7d8ea3}
-.t-op{color:#8fa3b8}
-.t-fn{color:#82aaff}
-.t-re{color:#e0a86a}
-
-/* ---------- PREVIEW ---------- */
-#ptools{
-  flex:0 0 34px;height:34px;display:flex;align-items:center;gap:2px;padding:0 6px;
-  background:var(--panel2);border-bottom:1px solid var(--line);color:var(--dim);
-}
-#ptools .ptitle{font-size:11.5px;color:var(--faint);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;user-select:none;padding-left:4px;font-family:ui-monospace,Menlo,monospace}
-#ptools .iconbtn{width:28px;height:26px;border-radius:6px}
-#ptools .iconbtn svg{width:15px;height:15px}
-#previewFrameWrap{flex:1;position:relative;min-height:0;background:#fff}
-#preview{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff;display:block}
-
-/* ---------- CONSOLE ---------- */
-#console{
-  flex:0 0 auto;height:0;overflow:hidden;display:flex;flex-direction:column;
-  background:var(--panel);border-top:1px solid transparent;
-  transition:height .24s cubic-bezier(.4,0,.2,1),border-color .24s;
-}
-#console.open{height:236px;border-top-color:var(--line)}
-#chead{
-  flex:0 0 34px;height:34px;display:flex;align-items:center;gap:6px;padding:0 6px 0 12px;
-  border-bottom:1px solid var(--line);background:var(--panel2);
-}
-#chead .ctitle{
-  font-size:11px;font-weight:650;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);
-  user-select:none;flex:0 0 auto;
-}
-#chead .cchip{
-  font-size:10.5px;padding:1px 6px;border-radius:20px;background:var(--elev);color:var(--dim);
-  user-select:none;min-width:18px;text-align:center;
-}
-#chead .cchip.err{background:rgba(240,97,109,.18);color:var(--err)}
-#chead .cchip.warn{background:rgba(232,176,75,.18);color:var(--warn)}
-#chead .iconbtn{width:26px;height:24px;border-radius:6px}
-#chead .iconbtn svg{width:14px;height:14px}
-#clogs{flex:1;overflow:auto;padding:4px 0 24px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
-.logitem{
-  display:flex;gap:8px;padding:5px 12px;border-bottom:1px solid rgba(255,255,255,.03);
-  align-items:flex-start;line-height:1.45;animation:logIn .18s ease;
-}
-@keyframes logIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
-.logitem .lmark{flex:0 0 6px;width:6px;height:6px;border-radius:50%;margin-top:6px;background:var(--faint)}
-.logitem.error .lmark{background:var(--err);box-shadow:0 0 0 3px rgba(240,97,109,.15)}
-.logitem.warn .lmark{background:var(--warn)}
-.logitem.info .lmark{background:var(--accent)}
-.logitem.ok .lmark{background:var(--ok)}
-.logitem .lbody{flex:1;min-width:0}
-.logitem .lmsg{color:var(--fg);word-break:break-word;white-space:pre-wrap}
-.logitem.error .lmsg{color:#ffb3b9}
-.logitem.warn .lmsg{color:#f3d08a}
-.logitem .lmeta{color:var(--faint);font-size:11px;margin-top:2px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.logitem .lmeta button{
-  background:none;border:0;padding:0;color:var(--accent);cursor:pointer;font-size:11px;
-  font-family:inherit;text-decoration:underline;text-underline-offset:2px;
-}
-.logitem .lfix{
-  margin-top:6px;border-left:2px solid var(--accent-line);padding:6px 10px;
-  background:rgba(79,156,249,.07);border-radius:0 6px 6px 0;color:#a9c4e6;font-size:11.5px;
-  font-family:-apple-system,system-ui,sans-serif;line-height:1.55;
-}
-.logitem .lfix b{color:var(--accent);font-weight:600}
-.cempty{padding:22px 16px;color:var(--faint);font-family:-apple-system,system-ui,sans-serif;font-size:12.5px;text-align:center}
-
-/* ---------- SEARCH / VARS / SETTINGS PANELS ---------- */
-.sfield{padding:8px 10px;display:flex;flex-direction:column;gap:6px}
-.sinput{
-  width:100%;height:30px;border-radius:7px;border:1px solid var(--line);background:var(--panel2);
-  padding:0 9px;font-size:12.5px;outline:none;transition:border-color .15s,background .15s;
-}
-.sinput:focus{border-color:var(--accent-line);background:#0b1119}
-.sopts{display:flex;gap:4px;align-items:center}
-.sopt{
-  height:24px;min-width:26px;padding:0 6px;border-radius:6px;border:1px solid var(--line);
-  background:var(--panel2);color:var(--faint);font-size:11px;cursor:pointer;transition:.14s;
-  display:grid;place-items:center;
-}
-.sopt.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-line)}
-.sbtn{
-  height:26px;padding:0 10px;border-radius:7px;border:1px solid var(--line);background:var(--elev);
-  color:var(--dim);font-size:11.5px;cursor:pointer;transition:.14s;white-space:nowrap;
-}
-.sbtn:hover{background:var(--elev2);color:var(--fg)}
-.sbtn:active{transform:scale(.96)}
-.sbtn.accent{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-line)}
-
-.sresult{padding:5px 12px;cursor:pointer;border-left:2px solid transparent;transition:background .12s}
-.sresult:hover{background:rgba(255,255,255,.04)}
-.sresult .sfile{font-size:11px;color:var(--accent);opacity:.85;display:flex;gap:6px;align-items:center}
-.sresult .sline{font-size:11px;color:var(--faint);font-family:ui-monospace,Menlo,monospace;margin-top:1px;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sresult .sline mark{background:rgba(79,156,249,.3);color:#cfe3ff;border-radius:2px;padding:0 1px}
-
-.varrow{padding:6px 12px;display:flex;align-items:center;gap:8px;transition:background .12s}
-.varrow:hover{background:rgba(255,255,255,.03)}
-.varrow .sw{
-  width:22px;height:22px;border-radius:6px;flex:0 0 22px;border:1px solid rgba(255,255,255,.14);
-  background-image:linear-gradient(45deg,#333 25%,transparent 25%,transparent 75%,#333 75%),
-                   linear-gradient(45deg,#333 25%,transparent 25%,transparent 75%,#333 75%);
-  background-size:8px 8px;background-position:0 0,4px 4px;position:relative;overflow:hidden;
-}
-.varrow .sw i{position:absolute;inset:0;display:block}
-.varrow .vinfo{flex:1;min-width:0}
-.varrow .vname{font-size:11.5px;color:var(--var);font-family:ui-monospace,Menlo,monospace;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.varrow .vval{
-  width:100%;border:0;background:transparent;color:var(--dim);font-size:11.5px;
-  font-family:ui-monospace,Menlo,monospace;outline:none;padding:0;margin-top:1px;
-  border-bottom:1px dashed transparent;transition:border-color .15s;
-}
-.varrow .vval:focus{border-bottom-color:var(--accent-line);color:var(--fg)}
-.varrow .vfile{font-size:10px;color:var(--faint);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.vargroup{
-  padding:10px 12px 4px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);
-  font-weight:650;user-select:none;
-}
-.empty{padding:26px 18px;text-align:center;color:var(--faint);font-size:12px;line-height:1.6}
-
-.setrow{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.03)}
-.setrow .sl{flex:1;font-size:12.5px;color:var(--dim)}
-.setrow .sd{font-size:10.5px;color:var(--faint);margin-top:1px}
-.switch{
-  width:38px;height:22px;border-radius:12px;background:var(--elev2);border:1px solid var(--line);
-  position:relative;cursor:pointer;transition:background .18s,border-color .18s;flex:0 0 38px;
-}
-.switch::after{
-  content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;
-  background:var(--faint);transition:transform .18s,background .18s;
-}
-.switch.on{background:var(--accent-soft);border-color:var(--accent-line)}
-.switch.on::after{transform:translateX(16px);background:var(--accent)}
-
-/* ---------- MENU ---------- */
-.menu{
-  position:fixed;z-index:200;min-width:190px;background:#211a30;border:1px solid var(--line2);
-  border-radius:11px;padding:5px;box-shadow:0 16px 44px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.03);
-  animation:menuIn .14s cubic-bezier(.2,.9,.3,1);
-  backdrop-filter:blur(12px);
-}
-@keyframes menuIn{from{opacity:0;transform:translateY(-5px) scale(.98)}to{opacity:1;transform:none}}
-.mitem{
-  display:flex;align-items:center;gap:9px;width:100%;padding:7px 9px;border:0;background:none;
-  color:var(--dim);font-size:12.5px;border-radius:7px;cursor:pointer;text-align:left;transition:.12s;
-}
-.mitem:hover{background:var(--elev2);color:var(--fg)}
-.mitem svg{width:15px;height:15px;opacity:.75;flex:0 0 15px}
-.mitem span{flex:1;white-space:nowrap}
-.mitem kbd{font-size:10px;color:var(--faint);font-family:inherit;opacity:.8}
-.msep{height:1px;background:var(--line);margin:4px 6px}
-
-/* ---------- TOAST ---------- */
-#toasts{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:400;
-  display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
-.toast{
-  background:#241d34;border:1px solid var(--line2);color:var(--fg);padding:9px 16px;border-radius:10px;
-  font-size:12.5px;box-shadow:0 12px 34px rgba(0,0,0,.5);animation:toastIn .22s cubic-bezier(.2,.9,.3,1);
-  max-width:80vw;text-align:center;
-}
-.toast.err{border-color:rgba(255,135,153,.5);color:#ffd0d7}
-.toast.ok{border-color:rgba(121,226,184,.45);color:#b4f5da}
-@keyframes toastIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
-
-/* ---------- WELCOME ---------- */
-#welcome{
-  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
-  color:var(--faint);padding:30px;text-align:center;
-}
-#welcome .wicon{opacity:.18;width:64px;height:64px}
-#welcome .wicon svg{width:64px;height:64px}
-#welcome h3{margin:0;font-size:15px;font-weight:600;color:var(--dim)}
-#welcome p{margin:0;font-size:12.5px;max-width:320px;line-height:1.6}
-#welcome .wgrid{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px}
-#welcome .wbtn{
-  display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:9px;
-  border:1px solid var(--line);background:var(--panel);color:var(--dim);font-size:12.5px;
-  cursor:pointer;transition:.15s;
-}
-#welcome .wbtn:hover{border-color:var(--accent-line);color:var(--accent);background:var(--accent-soft)}
-#welcome .wbtn svg{width:15px;height:15px}
-kbd{background:var(--elev);border:1px solid var(--line2);border-radius:4px;padding:1px 5px;font-size:10.5px;font-family:inherit}
-
-@media (max-width:820px){
-  :root{--panel-w:230px}
-  #panel{position:absolute;left:var(--rail);top:0;bottom:0;z-index:25;box-shadow:14px 0 40px rgba(0,0,0,.5)}
-  #panel.hidden{display:none}
-  #panel.wide{display:flex}
-  main{position:relative}
-}
-@media (min-width:821px){
-  #panel.hidden{display:none}
-}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
 </style>
 </head>
 <body>
-<div id="app">
+<canvas id="gl"></canvas>
 
-  <header id="topbar">
-    <div class="seg" id="viewseg">
-      <button data-mode="code" title="Code only"><span data-icon="code"></span></button>
-      <button data-mode="split" title="Split view"><span data-icon="layout"></span></button>
-      <button data-mode="preview" title="Preview only"><span data-icon="eye"></span></button>
-    </div>
-    <div style="width:6px"></div>
-    <button class="iconbtn" id="btnImport" title="Import"><span data-icon="upload"></span></button>
-    <button class="iconbtn" id="btnExport" title="Export"><span data-icon="download"></span></button>
-    <div class="spacer"></div>
-    <button class="iconbtn" id="btnRefresh" title="Reload preview"><span data-icon="refresh"></span></button>
-    <button class="iconbtn primary" id="btnPopout" title="Open preview in new window"><span data-icon="external"></span></button>
-    <button class="iconbtn" id="btnSave" title="Save project"><span data-icon="save"></span></button>
-  </header>
-
-  <main>
-    <nav id="rail">
-      <button class="iconbtn" data-panel="files" title="Files"><span data-icon="files"></span></button>
-      <button class="iconbtn" data-panel="search" title="Search &amp; Replace"><span data-icon="search"></span></button>
-      <button class="iconbtn" data-panel="vars" title="CSS Variables"><span data-icon="sliders"></span></button>
-      <div class="railsep"></div>
-      <button class="iconbtn" id="btnConsole" title="Console"><span data-icon="terminal"></span></button>
-      <div class="spacer"></div>
-      <button class="iconbtn" data-panel="settings" title="Settings"><span data-icon="settings"></span></button>
-    </nav>
-
-    <aside id="panel">
-      <div class="panelhead">
-        <h2 id="panelTitle">Files</h2>
-        <button class="iconbtn" id="panelAction" title="New file"><span data-icon="plus"></span></button>
-        <button class="iconbtn" id="panelClose" title="Hide panel"><span data-icon="x"></span></button>
-      </div>
-      <div class="panelbody" id="panelBody"></div>
-    </aside>
-
-    <div id="workarea" class="mode-split">
-      <section id="editorArea">
-        <div id="tabs"></div>
-        <div id="etools">
-          <span class="path" id="editorPath">—</span>
-          <button class="iconbtn" id="btnSelAll" title="Select all"><span data-icon="selectall"></span></button>
-          <button class="iconbtn" id="btnEdit" title="Edit actions"><span data-icon="edit"></span></button>
-          <button class="iconbtn" id="btnFont" title="Font size"><span data-icon="textsize"></span></button>
-        </div>
-        <div id="editorWrap">
-          <div id="gutter">1</div>
-          <div id="codeArea">
-            <pre id="highlight" aria-hidden="true"></pre>
-            <textarea id="code" spellcheck="false" autocapitalize="off" autocorrect="off"
-                      autocomplete="off" wrap="off"></textarea>
-          </div>
-        </div>
-        <div id="welcome" style="display:none">
-          <div class="wicon" data-icon="code"></div>
-          <h3>No file open</h3>
-          <p>Pick a file from the workspace, or start a new project.</p>
-          <div class="wgrid">
-            <button class="wbtn" id="wNewHtml"><span data-icon="plus"></span>New index.html</button>
-            <button class="wbtn" id="wImport"><span data-icon="upload"></span>Import ZIP</button>
-          </div>
-        </div>
-      </section>
-
-      <div class="splitter" id="split2"></div>
-
-      <section id="previewArea">
-        <div id="ptools">
-          <span class="ptitle" id="previewTitle">preview</span>
-          <button class="iconbtn" id="btnLive" title="Toggle live preview"><span data-icon="zap"></span></button>
-          <button class="iconbtn" id="btnRefresh2" title="Reload"><span data-icon="refresh"></span></button>
-        </div>
-        <div id="previewFrameWrap">
-          <iframe id="preview" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-pointer-lock allow-presentation"></iframe>
-        </div>
-      </section>
-    </div>
-  </main>
-
-  <div id="console">
-    <div id="chead">
-      <span class="ctitle">Console</span>
-      <span class="cchip" id="chipAll">0</span>
-      <span class="cchip err" id="chipErr" style="display:none">0</span>
-      <span class="cchip warn" id="chipWarn" style="display:none">0</span>
-      <div class="spacer"></div>
-      <button class="iconbtn" id="btnClearLogs" title="Clear"><span data-icon="trash"></span></button>
-      <button class="iconbtn" id="btnCloseConsole" title="Close"><span data-icon="chevrondown"></span></button>
-    </div>
-    <div id="clogs"></div>
+<div id="top">
+  <div class="brand">
+    <div class="logo"><svg viewBox="0 0 24 24"><path d="M2 15c2.5-2.7 4.5-2.7 7 0s4.5 2.7 7 0 4.5-2.7 6 0M2 9c2.5-2.7 4.5-2.7 7 0s4.5 2.7 7 0 4.5-2.7 6 0"/></svg></div>
+    <div><h1>Stillwater</h1><p>An ocean to disappear into</p></div>
   </div>
+  <div class="stats" id="stats">—</div>
 </div>
-
-<div id="toasts"></div>
-<input type="file" id="fileInput" multiple hidden>
+<div id="hint">DRAG TO LOOK AROUND&nbsp;&nbsp;·&nbsp;&nbsp;TAP THE WATER TO RELEASE A SPHERE</div>
+<section id="dock">
+  <div class="dock-head"><div><div class="eyebrow">Environment / 01</div><strong>Shape the quiet</strong></div>
+    <button class="icon-btn" id="bSettings" aria-label="Open settings" title="Settings"><svg viewBox="0 0 24 24"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="m19.4 13.5 1.1.8-1.1 1.9-1.3-.5a7.8 7.8 0 0 1-1.5.9l-.2 1.4h-2.2l-.3-1.4a7.8 7.8 0 0 1-1.7 0l-.8 1.2-1.9-1.1.5-1.3a7.8 7.8 0 0 1-.9-1.5l-1.4-.2v-2.2l1.4-.3a7.8 7.8 0 0 1 0-1.7L6 8.7l1.1-1.9 1.3.5a7.8 7.8 0 0 1 1.5-.9l.2-1.4h2.2l.3 1.4a7.8 7.8 0 0 1 1.7 0l.8-1.2 1.9 1.1-.5 1.3a7.8 7.8 0 0 1 .9 1.5l1.4.2v2.2l-1.4.3"/></svg></button>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="row">
+    <label class="ctl"><span class="lab">Sphere scale <b id="vSize">1.0×</b></span><input id="sSize" type="range" min="50" max="220" value="100"></label>
+    <label class="ctl"><span class="lab">Wave intensity <b id="vSea">Moderate</b></span><input id="sSea" type="range" min="0" max="100" value="38"></label>
+    <label class="ctl"><span class="lab">Daylight <b id="vSun">Afternoon</b></span><input id="sSun" type="range" min="0" max="100" value="58"></label>
+  </div>
+  <div class="acts">
+    <button class="btn primary" id="bDrop"><svg viewBox="0 0 24 24"><path d="M12 3v13m-5-5 5 5 5-5M5 21h14"/></svg>Release sphere</button>
+    <button class="btn" id="bRain"><svg viewBox="0 0 24 24"><path d="M8 16a4 4 0 1 1 1-7.9A5 5 0 0 1 19 10a3 3 0 0 1 0 6H8Zm1 3-1 2m6-2-1 2m6-2-1 2"/></svg>Driftfall</button>
+    <button class="btn" id="bSlow"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Slow time</button>
+    <button class="btn" id="bClear"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Clear</button>
+    <button class="btn" id="bFullscreen" title="Hide interface"><svg viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg>Enter quiet mode</button>
+    <button class="btn" id="bHide"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>Hide panel</button>
+  </div>
+</section>
+<button id="fab"><svg viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></svg> SHOW CONTROLS</button>
+<aside id="settings" aria-label="Environment settings">
+  <div class="settings-title"><strong>Atmosphere settings</strong><button class="icon-btn" id="bSettingsClose" aria-label="Close settings"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+  <div class="setting"><div class="setting-copy"><b>Slow horizon drift</b><small>Camera moves gently over time</small></div><button class="toggle" id="tOrbit" role="switch" aria-checked="false" aria-label="Slow horizon drift"></button></div>
+  <div class="setting"><div class="setting-copy"><b>Sea spray</b><small>Keep the small surface particles</small></div><button class="toggle" id="tSpray" role="switch" aria-checked="true" aria-label="Sea spray"></button></div>
+  <div class="setting"><div class="setting-copy"><b>Performance readout</b><small>Show frame rate and render detail</small></div><button class="toggle" id="tStats" role="switch" aria-checked="true" aria-label="Performance readout"></button></div>
+  <div class="setting"><div class="setting-copy"><b>Ambient motion</b><small>Reduce simulation speed for a calmer sea</small></div><button class="toggle" id="tAmbient" role="switch" aria-checked="false" aria-label="Ambient motion"></button></div>
+  <label class="ctl" style="margin-top:14px"><span class="lab">Render detail <b id="vQuality">Balanced</b></span><input id="sQuality" type="range" min="65" max="100" value="85"></label>
+  <label class="ctl" style="margin-top:12px"><span class="lab">Camera distance <b id="vDistance">13.0</b></span><input id="sDistance" type="range" min="50" max="450" value="130"></label>
+</aside>
+<div id="immersive-exit" aria-label="Click to show interface" title="Click to show interface"></div>
+<div id="fail">This showcase needs WebGL 2 (iPadOS 15+ / Safari 15+). Please update your device or browser.</div>
+<div id="err"></div>
 
 <script>
-(function(){
-"use strict";
+'use strict';
+const $ = id => document.getElementById(id);
+function showErr(m){ const e=$('err'); e.style.display='flex'; e.textContent += m + '\n'; }
+window.addEventListener('error', ev => showErr(String(ev.message)));
 
-/* =========================================================
-   ICONS
-   ========================================================= */
-const ICONS = {
-  files:'<path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h3.1a2 2 0 0 1 1.6.8l.9 1.2h6.4A2.5 2.5 0 0 1 20 9.5v7A2.5 2.5 0 0 1 17.5 19h-12A2.5 2.5 0 0 1 3 16.5z"/>',
-  folder:'<path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h3.1a2 2 0 0 1 1.6.8l.9 1.2h6.4A2.5 2.5 0 0 1 20 9.5v7A2.5 2.5 0 0 1 17.5 19h-12A2.5 2.5 0 0 1 3 16.5z"/>',
-  file:'<path d="M13.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5z"/><path d="M13.5 3v5.5H19"/>',
-  image:'<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><circle cx="8.6" cy="10" r="1.5"/><path d="m4 17 4.8-4.8 3.8 3.8L15.6 13l4.4 4.2"/>',
-  video:'<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m10.2 9.4 5 2.6-5 2.6z"/>',
-  audio:'<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>',
-  model:'<path d="m12 2.6 8.5 4.8v9.2L12 21.4 3.5 16.6V7.4z"/><path d="M3.5 7.4 12 12.2l8.5-4.8"/><path d="M12 12.2v9.2"/>',
-  code:'<path d="m8 7-5 5 5 5"/><path d="m16 7 5 5-5 5"/>',
-  search:'<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/>',
-  sliders:'<path d="M4 7h8.5M17.5 7H20M4 17h2.5M11.5 17H20"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/>',
-  terminal:'<path d="m4 7 5 5-5 5"/><path d="M12.5 17H20"/>',
-  settings:'<circle cx="12" cy="12" r="3.1"/><path d="M19.1 14.4a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/>',
-  plus:'<path d="M12 5v14M5 12h14"/>',
-  x:'<path d="M6 6l12 12M18 6 6 18"/>',
-  upload:'<path d="M12 19V7.5"/><path d="m7.5 12 4.5-4.5 4.5 4.5"/><path d="M4.5 4.5h15"/>',
-  download:'<path d="M12 4.5V16"/><path d="m7.5 11.5 4.5 4.5 4.5-4.5"/><path d="M4.5 19.5h15"/>',
-  refresh:'<path d="M20 12a8 8 0 1 1-2.35-5.65"/><path d="M20 4v5h-5"/>',
-  external:'<path d="M14 4h6v6"/><path d="M20 4 11 13"/><path d="M18 14v5.5A1.5 1.5 0 0 1 16.5 21h-11A1.5 1.5 0 0 1 4 19.5v-11A1.5 1.5 0 0 1 5.5 7H10"/>',
-  save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h7"/>',
-  chevron:'<path d="m9.5 6.5 5.5 5.5-5.5 5.5"/>',
-  chevrondown:'<path d="m6.5 9.5 5.5 5.5 5.5-5.5"/>',
-  trash:'<path d="M4 7h16"/><path d="M9.5 7V5.2A1.2 1.2 0 0 1 10.7 4h2.6a1.2 1.2 0 0 1 1.2 1.2V7"/><path d="M6.5 7 7.4 19a1.5 1.5 0 0 0 1.5 1.4h6.2A1.5 1.5 0 0 0 16.6 19L17.5 7"/>',
-  eye:'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.9"/>',
-  layout:'<rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M9.5 4.5v15"/>',
-  zap:'<path d="M13.5 2.5 4.5 13.5h6l-.5 8L19.5 10.5h-6z"/>',
-  edit:'<path d="M15.5 4.5 19.5 8.5 8 20H4v-4z"/><path d="M13 7 17 11"/>',
-  selectall:'<path d="M4.5 8V5.5A1 1 0 0 1 5.5 4.5H8"/><path d="M16 4.5h2.5a1 1 0 0 1 1 1V8"/><path d="M19.5 16v2.5a1 1 0 0 1-1 1H16"/><path d="M8 19.5H5.5a1 1 0 0 1-1-1V16"/><rect x="9" y="9" width="6" height="6" rx="1"/>',
-  textsize:'<path d="M4 19 9.5 5h1.5L16.5 19"/><path d="M6.2 14.5h8.2"/><path d="M17.5 19v-6.5h2.2a2.1 2.1 0 0 1 0 4.2h-2.2"/>',
-  copy:'<rect x="9" y="9" width="11.5" height="11.5" rx="2"/><path d="M5.5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5v1"/>',
-  clipboard:'<rect x="8" y="2.5" width="8" height="3.5" rx="1"/><path d="M16 4.5h1.5A1.5 1.5 0 0 1 19 6v13.5A1.5 1.5 0 0 1 17.5 21h-11A1.5 1.5 0 0 1 5 19.5V6a1.5 1.5 0 0 1 1.5-1.5H8"/>',
-  scissors:'<circle cx="6.5" cy="6.5" r="2.5"/><circle cx="6.5" cy="17.5" r="2.5"/><path d="M8.7 8.2 20 19"/><path d="M20 5 8.7 15.8"/>',
-  package:'<path d="m12 2.5 8.5 4.8v9.4L12 21.5 3.5 16.7V7.3z"/><path d="M3.5 7.3 12 12l8.5-4.7"/><path d="M12 12v9.5"/>',
-  wraptext:'<path d="M4 6h16"/><path d="M4 12h12.5a3.2 3.2 0 1 1 0 6.4H14"/><path d="m16 16-2 2.4 2 2.4"/><path d="M4 18.4h5.5"/>',
-  wrench:'<path d="M15.5 3.5a5.2 5.2 0 0 0-6.9 6.4L3.6 14.9a2 2 0 0 0 0 2.8l2.7 2.7a2 2 0 0 0 2.8 0l5-5a5.2 5.2 0 0 0 6.4-6.9l-3 3-2.8-.8-.8-2.8z"/>',
-  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r=".9" fill="currentColor" stroke="none"/>'
-};
-function icon(name){
-  const p = ICONS[name] || ICONS.file;
-  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" '+
-         'stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';
-}
+const canvas = $('gl');
+const gl = canvas.getContext('webgl2', {antialias:true, alpha:false, powerPreference:'high-performance'});
+if(!gl){ $('fail').style.display='flex'; throw new Error('WebGL2 unsupported'); }
 
-/* =========================================================
-   HELPERS
-   ========================================================= */
-const $  = (s,r)=> (r||document).querySelector(s);
-const $$ = (s,r)=> Array.prototype.slice.call((r||document).querySelectorAll(s));
+/* ============================================================
+   Constants & small math helpers
+   ============================================================ */
+const G=9.81, RHO_W=1000, RHO_A=1.2;
+const clamp=(x,a,b)=>x<a?a:x>b?b:x;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const sstep=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
+const lerp3=(a,b,t)=>[lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)];
 
-function esc(s){
-  return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-}
-function ext(p){
-  const i = String(p).lastIndexOf('.');
-  return i < 0 ? '' : String(p).slice(i+1).toLowerCase();
-}
-function baseName(p){ const i = String(p).lastIndexOf('/'); return i<0?p:p.slice(i+1); }
-function dirName(p){ const i = String(p).lastIndexOf('/'); return i<0?'':p.slice(0,i); }
-
-function normPath(p){
-  const out = [];
-  String(p).split('/').forEach(function(s){
-    if(!s || s === '.') return;
-    if(s === '..'){ out.pop(); return; }
-    out.push(s);
-  });
-  return out.join('/');
-}
-function resolvePath(base, rel){
-  let r = String(rel == null ? '' : rel).trim();
-  try{ r = decodeURIComponent(r); }catch(e){}
-  const qi = r.search(/[?#]/);
-  if(qi >= 0) r = r.slice(0, qi);
-  if(!r) return null;
-  if(/^[a-z][a-z0-9+.\-]*:/i.test(r)) return null;
-  if(r.indexOf('//') === 0) return null;
-  if(r.charAt(0) === '/') return normPath(r.slice(1));
-  return normPath((base ? base + '/' : '') + r);
-}
-
-const TEXT_EXT = new Set(['html','htm','css','js','mjs','cjs','json','md','txt','svg','xml','csv',
-  'ts','jsx','tsx','vue','svelte','yml','yaml','map','glsl','frag','vert','shader','scss','less',
-  'toml','ini','env','htaccess','gitignore','webmanifest','appcache','manifest','rss','atom','xhtml',
-  'graphql','gql','sql','py','rb','php','sh','bat','ps1','lua','go','rs','java','c','h','cpp','hpp']);
-
-const BINARY_EXT = new Set(['png','jpg','jpeg','gif','webp','avif','bmp','ico','tif','tiff',
-  'mp4','webm','mov','m4v','ogv','avi','mkv','mp3','wav','ogg','m4a','flac','aac','opus',
-  'glb','fbx','stl','3ds','dae','blend','obj','gltf','ply','usdz',
-  'woff','woff2','ttf','otf','eot','pdf','zip','gz','tar','rar','7z','wasm','psd','ai','sketch',
-  'bin','dat','ttc','class','jar','apk','dmg','exe','dll','so','dylib']);
-
-const MIME = {
-  html:'text/html', htm:'text/html', css:'text/css', js:'text/javascript', mjs:'text/javascript',
-  cjs:'text/javascript', json:'application/json', map:'application/json', svg:'image/svg+xml',
-  xml:'application/xml', txt:'text/plain', md:'text/markdown', csv:'text/csv', webmanifest:'application/manifest+json', wasm:'application/wasm',
-  png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', gif:'image/gif', webp:'image/webp',
-  avif:'image/avif', bmp:'image/bmp', ico:'image/x-icon', tif:'image/tiff', tiff:'image/tiff',
-  mp4:'video/mp4', webm:'video/webm', mov:'video/quicktime', m4v:'video/mp4', ogv:'video/ogg',
-  mp3:'audio/mpeg', wav:'audio/wav', ogg:'audio/ogg', m4a:'audio/mp4', flac:'audio/flac',
-  glb:'model/gltf-binary', gltf:'model/gltf+json', obj:'text/plain', stl:'model/stl',
-  fbx:'application/octet-stream', usdz:'model/vnd.usdz+zip',
-  woff:'font/woff', woff2:'font/woff2', ttf:'font/ttf', otf:'font/otf', eot:'application/vnd.ms-fontobject',
-  pdf:'application/pdf', wasm:'application/wasm', zip:'application/zip'
-};
-function mimeOf(p){ return MIME[ext(p)] || 'application/octet-stream'; }
-function isTextPath(p){
-  const e = ext(p);
-  if(BINARY_EXT.has(e)) return false;
-  return true;
-}
-
-function b64encode(bytes){
-  let s = '';
-  const CH = 0x8000;
-  for(let i=0;i<bytes.length;i+=CH){
-    s += String.fromCharCode.apply(null, bytes.subarray(i, i+CH));
-  }
-  return btoa(s);
-}
-function b64decode(str){
-  const bin = atob(str);
-  const out = new Uint8Array(bin.length);
-  for(let i=0;i<bin.length;i++) out[i] = bin.charCodeAt(i);
-  return out;
-}
-function bytesToDataURL(bytes, mime){
-  return 'data:' + (mime||'application/octet-stream') + ';base64,' + b64encode(bytes);
-}
-
-/* =========================================================
-   STATE
-   ========================================================= */
-const state = {
-  files: new Map(),       // path -> {path, text?, bytes?}
-  open: [],
-  active: null,
-  panel: 'files',
-  panelVisible: true,
-  collapsed: new Set(),
-  live: true,
-  mode: 'split',
-  logs: [],
-  logsOpen: false,
-  fontSize: 13.5,
-  tabSize: 2,
-  autosave: true,
-  search: { q:'', r:'', case:false, regex:false, results:[], mode:'search' }
+const M4={
+  persp(fovy,asp,n,f){const o=new Float32Array(16),t=1/Math.tan(fovy/2);o[0]=t/asp;o[5]=t;o[10]=(f+n)/(n-f);o[11]=-1;o[14]=2*f*n/(n-f);return o;},
+  look(e,c,u){
+    let zx=e[0]-c[0],zy=e[1]-c[1],zz=e[2]-c[2];let l=Math.hypot(zx,zy,zz);zx/=l;zy/=l;zz/=l;
+    let xx=u[1]*zz-u[2]*zy,xy=u[2]*zx-u[0]*zz,xz=u[0]*zy-u[1]*zx;l=Math.hypot(xx,xy,xz);xx/=l;xy/=l;xz/=l;
+    const yx=zy*xz-zz*xy,yy=zz*xx-zx*xz,yz=zx*xy-zy*xx;
+    return new Float32Array([xx,yx,zx,0,xy,yy,zy,0,xz,yz,zz,0,-(xx*e[0]+xy*e[1]+xz*e[2]),-(yx*e[0]+yy*e[1]+yz*e[2]),-(zx*e[0]+zy*e[1]+zz*e[2]),1]);
+  },
+  mul(a,b){const o=new Float32Array(16);for(let c=0;c<4;c++)for(let r=0;r<4;r++){let s=0;for(let k=0;k<4;k++)s+=a[k*4+r]*b[c*4+k];o[c*4+r]=s;}return o;}
 };
 
-const LS_KEY = 'studio.project.v1';
+/* ============================================================
+   Shaders
+   ============================================================ */
+const HDR = '#version 300 es\nprecision highp float;\nprecision highp int;\nprecision highp sampler2D;\n';
 
-/* =========================================================
-   DOM REFS
-   ========================================================= */
-const elPanel     = $('#panel');
-const elPanelBody = $('#panelBody');
-const elPanelTitle= $('#panelTitle');
-const elTree      = null;
-const elTabs      = $('#tabs');
-const elCode      = $('#code');
-const elHigh      = $('#highlight');
-const elGutter    = $('#gutter');
-const elEditorPath= $('#editorPath');
-const elWelcome   = $('#welcome');
-const elEditorWrap= $('#editorWrap');
-const elPreview   = $('#preview');
-const elWork      = $('#workarea');
-const elConsole   = $('#console');
-const elLogs      = $('#clogs');
-const elToasts    = $('#toasts');
-
-/* =========================================================
-   TOASTS
-   ========================================================= */
-function toast(msg, kind, ms){
-  const d = document.createElement('div');
-  d.className = 'toast' + (kind ? ' ' + kind : '');
-  d.textContent = msg;
-  elToasts.appendChild(d);
-  setTimeout(function(){
-    d.style.transition = 'opacity .25s, transform .25s';
-    d.style.opacity = '0';
-    d.style.transform = 'translateY(8px)';
-    setTimeout(function(){ d.remove(); }, 260);
-  }, ms || 2200);
-}
-
-/* =========================================================
-   FILE SYSTEM
-   ========================================================= */
-function getFile(p){ return state.files.get(p) || null; }
-function fileText(p){
-  const f = state.files.get(p);
-  if(!f) return '';
-  return typeof f.text === 'string' ? f.text : '';
-}
-
-function setFileText(p, text){
-  let f = state.files.get(p);
-  if(!f){ f = { path:p }; state.files.set(p, f); }
-  f.text = text;
-  delete f.bytes;
-  onChange(p);
-}
-
-function addFile(p, content){
-  p = normPath(p);
-  if(!p) return null;
-  if(typeof content === 'string'){
-    state.files.set(p, { path:p, text: content });
-  }else{
-    state.files.set(p, { path:p, bytes: content });
+const COMMON = `
+uniform sampler2D uDetail;
+uniform float uTime,uStorm,uAmbLum,uSunLum,uCloudLo,uExp;
+uniform vec3 uSun,uSunCol,uZenith,uHorizon,uGlow;
+float hash12(vec2 p){vec3 p3=fract(vec3(p.xyx)*0.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
+vec3 skyCol(vec3 rd,float sunOn){
+  float h=max(rd.y,0.0);
+  vec3 c=mix(uHorizon,uZenith,pow(h,0.42));
+  float sd=max(dot(rd,uSun),0.0);
+  c+=uGlow*(pow(sd,5.0)*0.30+pow(sd,48.0)*0.8);
+  {
+    vec2 cuv=rd.xz/(h+0.10)*0.20+vec2(uTime*0.0035,uTime*0.0012);
+    float n=texture(uDetail,cuv).a*0.65+texture(uDetail,cuv*2.7+vec2(3.1,1.7)).a*0.35;
+    float cov=smoothstep(uCloudLo,uCloudLo+0.24,n)*smoothstep(0.0,0.16,rd.y);
+    vec3 cc=mix(uHorizon,vec3(1.0),0.65)*(0.5+0.5*uAmbLum);
+    cc*=mix(1.0,0.42,uStorm);
+    cc+=uGlow*pow(sd,3.0)*0.45;
+    c=mix(c,cc,cov*0.92);
+    c+=uSunCol*smoothstep(0.99965,0.99985,sd)*(1.0-cov)*step(0.5,sunOn)*step(0.0,rd.y);
   }
-  return p;
+  return c;
 }
+vec3 tonemap(vec3 x){
+  x*=uExp;
+  vec3 c=clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14),0.0,1.0);
+  return pow(c,vec3(1.0/2.2));
+}
+vec3 enc(vec3 c){return c/(1.0+c);}
+vec3 dec(vec3 c){c=min(c,vec3(0.995));return c/(1.0-c);}
+`;
 
-function removeFile(p){
-  p = normPath(p);
-  if(!p) return 0;
-  const pref = p + '/';
-  const removed = [];
-  Array.from(state.files.keys()).forEach(function(k){
-    if(k === p || k.indexOf(pref) === 0){
-      state.files.delete(k);
-      removed.push(k);
+/* ---- Water vertex: Gerstner waves + ripple height ---- */
+const WATER_VS = HDR + `
+layout(location=0) in vec2 aUV;
+uniform mat4 uVP;
+uniform float uTime;
+uniform vec4 uW[8];
+uniform float uQ[8];
+uniform sampler2D uRip;
+uniform float uRipR;
+out vec3 vWorld;
+out vec3 vN;
+out float vFoam;
+void main(){
+  vec2 s=sign(aUV); vec2 au=abs(aUV);
+  vec2 p0=s*600.0*(exp(6.0*au)-1.0)/(exp(6.0)-1.0);
+  float sp=0.0417*(max(abs(p0.x),abs(p0.y))+1.5);
+  vec3 disp=vec3(0.0);
+  float nx=0.0,nz=0.0,ny=0.0,jxx=0.0,jzz=0.0,jxz=0.0;
+  for(int i=0;i<8;i++){
+    vec4 w=uW[i]; float k=w.z; float L=6.2831853/k;
+    float f=smoothstep(1.5*sp,4.5*sp,L);
+    float om=sqrt(9.81*k);
+    float th=k*dot(w.xy,p0)-om*uTime+float(i)*2.399;
+    float sn=sin(th),cs=cos(th);
+    float q=uQ[i]*f; float A=w.w*f;
+    disp.xz+=w.xy*(q/k)*cs;
+    disp.y+=A*sn;
+    nx-=w.x*k*A*cs; nz-=w.y*k*A*cs; ny+=q*sn;
+    jxx+=q*w.x*w.x*sn; jzz+=q*w.y*w.y*sn; jxz+=q*w.x*w.y*sn;
+  }
+  vec3 pos=vec3(p0.x+disp.x,disp.y,p0.y+disp.z);
+  vN=vec3(nx,1.0-ny,nz);
+  float J=(1.0-jxx)*(1.0-jzz)-jxz*jxz;
+  vFoam=1.0-smoothstep(0.40,0.72,J);
+  vec2 ruv=pos.xz/(2.0*uRipR)+0.5;
+  float ef=smoothstep(0.0,0.08,min(min(ruv.x,1.0-ruv.x),min(ruv.y,1.0-ruv.y)));
+  pos.y+=textureLod(uRip,ruv,0.0).r*ef;
+  vWorld=pos;
+  gl_Position=uVP*vec4(pos,1.0);
+}`;
+
+/* ---- Water fragment: fresnel, reflection, refraction, SSS, foam, glitter ---- */
+const WATER_FS = HDR + COMMON + `
+in vec3 vWorld; in vec3 vN; in float vFoam;
+out vec4 o;
+uniform vec3 uCam,uCamR,uCamF;
+uniform float uRipR,uRipN,uA0;
+uniform vec2 uRes,uNF;
+uniform sampler2D uRip,uScene,uSceneD,uRefl;
+float linZ(float d){float z=2.0*d-1.0;return 2.0*uNF.x*uNF.y/(uNF.y+uNF.x-z*(uNF.y-uNF.x));}
+void main(){
+  vec3 toCam=uCam-vWorld; float dist=length(toCam); vec3 V=toCam/dist;
+  vec3 Nw=normalize(vN);
+  vec2 s=Nw.xz/max(Nw.y,0.2);
+  /* interactive ripples */
+  vec2 ruv=vWorld.xz/(2.0*uRipR)+0.5;
+  float ef=smoothstep(0.0,0.08,min(min(ruv.x,1.0-ruv.x),min(ruv.y,1.0-ruv.y)));
+  float e=1.0/uRipN;
+  float hl=texture(uRip,ruv-vec2(e,0.0)).r, hr=texture(uRip,ruv+vec2(e,0.0)).r;
+  float hd=texture(uRip,ruv-vec2(0.0,e)).r, hu=texture(uRip,ruv+vec2(0.0,e)).r;
+  vec2 grad=vec2(hr-hl,hu-hd)*(uRipN/(4.0*uRipR));
+  s-=grad*ef*1.3;
+  float foamSim=texture(uRip,ruv).g*ef;
+  /* capillary detail */
+  float df=1.0/(1.0+dist*0.035);
+  vec2 t1=vWorld.xz*0.23+vec2(uTime*0.031,uTime*0.017);
+  vec2 t2=vWorld.xz*0.61+vec2(-uTime*0.047,uTime*0.029);
+  vec2 t3=vWorld.xz*1.7+vec2(uTime*0.071,-uTime*0.05);
+  vec3 d1=texture(uDetail,t1).xyz*2.0-1.0;
+  vec3 d2=texture(uDetail,t2).xyz*2.0-1.0;
+  vec3 d3=texture(uDetail,t3).xyz*2.0-1.0;
+  float dw=(0.40+0.55*uStorm)*df;
+  s+=(d1.xz*0.8+d2.xz*0.6+d3.xz*0.35)*dw;
+  s*=mix(1.0,0.5,smoothstep(60.0,400.0,dist));
+  vec3 N=normalize(vec3(s.x,1.0,s.y));
+  float nv=max(dot(N,V),0.0);
+  float F=0.02+0.98*pow(1.0-nv,5.0);
+
+  /* reflection */
+  vec3 R=reflect(-V,N); R.y=abs(R.y);
+  vec3 refl=skyCol(R,0.0);
+  vec2 uv=gl_FragCoord.xy/uRes;
+  vec2 off=vec2(dot(s,uCamR.xz),dot(s,normalize(uCamF.xz))*0.6);
+  vec4 rb=texture(uRefl,clamp(uv+off*0.05,0.001,0.999));
+  refl=mix(refl,dec(rb.rgb),rb.a);
+
+  /* body colour with sub-surface scattering at crests */
+  vec3 L=uSun;
+  float hh=clamp(vWorld.y/(uA0*2.0+0.35)*0.5+0.5,0.0,1.0);
+  float back=pow(clamp(dot(L,-V)*0.5+0.5,0.0,1.0),3.0);
+  vec3 deep=vec3(0.005,0.040,0.078);
+  vec3 tq=vec3(0.03,0.36,0.31);
+  vec3 body=deep*(0.25+0.9*uAmbLum)
+           +tq*uSunCol*back*hh*hh*0.16*clamp(L.y*2.5,0.0,1.0)
+           +tq*0.05*uAmbLum*pow(1.0-nv,2.0)*(0.4+hh)
+           +vec3(0.0,0.05,0.06)*uAmbLum*hh;
+  body*=mix(vec3(1.0),uHorizon*1.4,0.25);
+
+  /* refraction of submerged objects */
+  float zW=linZ(gl_FragCoord.z);
+  vec3 refr=body;
+  vec2 uvq=clamp(uv+off*0.03,0.001,0.999);
+  vec4 sc=vec4(0.0); float zS=0.0;
+  vec4 c2=textureLod(uScene,uvq,0.0); float z2=linZ(textureLod(uSceneD,uvq,0.0).r);
+  vec4 c1=textureLod(uScene,uv,0.0); float z1=linZ(textureLod(uSceneD,uv,0.0).r);
+  if(c2.a>0.5&&z2>zW){sc=c2;zS=z2;}
+  else if(c1.a>0.5&&z1>zW){sc=c1;zS=z1;}
+  if(sc.a>0.5){
+    float thick=max(zS-zW,0.0)*dist/zW;
+    vec3 tr=exp(-thick*vec3(0.45,0.11,0.065)*(0.8+0.5*uStorm));
+    refr=dec(sc.rgb)*tr+body*(1.0-tr);
+  }
+
+  vec3 col=mix(refr,refl,F);
+
+  /* sun glitter (GGX) */
+  vec3 H=normalize(L+V);
+  float nh=max(dot(N,H),0.0);
+  float a=0.035+0.07*uStorm+dist*0.00025; float a2=a*a;
+  float dd=nh*nh*(a2-1.0)+1.0;
+  float D=a2/(3.14159265*dd*dd);
+  float vh=max(dot(V,H),0.0);
+  float Fs=0.02+0.98*pow(1.0-vh,5.0);
+  float nl=max(dot(N,L),0.0);
+  vec3 spec=uSunCol*min(D*Fs/(4.0*max(nv,0.08)),22.0)*smoothstep(0.0,0.12,nl)*step(0.0,L.y);
+
+  /* foam */
+  float foamAmt=clamp(vFoam+foamSim*1.2,0.0,1.0);
+  float fn=texture(uDetail,vWorld.xz*0.55+vec2(uTime*0.01,-uTime*0.013)).a*0.6
+          +texture(uDetail,vWorld.xz*1.9-vec2(uTime*0.02,0.0)).a*0.4;
+  float fm=smoothstep(1.0-foamAmt*1.15,1.0-foamAmt*1.15+0.18,fn);
+  float foamLight=0.42*uAmbLum+0.22*uSunLum*max(dot(N,L),0.0);
+  vec3 foamCol=vec3(0.94,0.97,1.0)*foamLight;
+  col=mix(col+spec*(1.0-fm),foamCol,fm*0.92);
+
+  /* horizon haze */
+  float fog=smoothstep(100.0,580.0,dist);
+  vec3 hd2=normalize(vec3(vWorld.x-uCam.x,0.02,vWorld.z-uCam.z));
+  col=mix(col,skyCol(hd2,0.0),fog);
+
+  vec3 outc=tonemap(col)+(hash12(gl_FragCoord.xy)-0.5)/255.0;
+  o=vec4(outc,1.0);
+}`;
+
+/* ---- Sky ---- */
+const SKY_VS = HDR + `
+out vec2 vNdc;
+void main(){
+  vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2));
+  vNdc=p*2.0-1.0;
+  gl_Position=vec4(vNdc,1.0,1.0);
+}`;
+const SKY_FS = HDR + COMMON + `
+in vec2 vNdc; out vec4 o;
+uniform vec3 uCamF,uCamR,uCamU; uniform vec2 uTanAsp;
+void main(){
+  vec3 rd=normalize(uCamF+vNdc.x*uTanAsp.x*uTanAsp.y*uCamR+vNdc.y*uTanAsp.x*uCamU);
+  vec3 c=skyCol(rd,1.0);
+  o=vec4(tonemap(c)+(hash12(gl_FragCoord.xy)-0.5)/255.0,1.0);
+}`;
+
+/* ---- Balls ---- */
+const BALL_VS = HDR + `
+layout(location=0) in vec3 aPos;
+uniform mat4 uVP; uniform vec3 uPos; uniform float uR; uniform mat3 uRot;
+uniform float uMirror,uPlane;
+out vec3 vWorld; out vec3 vWN; out vec3 vLocal;
+void main(){
+  vec3 wl=uRot*aPos;
+  vec3 w=uPos+wl*uR;
+  vLocal=aPos; vWN=wl; vWorld=w;
+  if(uMirror>0.5) w.y=2.0*uPlane-w.y;
+  gl_Position=uVP*vec4(w,1.0);
+}`;
+const BALL_FS = HDR + COMMON + `
+in vec3 vWorld; in vec3 vWN; in vec3 vLocal;
+out vec4 o;
+uniform vec3 uCamEff; uniform float uType,uMode,uMirror,uPlane;
+const vec3 BC[6]=vec3[6](vec3(0.85,0.07,0.08),vec3(0.96,0.96,0.94),vec3(0.06,0.25,0.85),vec3(0.98,0.80,0.10),vec3(0.96,0.96,0.94),vec3(0.07,0.62,0.22));
+vec2 dn(vec2 uv){vec3 d=texture(uDetail,uv).xyz*2.0-1.0;return d.xz;}
+void main(){
+  if(uMirror>0.5&&vWorld.y<uPlane) discard;
+  vec3 l=normalize(vLocal);
+  vec3 N=normalize(vWN);
+  vec3 alb=vec3(0.8); float rough=0.4,metal=0.0,f0=0.04; vec2 bn=vec2(0.0);
+  int t=int(uType+0.5);
+  if(t==0){
+    float a=atan(l.z,l.x); float seg=(a+3.14159265)/6.2831853*6.0;
+    float id=floor(seg); float fr=fract(seg);
+    alb=BC[int(mod(id,6.0))];
+    float seam=smoothstep(0.0,0.035,fr)*(1.0-smoothstep(0.965,1.0,fr));
+    alb*=mix(0.5,1.0,seam);
+    float cap=smoothstep(0.86,0.9,abs(l.y)); alb=mix(alb,vec3(0.95),cap);
+    float ring=smoothstep(0.972,0.978,abs(l.y))*(1.0-smoothstep(0.99,0.996,abs(l.y)));
+    alb=mix(alb,vec3(0.15),ring*0.6);
+    rough=0.28;
+  } else if(t==1){
+    float pb=(texture(uDetail,l.xy*6.0).a+texture(uDetail,l.zy*6.0).a)*0.5;
+    alb=vec3(0.86,0.37,0.07)*(0.82+0.34*pb);
+    bn=(dn(l.xy*7.0)+dn(l.zy*7.0))*0.18;
+    float w=0.020;
+    float d=min(min(abs(l.y),abs(l.x)),abs(abs(l.z)-0.62)*1.1);
+    alb=mix(alb,vec3(0.02),1.0-smoothstep(w,w+0.012,d));
+    rough=0.62;
+  } else if(t==2){
+    float fz=texture(uDetail,l.xy*14.0).a*0.5+texture(uDetail,l.zy*14.0).a*0.5;
+    alb=vec3(0.76,0.90,0.16)*(0.78+0.4*fz);
+    bn=(dn(l.xy*16.0)+dn(l.zy*16.0))*0.3;
+    float d=abs(l.y-0.62*sin(2.0*atan(l.z,l.x)))*0.85;
+    alb=mix(alb,vec3(0.93,0.95,0.88),(1.0-smoothstep(0.035,0.06,d))*0.92);
+    rough=0.95;
+  } else if(t==3){
+    float n=texture(uDetail,l.xz*1.3+0.3).a;
+    float r=length(l.xz)+0.06*n;
+    float rings=0.5+0.5*sin(r*34.0+n*4.0);
+    alb=mix(vec3(0.40,0.22,0.08),vec3(0.66,0.43,0.20),rings);
+    alb*=0.9+0.2*texture(uDetail,l.xy*9.0).a;
+    rough=0.42;
+  } else if(t==4){
+    float n=texture(uDetail,l.xy*1.4+vec2(0.3)).a+texture(uDetail,l.zy*1.1).a;
+    alb=mix(vec3(0.01,0.02,0.12),vec3(0.28,0.04,0.46),smoothstep(0.5,1.3,n));
+    alb+=vec3(0.0,0.0,0.15)*smoothstep(0.9,1.1,n);
+    vec3 d0=normalize(vec3(0.0,0.9,0.43)); vec3 d1=normalize(vec3(0.17,0.82,0.55)); vec3 d2=normalize(vec3(-0.17,0.82,0.55));
+    float hole=max(max(smoothstep(0.9935,0.9945,dot(l,d0)),smoothstep(0.9965,0.9975,dot(l,d1))),smoothstep(0.9965,0.9975,dot(l,d2)));
+    alb=mix(alb,vec3(0.0),hole);
+    rough=0.09;
+  } else {
+    alb=vec3(0.86,0.89,0.94); metal=1.0; rough=0.05; f0=0.9;
+  }
+  if(bn!=vec2(0.0)){
+    vec3 T=normalize(cross(N,vec3(0.31,0.93,0.17))); vec3 B=cross(N,T);
+    N=normalize(N+T*bn.x+B*bn.y);
+  }
+  vec3 V=normalize(uCamEff-vWorld);
+  float nv=max(dot(N,V),0.0);
+  float ndl=max(dot(N,uSun),0.0);
+  vec3 hemi=mix(uHorizon*0.45+vec3(0.02,0.05,0.07),uZenith*1.3+vec3(0.05),N.y*0.5+0.5);
+  vec3 diff=alb*(uSunCol*ndl*0.5+hemi*1.25);
+  float shin=clamp(2.0/(rough*rough)-2.0,4.0,3000.0);
+  vec3 H=normalize(uSun+V); float nh=max(dot(N,H),0.0);
+  float vh=max(dot(V,H),0.0);
+  vec3 F0v=mix(vec3(f0),alb,metal);
+  vec3 Fh=F0v+(1.0-F0v)*pow(1.0-vh,5.0);
+  vec3 spec=pow(nh,shin)*(shin+8.0)/(8.0*3.14159)*Fh*ndl*uSunCol*0.45;
+  vec3 R=reflect(-V,N);
+  vec3 env;
+  if(R.y>=0.0) env=skyCol(R,1.0);
+  else env=mix(vec3(0.02,0.07,0.10)*uAmbLum+uHorizon*0.08,uHorizon*0.5,smoothstep(-0.25,0.0,R.y));
+  vec3 Fr=F0v+(1.0-F0v)*pow(1.0-nv,5.0);
+  float gloss=(1.0-rough); gloss*=gloss;
+  vec3 col=diff*(1.0-metal)*(1.0-Fr*gloss*0.5)+env*Fr*gloss+spec*mix(vec3(1.0),alb,metal);
+  if(uMode>0.5) o=vec4(enc(col),1.0);
+  else o=vec4(tonemap(col),1.0);
+}`;
+
+/* ---- Spray particles ---- */
+const PART_VS = HDR + `
+layout(location=0) in vec3 aPos; layout(location=1) in vec2 aInfo;
+uniform mat4 uVP; uniform float uPx;
+out float vA;
+void main(){
+  vec4 c=uVP*vec4(aPos,1.0);
+  gl_Position=c;
+  gl_PointSize=clamp(aInfo.x*uPx/max(c.w,0.1),1.5,56.0);
+  vA=aInfo.y;
+}`;
+const PART_FS = HDR + COMMON + `
+in float vA; out vec4 o;
+void main(){
+  vec2 q=gl_PointCoord*2.0-1.0; float d=dot(q,q);
+  if(d>1.0) discard;
+  float a=(1.0-d)*vA;
+  vec3 c=vec3(0.9,0.95,1.0)*(0.45*uAmbLum+0.22*uSunLum);
+  c+=uSunCol*0.08*smoothstep(0.2,-0.6,q.y+q.x*0.3);
+  o=vec4(tonemap(c),a);
+}`;
+
+function compile(type,src){
+  const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){ const m=gl.getShaderInfoLog(s); showErr('Shader error: '+m); throw new Error(m); }
+  return s;
+}
+function program(vs,fs){
+  const p=gl.createProgram();
+  gl.attachShader(p,compile(gl.VERTEX_SHADER,vs)); gl.attachShader(p,compile(gl.FRAGMENT_SHADER,fs));
+  gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS)){ const m=gl.getProgramInfoLog(p); showErr('Link error: '+m); throw new Error(m); }
+  p.u={}; return p;
+}
+function L(p,n){ let v=p.u[n]; if(v===undefined){ v=gl.getUniformLocation(p,n); p.u[n]=v; } return v; }
+
+const pWater=program(WATER_VS,WATER_FS);
+const pSky=program(SKY_VS,SKY_FS);
+const pBall=program(BALL_VS,BALL_FS);
+const pPart=program(PART_VS,PART_FS);
+
+/* ============================================================
+   Procedural tileable detail texture (ridged normals + fbm alpha)
+   ============================================================ */
+function hash2(x,y,seed){
+  let h=Math.imul(x,374761393)^Math.imul(y,668265263)^Math.imul(seed,1274126177);
+  h=Math.imul(h^(h>>>13),1274126177); h^=h>>>16; return (h>>>0)/4294967295;
+}
+function vnoise(x,y,per,seed){
+  const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;
+  const u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf);
+  const x0=((xi%per)+per)%per,x1=(x0+1)%per,y0=((yi%per)+per)%per,y1=(y0+1)%per;
+  const a=hash2(x0,y0,seed),b=hash2(x1,y0,seed),c=hash2(x0,y1,seed),d=hash2(x1,y1,seed);
+  return lerp(lerp(a,b,u),lerp(c,d,u),v);
+}
+function makeDetailTexture(){
+  const S=256, rid=new Float32Array(S*S), fb=new Float32Array(S*S);
+  for(let j=0;j<S;j++)for(let i=0;i<S;i++){
+    let a=0,b=0,amp=0.5,tot=0;
+    for(let o=0;o<5;o++){
+      const per=4<<o, x=i/S*per, y=j/S*per;
+      const n=vnoise(x,y,per,11+o*7);
+      a+=amp*(1-Math.abs(2*n-1)); b+=amp*vnoise(x,y,per,101+o*13); tot+=amp; amp*=0.5;
     }
-  });
-  if(!removed.length) return 0;
-  state.open = state.open.filter(function(x){ return state.files.has(x); });
-  if(state.active && !state.files.has(state.active)){
-    state.active = state.open.length ? state.open[state.open.length-1] : null;
-    loadActiveIntoEditor();
+    rid[j*S+i]=a/tot; fb[j*S+i]=b/tot;
   }
-  renderAll();
-  onChange(p);
-  return removed.length;
-}
-
-function deletePath(p, isDir){
-  p = normPath(p);
-  if(!p) return;
-  const prefix = p + '/';
-  const count = Array.from(state.files.keys()).filter(function(k){ return k === p || k.indexOf(prefix) === 0; }).length;
-  if(!count){ toast('That item no longer exists', 'err'); return; }
-  const label = isDir ? 'folder and its ' + count + ' file(s)' : 'file';
-  if(!confirm('Delete ' + label + ' “' + p + '”? This cannot be undone.')) return;
-  const removed = removeFile(p);
-  buildPreview(true);
-  saveProject(false);
-  toast('Deleted ' + removed + ' file' + (removed === 1 ? '' : 's'), 'ok');
-}
-
-function removeAllFiles(){
-  if(!state.files.size){ toast('Workspace is already empty'); return; }
-  if(!confirm('Remove all ' + state.files.size + ' files from this workspace? This cannot be undone.')) return;
-  state.files.clear();
-  state.open = [];
-  state.active = null;
-  state.collapsed.clear();
-  renderAll();
-  buildPreview(true);
-  saveProject(false);
-  toast('All workspace files removed', 'ok');
-}
-
-function onChange(p){
-  renderTree();
-  renderTabs();
-  updateDirtyMarks();
-  schedulePreview();
-  scheduleAutosave();
-  if(state.panel === 'vars') scheduleVars();
-}
-
-/* =========================================================
-   TREE
-   ========================================================= */
-function buildTree(){
-  const root = { name:'', path:'', dirs:new Map(), files:[] };
-  const keys = Array.from(state.files.keys()).sort();
-  for(let i=0;i<keys.length;i++){
-    const p = keys[i];
-    const parts = p.split('/');
-    let node = root;
-    for(let j=0;j<parts.length-1;j++){
-      const d = parts[j];
-      if(!node.dirs.has(d)){
-        node.dirs.set(d, { name:d, path: parts.slice(0,j+1).join('/'), dirs:new Map(), files:[] });
-      }
-      node = node.dirs.get(d);
-    }
-    node.files.push({ name: parts[parts.length-1], path: p });
+  const gx=new Float32Array(S*S), gy=new Float32Array(S*S); let ss=0;
+  for(let j=0;j<S;j++)for(let i=0;i<S;i++){
+    const ip=(i+1)%S,im=(i+S-1)%S,jp=(j+1)%S,jm=(j+S-1)%S;
+    const dx=rid[j*S+ip]-rid[j*S+im], dy=rid[jp*S+i]-rid[jm*S+i];
+    gx[j*S+i]=dx; gy[j*S+i]=dy; ss+=dx*dx+dy*dy;
   }
-  return root;
-}
-
-function iconForPath(p){
-  const e = ext(p);
-  if(['png','jpg','jpeg','gif','webp','avif','bmp','ico','tif','tiff','svg'].indexOf(e) >= 0) return 'image';
-  if(['mp4','webm','mov','m4v','ogv','avi'].indexOf(e) >= 0) return 'video';
-  if(['mp3','wav','ogg','m4a','flac','aac'].indexOf(e) >= 0) return 'audio';
-  if(['glb','gltf','obj','stl','fbx','usdz','ply','dae','3ds'].indexOf(e) >= 0) return 'model';
-  if(['js','mjs','cjs','ts','jsx','tsx','json'].indexOf(e) >= 0) return 'code';
-  if(['zip','gz','tar','rar','7z'].indexOf(e) >= 0) return 'package';
-  return 'file';
-}
-
-function renderTreeInto(node, depth){
-  let out = '';
-  const dirs = Array.from(node.dirs.values()).sort(function(a,b){ return a.name.localeCompare(b.name); });
-  const files = node.files.slice().sort(function(a,b){ return a.name.localeCompare(b.name); });
-
-  dirs.forEach(function(d){
-    const open = !state.collapsed.has(d.path);
-    out += '<div class="row dir'+(open?' open':'')+'" data-dir="'+esc(d.path)+'" style="padding-left:'+(8+depth*13)+'px">'
-        +  '<span class="chev">'+icon('chevron')+'</span>'
-        +  '<span class="ico">'+icon('folder')+'</span>'
-        +  '<span class="nm">'+esc(d.name)+'</span>'
-        +  '<button class="rowdel" type="button" data-delete-path="'+esc(d.path)+'" data-delete-dir="1" title="Delete folder and its files" aria-label="Delete folder '+esc(d.name)+'">'+icon('trash')+'</button>'
-        +  '</div>';
-    if(open) out += renderTreeInto(d, depth+1);
-  });
-
-  files.forEach(function(f){
-    const active = state.active === f.path;
-    out += '<div class="row file'+(active?' active':'')+'" data-file="'+esc(f.path)+'" style="padding-left:'+(8+depth*13)+'px">'
-        +  '<span class="chev"></span>'
-        +  '<span class="ico">'+icon(iconForPath(f.path))+'</span>'
-        +  '<span class="nm">'+esc(f.name)+'</span>'
-        +  '<button class="rowdel" type="button" data-delete-path="'+esc(f.path)+'" title="Delete file" aria-label="Delete file '+esc(f.name)+'">'+icon('trash')+'</button>'
-        +  '</div>';
-  });
-  return out;
-}
-
-function renderTree(){
-  if(state.panel !== 'files') return;
-  const tree = buildTree();
-  const html = renderTreeInto(tree, 0);
-  elPanelBody.innerHTML = html || '<div class="empty">No files yet.<br>Tap <b>+</b> to create one.</div>';
-}
-
-/* =========================================================
-   TABS
-   ========================================================= */
-function renderTabs(){
-  elTabs.innerHTML = state.open.map(function(p){
-    const active = p === state.active;
-    return '<div class="tab'+(active?' active':'')+'" data-tab="'+esc(p)+'">'
-      + '<span class="ticon">'+icon(iconForPath(p))+'</span>'
-      + '<span class="tname">'+esc(baseName(p))+'</span>'
-      + '<span class="tclose" data-close="'+esc(p)+'">'+icon('x')+'</span>'
-      + '</div>';
-  }).join('');
-}
-
-function updateDirtyMarks(){ /* placeholder — single-source files, no dirty state */ }
-
-/* =========================================================
-   EDITOR
-   ========================================================= */
-let rafHighlight = 0;
-
-function loadActiveIntoEditor(){
-  if(!state.active || !state.files.has(state.active)){
-    state.active = null;
-    elCode.value = '';
-    elHigh.innerHTML = '';
-    elGutter.textContent = '1';
-    elEditorPath.textContent = '—';
-    elWelcome.style.display = 'flex';
-    elEditorWrap.style.display = 'none';
-    return;
+  const sc=0.35/Math.sqrt(ss/(2*S*S));
+  let mean=0; for(let i=0;i<S*S;i++) mean+=fb[i]; mean/=S*S;
+  let sd=0; for(let i=0;i<S*S;i++) sd+=(fb[i]-mean)*(fb[i]-mean); sd=Math.sqrt(sd/(S*S));
+  const data=new Uint8Array(S*S*4);
+  for(let i=0;i<S*S;i++){
+    let nx=-gx[i]*sc, ny=1, nz=-gy[i]*sc; const l=Math.hypot(nx,ny,nz); nx/=l;ny/=l;nz/=l;
+    data[i*4]=(nx*0.5+0.5)*255; data[i*4+1]=(ny*0.5+0.5)*255; data[i*4+2]=(nz*0.5+0.5)*255;
+    data[i*4+3]=clamp((fb[i]-mean)/(3.2*sd)+0.5,0,1)*255;
   }
-  const f = state.files.get(state.active);
-  if(typeof f.text !== 'string' && f.bytes){
-    // binary preview
-    elCode.value = '';
-    elHigh.innerHTML = '<span class="t-com">[binary file — ' + f.bytes.length + ' bytes]</span>';
-    elGutter.textContent = '1';
-    elEditorPath.textContent = state.active;
-    elWelcome.style.display = 'none';
-    elEditorWrap.style.display = 'flex';
-    elCode.readOnly = true;
-    renderTabs();
-    return;
-  }
-  elCode.readOnly = false;
-  elCode.value = f.text || '';
-  elEditorPath.textContent = state.active;
-  elWelcome.style.display = 'none';
-  elEditorWrap.style.display = 'flex';
-  elCode.scrollTop = 0; elCode.scrollLeft = 0;
-  renderGutter();
-  renderHighlight();
-  syncScroll();
-  renderTabs();
-}
-
-function openFile(p, line){
-  if(!state.files.has(p)) return;
-  if(state.open.indexOf(p) < 0) state.open.push(p);
-  state.active = p;
-  loadActiveIntoEditor();
-  renderTree();
-  renderTabs();
-  if(line) revealLine(line, 1);
-  if(state.panel === 'vars') scheduleVars();
-}
-
-function closeTab(p){
-  const i = state.open.indexOf(p);
-  if(i < 0) return;
-  state.open.splice(i, 1);
-  if(state.active === p){
-    state.active = state.open.length ? state.open[Math.min(i, state.open.length-1)] : null;
-    loadActiveIntoEditor();
-  }
-  renderTabs();
-  renderTree();
-}
-
-function renderGutter(){
-  const v = elCode.value;
-  let n = 1;
-  for(let i=0;i<v.length;i++) if(v.charCodeAt(i) === 10) n++;
-  if(n > 8000) n = 8000;
-  let out = '';
-  for(let i=1;i<=n;i++) out += i + '\n';
-  elGutter.textContent = out;
-}
-
-function syncScroll(){
-  elHigh.scrollTop = elCode.scrollTop;
-  elHigh.scrollLeft = elCode.scrollLeft;
-  elGutter.scrollTop = elCode.scrollTop;
-}
-
-/* ---------- syntax highlighting ---------- */
-function hlEscape(s){
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-const JS_KW = 'const|let|var|function|return|if|else|for|while|do|switch|case|default|break|continue|new|class|extends|super|this|typeof|instanceof|in|of|try|catch|finally|throw|async|await|yield|import|export|from|as|delete|void|null|undefined|true|false|static|get|set|with|debugger';
-
-function highlightJS(src){
-  const re = new RegExp(
-    '(\\/\\*[\\s\\S]*?\\*\\/)|(\\/\\/[^\\n]*)|(`(?:[^`\\\\]|\\\\[\\s\\S])*`)|("(?:[^"\\\\\\n]|\\\\.)*")|(\'(?:[^\'\\\\\\n]|\\\\.)*\')' +
-    '|\\b(' + JS_KW + ')\\b|\\b(\\d[\\d_]*(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)\\b|(=>)|([{}()\\[\\];,.])|([+\\-*/%<>=!&|^~?:]+)',
-    'g');
-  let out = '', last = 0, m;
-  while((m = re.exec(src))){
-    if(m.index > last) out += hlEscape(src.slice(last, m.index));
-    const t = m[0];
-    if(m[1] || m[2]) out += '<span class="t-com">'+hlEscape(t)+'</span>';
-    else if(m[3])    out += '<span class="t-str">'+hlEscape(t)+'</span>';
-    else if(m[4]||m[5]) out += '<span class="t-str">'+hlEscape(t)+'</span>';
-    else if(m[6])    out += '<span class="t-kw">'+hlEscape(t)+'</span>';
-    else if(m[7])    out += '<span class="t-num">'+hlEscape(t)+'</span>';
-    else if(m[8])    out += '<span class="t-op">'+hlEscape(t)+'</span>';
-    else if(m[9])    out += '<span class="t-punc">'+hlEscape(t)+'</span>';
-    else             out += '<span class="t-op">'+hlEscape(t)+'</span>';
-    last = re.lastIndex;
-    if(re.lastIndex === m.index) re.lastIndex++;
-  }
-  out += hlEscape(src.slice(last));
-  return out;
-}
-
-function highlightCSS(src){
-  const re = /(\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(@[\w-]+)|(#[0-9a-fA-F]{3,8}\b)|(--[\w-]+)|([\w-]+)(?=\s*:)|(-?\d*\.?\d+(?:[a-zA-Z%]+)?)|([{};:,()>+~*])/g;
-  let out = '', last = 0, m;
-  while((m = re.exec(src))){
-    if(m.index > last) out += hlEscape(src.slice(last, m.index));
-    const t = m[0];
-    if(m[1])      out += '<span class="t-com">'+hlEscape(t)+'</span>';
-    else if(m[2]) out += '<span class="t-str">'+hlEscape(t)+'</span>';
-    else if(m[3]) out += '<span class="t-kw">'+hlEscape(t)+'</span>';
-    else if(m[4]) out += '<span class="t-num">'+hlEscape(t)+'</span>';
-    else if(m[5]) out += '<span class="t-var">'+hlEscape(t)+'</span>';
-    else if(m[6]) out += '<span class="t-prop">'+hlEscape(t)+'</span>';
-    else if(m[7]) out += '<span class="t-num">'+hlEscape(t)+'</span>';
-    else          out += '<span class="t-punc">'+hlEscape(t)+'</span>';
-    last = re.lastIndex;
-    if(re.lastIndex === m.index) re.lastIndex++;
-  }
-  out += hlEscape(src.slice(last));
-  return out;
-}
-
-function highlightTag(tag){
-  if(tag.indexOf('<!--') === 0) return '<span class="t-com">'+hlEscape(tag)+'</span>';
-  if(tag.indexOf('<![CDATA[') === 0) return '<span class="t-com">'+hlEscape(tag)+'</span>';
-  if(/^<!DOCTYPE/i.test(tag)) return '<span class="t-tag">'+hlEscape(tag)+'</span>';
-  const m = /^(<\/?)([a-zA-Z][\w:.-]*)([\s\S]*?)(\/?>)$/.exec(tag);
-  if(!m) return hlEscape(tag);
-  const attrs = m[3];
-  let a = '', i = 0, am;
-  const are = /([a-zA-Z_:@#][\w:.\-]*)(\s*=\s*)("[^"]*"|'[^']*'|[^\s>]+)?/g;
-  while((am = are.exec(attrs))){
-    if(am.index > i) a += hlEscape(attrs.slice(i, am.index));
-    a += '<span class="t-attr">'+hlEscape(am[1])+'</span>';
-    if(am[2]) a += '<span class="t-op">'+hlEscape(am[2])+'</span>';
-    if(am[3]) a += '<span class="t-str">'+hlEscape(am[3])+'</span>';
-    i = are.lastIndex;
-    if(are.lastIndex === am.index) are.lastIndex++;
-  }
-  if(i < attrs.length) a += hlEscape(attrs.slice(i));
-  return '<span class="t-punc">'+hlEscape(m[1])+'</span>'
-       + '<span class="t-tag">'+hlEscape(m[2])+'</span>'
-       + a
-       + '<span class="t-punc">'+hlEscape(m[4])+'</span>';
-}
-
-function highlightHTML(src){
-  let out = '', i = 0, m;
-  const tagRe = /<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<!DOCTYPE[^>]*>|<\/?[a-zA-Z][\w:.-]*(?:[^>"']|"[^"]*"|'[^']*')*\/?>/g;
-  while((m = tagRe.exec(src))){
-    if(m.index > i) out += hlEscape(src.slice(i, m.index));
-    const tag = m[0];
-    out += highlightTag(tag);
-    i = tagRe.lastIndex;
-    const nm = /^<([a-zA-Z][\w:.-]*)/.exec(tag);
-    if(nm){
-      const name = nm[1].toLowerCase();
-      if(name === 'script' || name === 'style'){
-        const closeRe = new RegExp('</' + name + '\\s*>', 'ig');
-        closeRe.lastIndex = i;
-        const cm = closeRe.exec(src);
-        if(cm){
-          const content = src.slice(i, cm.index);
-          out += (name === 'script') ? highlightJS(content) : highlightCSS(content);
-          i = cm.index;
-          tagRe.lastIndex = i;
-        }
-      }
-    }
-    if(tagRe.lastIndex === m.index) tagRe.lastIndex++;
-  }
-  out += hlEscape(src.slice(i));
-  return out;
-}
-
-function highlightGeneric(src){
-  return hlEscape(src);
-}
-
-function renderHighlight(){
-  const src = elCode.value;
-  if(src.length > 260000){
-    elHigh.innerHTML = hlEscape(src);
-    return;
-  }
-  const e = state.active ? ext(state.active) : '';
-  let html;
-  if(e === 'html' || e === 'htm' || e === 'vue' || e === 'svg' || e === 'xhtml' || e === 'xml'){
-    html = highlightHTML(src);
-  }else if(e === 'css' || e === 'scss' || e === 'less'){
-    html = highlightCSS(src);
-  }else if(e === 'js' || e === 'mjs' || e === 'cjs' || e === 'ts' || e === 'jsx' || e === 'tsx' || e === 'json'){
-    html = highlightJS(src);
-  }else{
-    html = highlightGeneric(src);
-  }
-  elHigh.innerHTML = html + '\n';
-}
-
-function scheduleHighlight(){
-  if(rafHighlight) return;
-  rafHighlight = requestAnimationFrame(function(){
-    rafHighlight = 0;
-    renderHighlight();
-  });
-}
-
-/* ---------- editor events ---------- */
-function onEditorInput(){
-  if(!state.active) return;
-  const f = state.files.get(state.active);
-  if(!f) return;
-  f.text = elCode.value;
-  delete f.bytes;
-  renderGutter();
-  scheduleHighlight();
-  schedulePreview();
-  scheduleAutosave();
-  if(state.panel === 'vars') scheduleVars();
-  if(state.panel === 'search' && state.search.results.length) { /* keep results stale-safe */ }
-}
-
-elCode.addEventListener('input', onEditorInput);
-elCode.addEventListener('scroll', syncScroll);
-
-elCode.addEventListener('keydown', function(e){
-  const mod = e.metaKey || e.ctrlKey;
-
-  if(e.key === 'Tab'){
-    e.preventDefault();
-    const s = elCode.selectionStart, en = elCode.selectionEnd, v = elCode.value;
-    const pad = new Array(state.tabSize + 1).join(' ');
-    if(s !== en && v.slice(s, en).indexOf('\n') >= 0){
-      const ls = v.lastIndexOf('\n', s-1) + 1;
-      let le = v.indexOf('\n', en); if(le < 0) le = v.length;
-      const block = v.slice(ls, le);
-      const lines = block.split('\n');
-      const changed = lines.map(function(l){
-        if(e.shiftKey) return l.replace(/^ {1,2}/, '');
-        return pad + l;
-      }).join('\n');
-      elCode.setRangeText(changed, ls, le, 'end');
-      elCode.selectionStart = ls;
-      elCode.selectionEnd = ls + changed.length;
-    }else{
-      elCode.setRangeText(pad, s, en, 'end');
-    }
-    onEditorInput();
-    return;
-  }
-
-  if(e.key === 'Enter'){
-    const s = elCode.selectionStart, v = elCode.value;
-    const ls = v.lastIndexOf('\n', s-1) + 1;
-    const line = v.slice(ls, s);
-    const ind = (/^[ \t]*/.exec(line) || [''])[0];
-    const lastCh = line.replace(/[ \t]+$/, '').slice(-1);
-    if(lastCh === '{' || lastCh === '(' || lastCh === '[' || lastCh === '>'){
-      e.preventDefault();
-      const ins = '\n' + ind + new Array(state.tabSize+1).join(' ');
-      elCode.setRangeText(ins, s, elCode.selectionEnd, 'end');
-      onEditorInput();
-      return;
-    }
-    if(ind){
-      e.preventDefault();
-      elCode.setRangeText('\n' + ind, s, elCode.selectionEnd, 'end');
-      onEditorInput();
-      return;
-    }
-  }
-
-  if(mod && (e.key === 's' || e.key === 'S')){
-    e.preventDefault();
-    saveProject(true);
-    return;
-  }
-  if(mod && (e.key === 'f' || e.key === 'F')){
-    e.preventDefault();
-    openPanel('search');
-    return;
-  }
-  if(mod && (e.key === 'Enter')){
-    e.preventDefault();
-    buildPreview(true);
-    return;
-  }
-  if(mod && (e.key === 'a' || e.key === 'A')){
-    // native select-all is fine
-  }
-});
-
-/* =========================================================
-   SYNTAX PREVIEW BUILD
-   ========================================================= */
-// Blob URLs are cached by workspace path and file-object identity. Recreating a Blob
-// for every reference can duplicate 100 MB assets many times and cause delayed image failures.
-let currentUrls = [];
-let prevUrls = [];
-let staleUrls = [];
-let assetUrlCache = new Map();
-let assetMode = 'blob';
-let buildModuleCache = new Map();
-
-function clearPreviewUrlsLater(){
-  // Keep URLs alive for the current preview. The iframe can load images lazily well
-  // after srcdoc is assigned; revoking them on a short timer makes images disappear.
-  const old = prevUrls;
-  prevUrls = currentUrls;
-  currentUrls = [];
-  if(old.length) staleUrls.push.apply(staleUrls, old);
-  // Only revoke URLs that are no longer in the active asset cache, and do so after
-  // the next iframe load has had time to settle.
-  setTimeout(function(){
-    const live = new Set();
-    assetUrlCache.forEach(function(v){ live.add(v.url); });
-    const keep = [];
-    staleUrls.forEach(function(u){
-      if(live.has(u)) keep.push(u);
-      else { try{ URL.revokeObjectURL(u); }catch(e){} }
-    });
-    staleUrls = keep;
-  }, 15000);
-}
-
-function newBlobUrl(blob){
-  const u = URL.createObjectURL(blob);
-  currentUrls.push(u);
-  return u;
-}
-
-function fileURL(p){
-  const f = state.files.get(p);
-  if(!f) return '';
-  if(assetMode === 'data'){
-    // Inline export is explicit; preview never uses data URLs for large binaries.
-    if(typeof f.text === 'string') return bytesToDataURL(new TextEncoder().encode(f.text), mimeOf(p));
-    return bytesToDataURL(f.bytes, mimeOf(p));
-  }
-  const cached = assetUrlCache.get(p);
-  if(cached && cached.file === f) return cached.url;
-  if(cached && cached.url){
-    staleUrls.push(cached.url);
-    assetUrlCache.delete(p);
-  }
-  // Blob accepts Uint8Array directly; create only one Blob URL per file revision.
-  const blob = typeof f.text === 'string'
-    ? new Blob([f.text], { type: mimeOf(p) })
-    : new Blob([f.bytes], { type: mimeOf(p) });
-  const url = newBlobUrl(blob);
-  assetUrlCache.set(p, { file:f, url:url });
-  return url;
-}
-
-function rewriteCssUrls(css, base){
-  return String(css).replace(/url\(\s*(['"]?)([^'")]+)\1\s*\)/g, function(m, q, url){
-    if(/^(data:|https?:|blob:|\/\/|#)/i.test(url)) return m;
-    const p = resolvePath(base, url);
-    if(p && state.files.has(p)) return 'url("' + fileURL(p) + '")';
-    return m;
-  });
-}
-
-function inlineCssFile(p, seen){
-  seen = seen || new Set();
-  if(seen.has(p)) return '';
-  seen.add(p);
-  let css = fileText(p);
-  const base = dirName(p);
-  // resolve @import
-  css = css.replace(/@import\s+(?:url\(\s*)?["']([^"']+)["']\s*\)?\s*;/g, function(m, spec){
-    const ip = resolvePath(base, spec);
-    if(ip && state.files.has(ip) && isTextPath(ip)) return inlineCssFile(ip, seen);
-    return m;
-  });
-  return rewriteCssUrls(css, base);
-}
-
-function rewriteModuleSpecifiers(code, base, seen){
-  return String(code).replace(/(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)(['"])([^'"]+)\2/g, function(m, pre, q, spec){
-    if(spec.charAt(0) !== '.' && spec.charAt(0) !== '/') return m;
-    const p = resolvePath(base, spec);
-    if(p && state.files.has(p) && isTextPath(p)){
-      return pre + q + moduleBlobUrl(p, seen) + q;
-    }
-    return m;
-  });
-}
-
-function moduleBlobUrl(p, seen){
-  seen = seen || new Set();
-  if(buildModuleCache.has(p)) return buildModuleCache.get(p);
-  if(seen.has(p)) return '';
-  seen.add(p);
-  let code = fileText(p);
-  code = rewriteModuleSpecifiers(code, dirName(p), seen);
-  const u = newBlobUrl(new Blob([code], { type:'text/javascript' }));
-  buildModuleCache.set(p, u);
-  return u;
-}
-
-const BOOT_SCRIPT = [
-'(function(){',
-'  var P = window.parent;',
-'  var FILES = __IDE_FILE_MAP__;',
-'  var ENTRY_BASE = __IDE_ENTRY_BASE__;',
-'  function localKey(input){',
-'    var raw = input == null ? "" : String(input);',
-'    if(raw.charAt(0) === "#" || raw.indexOf("//") === 0 || /^(data:|blob:|https?:|mailto:|tel:|javascript:)/i.test(raw)) return null;',
-'    var clean = raw.split("#")[0].split("?")[0];',
-'    try { clean = decodeURIComponent(clean); } catch(e) {}',
-'    var absolute = clean.charAt(0) === "/";',
-'    var parts = (absolute ? clean.slice(1) : (ENTRY_BASE ? ENTRY_BASE + "/" : "") + clean).replace(/\\\\/g,"/").split("/");',
-'    var out = [];',
-'    parts.forEach(function(part){ if(!part || part === ".") return; if(part === "..") out.pop(); else out.push(part); });',
-'    return out.join("/");',
-'  }',
-'  function mapped(input){',
-'    var raw = input && typeof input === "object" && "url" in input ? input.url : input;',
-'    if(typeof raw !== "string") return null;',
-'    var key = localKey(raw);',
-'    return key && FILES[key] ? FILES[key] : null;',
-'  }',
-'  if(window.fetch){',
-'    var nativeFetch = window.fetch.bind(window);',
-'    window.fetch = function(input, init){ var u = mapped(input); if(u){ if(input && typeof input === "object" && typeof Request !== "undefined" && input instanceof Request) return nativeFetch(new Request(u, input), init); return nativeFetch(u, init); } return nativeFetch(input, init); };',
-'  }',
-'  if(window.XMLHttpRequest){',
-'    var nativeOpen = XMLHttpRequest.prototype.open;',
-'    XMLHttpRequest.prototype.open = function(method, url){ var args = Array.prototype.slice.call(arguments); var u = mapped(url); if(u) args[1] = u; return nativeOpen.apply(this, args); };',
-'  }',
-'  function fmt(v){',
-'    try{',
-'      if(typeof v === "string") return v;',
-'      if(v instanceof Error) return v.name + ": " + v.message;',
-'      if(typeof v === "undefined") return "undefined";',
-'      if(v === null) return "null";',
-'      if(typeof v === "function") return "[Function " + (v.name||"anonymous") + "]";',
-'      if(typeof v === "object"){',
-'        var s = JSON.stringify(v, function(k,val){ if(typeof val === "function") return "[Function]"; return val; });',
-'        if(s === undefined) return String(v);',
-'        return s.length > 3000 ? s.slice(0,3000) + "…" : s;',
-'      }',
-'      return String(v);',
-'    }catch(e){ return String(v); }',
-'  }',
-'  function send(type, data){ try{ P.postMessage({ __ide:true, type:type, data:data }, "*"); }catch(e){} }',
-'  ["log","info","warn","error","debug"].forEach(function(lvl){',
-'    var orig = console[lvl] ? console[lvl].bind(console) : function(){};',
-'    console[lvl] = function(){',
-'      var args = Array.prototype.slice.call(arguments);',
-'      send("console", { level:lvl, text: args.map(fmt).join(" ") });',
-'      orig.apply(console, args);',
-'    };',
-'  });',
-'  window.addEventListener("error", function(e){',
-'    var t = e.target;',
-'    if(t && t !== window && t.tagName){',
-'      var u = t.src || t.href || "";',
-'      send("error", { kind:"resource", message:"Failed to load <" + t.tagName.toLowerCase() + ">" + (u ? ": " + u : ""), stack:"", file:u });',
-'      return;',
-'    }',
-'    send("error", { kind:"runtime", message: e.message, stack:(e.error && e.error.stack) || "", file:e.filename, line:e.lineno, col:e.colno });',
-'  }, true);',
-'  window.addEventListener("unhandledrejection", function(e){',
-'    var r = e.reason;',
-'    send("error", { kind:"promise", message:"Unhandled promise rejection: " + (r && r.message ? r.message : fmt(r)), stack:(r && r.stack) || "" });',
-'  });',
-'  send("ready", {});',
-'})();'
-].join('\n');
-
-function pickEntry(){
-  if(state.active && /\.html?$/i.test(state.active) && state.files.has(state.active)) return state.active;
-  if(state.files.has('index.html')) return 'index.html';
-  const keys = Array.from(state.files.keys());
-  for(let i=0;i<keys.length;i++){
-    if(/\.html?$/i.test(keys[i])) return keys[i];
-  }
-  return null;
-}
-
-function buildDoc(entryPath, opts){
-  opts = opts || {};
-  const wantBoot = opts.boot !== false;
-  assetMode = opts.inline ? 'data' : 'blob';
-  buildModuleCache = new Map();
-
-  const src = fileText(entryPath);
-  const base = dirName(entryPath);
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(src, 'text/html');
-
-  if(!doc.head){
-    const h = doc.createElement('head');
-    doc.documentElement.insertBefore(h, doc.documentElement.firstChild);
-  }
-  if(!doc.body){
-    doc.documentElement.appendChild(doc.createElement('body'));
-  }
-
-  const missing = [];
-
-  // 1. stylesheets
-  Array.prototype.slice.call(doc.querySelectorAll('link[href]')).forEach(function(link){
-    const rel = (link.getAttribute('rel') || '').toLowerCase();
-    if(rel.indexOf('stylesheet') < 0) return;
-    const href = link.getAttribute('href');
-    const p = resolvePath(base, href);
-    if(p && state.files.has(p) && isTextPath(p)){
-      const st = doc.createElement('style');
-      st.textContent = inlineCssFile(p);
-      link.parentNode.replaceChild(st, link);
-    }else if(p){
-      missing.push(href);
-    }
-  });
-
-  // 2. inline <style> url() rewriting
-  Array.prototype.slice.call(doc.querySelectorAll('style')).forEach(function(st){
-    st.textContent = rewriteCssUrls(st.textContent, base);
-  });
-
-  // 3. scripts
-  Array.prototype.slice.call(doc.querySelectorAll('script[src]')).forEach(function(sc){
-    const s = sc.getAttribute('src');
-    const p = resolvePath(base, s);
-    const isMod = (sc.getAttribute('type') || '').toLowerCase() === 'module';
-    if(p && state.files.has(p) && isTextPath(p)){
-      let code = fileText(p);
-      if(isMod) code = rewriteModuleSpecifiers(code, dirName(p), new Set());
-      code = code.replace(/<\/script/gi, '<\\/script');
-      const ns = doc.createElement('script');
-      for(let i=0;i<sc.attributes.length;i++){
-        const a = sc.attributes[i];
-        if(a.name !== 'src') ns.setAttribute(a.name, a.value);
-      }
-      ns.textContent = code + '\n//# sourceURL=' + p;
-      sc.parentNode.replaceChild(ns, sc);
-    }else if(p){
-      missing.push(s);
-    }
-  });
-
-  // 4. generic src/href assets
-  const assetTags = ['img','video','audio','source','track','embed','object','input'];
-  Array.prototype.slice.call(doc.querySelectorAll(assetTags.join(','))).forEach(function(node){
-    ['src','poster','data'].forEach(function(attr){
-      const v = node.getAttribute && node.getAttribute(attr);
-      if(!v) return;
-      if(/^(data:|https?:|blob:|\/\/|#)/i.test(v)) return;
-      const p = resolvePath(base, v);
-      if(p && state.files.has(p)){
-        node.setAttribute(attr, fileURL(p));
-      }else if(p){
-        missing.push(v);
-      }
-    });
-  });
-
-  // 5. responsive images: rewrite every local URL in srcset (including <source srcset>).
-  Array.prototype.slice.call(doc.querySelectorAll('[srcset]')).forEach(function(node){
-    const raw = node.getAttribute('srcset') || '';
-    const rewritten = raw.split(',').map(function(candidate){
-      const part = candidate.trim();
-      if(!part) return part;
-      const match = /^(\S+)(\s+.*)?$/.exec(part);
-      if(!match) return part;
-      const url = match[1];
-      if(/^(data:|https?:|blob:|\/\/|#)/i.test(url)) return part;
-      const path = resolvePath(base, url);
-      if(path && state.files.has(path)) return fileURL(path) + (match[2] || '');
-      if(path) missing.push(url);
-      return part;
-    }).join(', ');
-    node.setAttribute('srcset', rewritten);
-  });
-
-  // Rewrite local icon/preload/manifest links too, not only stylesheets.
-  Array.prototype.slice.call(doc.querySelectorAll('link[href]')).forEach(function(link){
-    const rel = (link.getAttribute('rel') || '').toLowerCase();
-    if(rel.indexOf('stylesheet') >= 0) return;
-    const href = link.getAttribute('href');
-    if(!href || /^(data:|https?:|blob:|\/\/|#)/i.test(href)) return;
-    const path = resolvePath(base, href);
-    if(path && state.files.has(path)) link.setAttribute('href', fileURL(path));
-  });
-
-  // 6. background images in style attributes
-  Array.prototype.slice.call(doc.querySelectorAll('[style]')).forEach(function(node){
-    const st = node.getAttribute('style');
-    if(st && st.indexOf('url(') >= 0) node.setAttribute('style', rewriteCssUrls(st, base));
-  });
-
-  // 6. Local resource map for runtime fetch()/XHR calls (JSON, data files, etc.).
-  // Relative requests are resolved from the entry HTML directory, like a normal hosted page.
-  if(wantBoot){
-    const localMap = {};
-    // Runtime fetch/XHR most commonly loads text resources (JSON/config/data). Do not
-    // eagerly turn every binary in a large project into a Blob URL: images and other
-    // static assets are resolved lazily when referenced in HTML/CSS.
-    state.files.forEach(function(f, path){
-      if(!f || !path || typeof f.text !== 'string') return;
-      try { localMap[path] = fileURL(path); } catch(err) { missing.push(path); }
-    });
-    const bootCode = BOOT_SCRIPT
-      .replace('__IDE_FILE_MAP__', JSON.stringify(localMap).replace(/</g, '\\u003c'))
-      .replace('__IDE_ENTRY_BASE__', JSON.stringify(base));
-    const boot = doc.createElement('script');
-    boot.textContent = bootCode;
-    doc.head.insertBefore(boot, doc.head.firstChild);
-  }
-
-  const html = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
-  return { html: html, missing: missing };
-}
-
-function emptyPreviewDoc(title, msg){
-  return '<!DOCTYPE html><html><head><meta charset="utf-8"><style>'
-    + 'html,body{height:100%;margin:0;display:flex;align-items:center;justify-content:center;'
-    + 'background:#0f1620;color:#5d6f86;font-family:-apple-system,system-ui,sans-serif;text-align:center}'
-    + '.b{max-width:320px;padding:20px}h3{color:#8395ab;font-size:15px;margin:0 0 8px;font-weight:600}'
-    + 'p{font-size:12.5px;line-height:1.6;margin:0}'
-    + '</style></head><body><div class="b"><h3>' + esc(title) + '</h3><p>' + esc(msg) + '</p></div></body></html>';
-}
-
-let previewTimer = 0;
-
-function schedulePreview(){
-  if(!state.live) return;
-  if(previewTimer) clearTimeout(previewTimer);
-  previewTimer = setTimeout(function(){
-    previewTimer = 0;
-    buildPreview(false);
-  }, 650);
-}
-
-function buildPreview(force){
-  // Drop cached URLs for removed/replaced files. Old URLs are deferred so an already
-  // rendering iframe does not lose an image mid-paint.
-  assetUrlCache.forEach(function(cached, path){
-    if(!state.files.has(path) || state.files.get(path) !== cached.file){
-      staleUrls.push(cached.url);
-      assetUrlCache.delete(path);
-    }
-  });
-  const entry = pickEntry();
-  if(!entry){
-    elPreview.srcdoc = emptyPreviewDoc('No HTML file', 'Create an index.html file in the workspace to see a live preview.');
-    $('#previewTitle').textContent = 'preview';
-    clearPreviewUrlsLater();
-    return;
-  }
-  let result;
-  try{
-    result = buildDoc(entry, { boot:true });
-  }catch(err){
-    elPreview.srcdoc = emptyPreviewDoc('Preview error', String(err && err.message || err));
-    clearPreviewUrlsLater();
-    return;
-  }
-  elPreview.srcdoc = result.html;
-  $('#previewTitle').textContent = entry;
-  clearPreviewUrlsLater();
-
-  if(result.missing && result.missing.length){
-    const uniq = {};
-    result.missing.forEach(function(m){ uniq[m] = 1; });
-    Object.keys(uniq).forEach(function(m){
-      addLog('warn', 'Missing file referenced by ' + entry + ': ' + m,
-        { fix: 'Add <b>' + esc(m) + '</b> to the workspace (check spelling and folders) or remove the reference from <b>' + esc(entry) + '</b>.' });
-    });
-  }
-}
-
-/* =========================================================
-   CONSOLE
-   ========================================================= */
-function addLog(level, text, meta){
-  meta = meta || {};
-  const entry = {
-    id: Math.random().toString(36).slice(2),
-    level: level,
-    text: String(text),
-    file: meta.file || null,
-    line: meta.line || null,
-    col: meta.col || null,
-    fix: meta.fix || null,
-    time: Date.now()
-  };
-  state.logs.push(entry);
-  if(state.logs.length > 400) state.logs.splice(0, state.logs.length - 400);
-  renderLogs();
-  updateChips();
-}
-
-function clearLogs(){
-  state.logs = [];
-  renderLogs();
-  updateChips();
-}
-
-function updateChips(){
-  let err = 0, warn = 0;
-  state.logs.forEach(function(l){ if(l.level === 'error') err++; else if(l.level === 'warn') warn++; });
-  const chipAll = $('#chipAll'), chipErr = $('#chipErr'), chipWarn = $('#chipWarn');
-  chipAll.textContent = state.logs.length;
-  chipErr.style.display = err ? '' : 'none'; chipErr.textContent = err;
-  chipWarn.style.display = warn ? '' : 'none'; chipWarn.textContent = warn;
-  const railBtn = $('#btnConsole');
-  let badge = railBtn.querySelector('.badge');
-  if(err > 0){
-    if(!badge){ badge = document.createElement('span'); badge.className = 'badge'; railBtn.appendChild(badge); }
-    badge.textContent = err > 99 ? '99+' : err;
-  }else if(badge){ badge.remove(); }
-}
-
-function renderLogs(){
-  if(!state.logs.length){
-    elLogs.innerHTML = '<div class="cempty">Console is clear. Logs and errors from the preview appear here.</div>';
-    return;
-  }
-  const html = state.logs.map(function(l){
-    const levelClass = l.level === 'error' ? 'error' : l.level === 'warn' ? 'warn' : l.level === 'info' ? 'info' : l.level === 'ok' ? 'ok' : '';
-    let metaHtml = '';
-    if(l.file || l.line){
-      metaHtml += '<div class="lmeta">';
-      if(l.file){
-        metaHtml += '<button data-open="' + esc(l.file) + '" data-line="' + (l.line || 1) + '">'
-          + esc(baseName(l.file)) + (l.line ? ':' + l.line : '') + (l.col ? ':' + l.col : '') + '</button>';
-      }
-      metaHtml += '</div>';
-    }
-    let fixHtml = '';
-    if(l.fix) fixHtml = '<div class="lfix">' + l.fix + '</div>';
-    return '<div class="logitem ' + levelClass + '">'
-      + '<span class="lmark"></span>'
-      + '<div class="lbody"><div class="lmsg">' + esc(l.text) + '</div>' + metaHtml + fixHtml + '</div>'
-      + '</div>';
-  }).join('');
-  elLogs.innerHTML = html;
-}
-
-elLogs.addEventListener('click', function(e){
-  const b = e.target.closest('[data-open]');
-  if(!b) return;
-  const p = b.getAttribute('data-open');
-  const line = parseInt(b.getAttribute('data-line'), 10) || 1;
-  if(state.files.has(p)) openFile(p, line);
-});
-
-/* ---------- error fix suggestions ---------- */
-function suggestFix(msg, kind){
-  const m = String(msg || '');
-  let r;
-
-  r = /^(\w[\w$]*) is not defined/.exec(m);
-  if(r){
-    return 'The variable <b>' + esc(r[1]) + '</b> is used but never declared. Check for a typo, '
-      + 'or declare it with <b>let ' + esc(r[1]) + ' = ...</b>. If it should come from another file, '
-      + 'make sure that file is loaded with a &lt;script&gt; tag <i>before</i> the code that uses it.';
-  }
-  r = /Cannot read propert(?:y|ies) of (undefined|null)(?: \(reading '([^']+)'\))?/.exec(m);
-  if(r){
-    const prop = r[2] ? '`' + esc(r[2]) + '`' : 'a property';
-    return 'You are reading ' + prop + ' from a value that is <b>' + r[1] + '</b>. Guard it: '
-      + '<b>if (obj) { ... }</b> or use optional chaining <b>obj?.' + (r[2] ? esc(r[2]) : 'prop') + '</b>. '
-      + 'If it should be a DOM element, check the id/selector exists and that your script runs after the '
-      + 'element is in the page (put the script at the end of &lt;body&gt; or wait for DOMContentLoaded).';
-  }
-  r = /Cannot set propert(?:y|ies) of (undefined|null)(?: \(setting '([^']+)'\))?/.exec(m);
-  if(r){
-    return 'You are assigning to a property of <b>' + r[1] + '</b>. Create the object first, e.g. '
-      + '<b>const obj = {};</b> before writing <b>obj.' + (r[2] ? esc(r[2]) : 'prop') + ' = ...</b>.';
-  }
-  r = /^([\w$.]+) is not a function/.exec(m);
-  if(r){
-    return '<b>' + esc(r[1]) + '</b> is not callable. It is either undefined, misspelled, or the library '
-      + 'that defines it has not loaded yet. Log it right before the call to see what it actually is.';
-  }
-  if(/Unexpected token/.test(m)){
-    return 'Syntax error. Look at the reported line <i>and the line just before it</i> for a missing '
-      + '<b>)</b>, <b>}</b>, <b>]</b>, comma or closing quote.';
-  }
-  if(/Unexpected end of (input|script)/.test(m)){
-    return 'A block was opened and never closed. Count your <b>{ }</b>, <b>( )</b> and backticks.';
-  }
-  if(/Maximum call stack size exceeded/.test(m)){
-    return 'Infinite recursion — a function keeps calling itself. Add a stopping condition, or check for a '
-      + 'circular reference between two functions.';
-  }
-  if(/Assignment to constant variable/.test(m)){
-    return 'You are reassigning a <b>const</b>. Use <b>let</b> if the value needs to change.';
-  }
-  if(/Invalid or unexpected token/.test(m)){
-    return 'A character is not valid there. Often a smart quote (“ ”) or a missing backslash in a string.';
-  }
-  if(/Failed to load resource|Failed to fetch|net::ERR|Failed to load </i.test(m)){
-    return 'A file or URL could not be loaded. Check the path spelling and that the file exists in the '
-      + 'workspace — paths are case-sensitive.';
-  }
-  if(/Blocked a frame|cross-origin|CORS/i.test(m)){
-    return 'Cross-origin restriction. Host the file locally or use a CORS-enabled URL.';
-  }
-  if(/is not defined$/.test(m)){
-    return 'A reference is missing. Check the spelling and where the value is declared.';
-  }
-  if(kind === 'promise'){
-    return 'A promise rejected and nothing caught it. Add <b>.catch(err =&gt; ...)</b> or wrap the call '
-      + 'in <b>try { await ... } catch (e) { console.error(e) }</b>.';
-  }
-  return null;
-}
-
-function locateInStack(stack){
-  if(!stack) return null;
-  const lines = String(stack).split('\n');
-  for(let i=0;i<lines.length;i++){
-    const m = /([\w.\-\/@]+\.\w+):(\d+):(\d+)/.exec(lines[i]);
-    if(!m) continue;
-    const raw = m[1];
-    if(/^(about|blob|data)/.test(raw)) continue;
-    if(state.files.has(raw)) return { file: raw, line: +m[2], col: +m[3] };
-    const keys = Array.from(state.files.keys());
-    for(let k=0;k<keys.length;k++){
-      if(keys[k] === raw || keys[k].slice(-(raw.length+1)) === '/' + raw){
-        return { file: keys[k], line: +m[2], col: +m[3] };
-      }
-    }
-  }
-  return null;
-}
-
-window.addEventListener('message', function(e){
-  const d = e.data;
-  if(!d || d.__ide !== true) return;
-
-  if(d.type === 'console'){
-    const lvl = d.data.level;
-    addLog(lvl === 'error' ? 'error' : lvl === 'warn' ? 'warn' : lvl === 'info' ? 'info' : 'log',
-      d.data.text);
-    return;
-  }
-
-  if(d.type === 'error'){
-    const msg = d.data.message || 'Unknown error';
-    const stack = d.data.stack || '';
-    let loc = locateInStack(stack);
-    if(!loc && d.data.file){
-      let f = d.data.file;
-      if(state.files.has(f)) loc = { file:f, line:d.data.line || 1, col:d.data.col || 1 };
-    }
-    const kind = d.data.kind;
-    let fix = suggestFix(msg, kind);
-    if(!fix && kind === 'resource'){
-      fix = 'The browser could not load this resource. Verify the file exists in the workspace and the '
-          + 'path in your HTML matches it exactly.';
-    }
-    addLog('error', msg, {
-      file: loc ? loc.file : null,
-      line: loc ? loc.line : null,
-      col: loc ? loc.col : null,
-      fix: fix
-    });
-    return;
-  }
-
-  if(d.type === 'ready'){
-    // clear previous runtime logs on a fresh load so the console stays readable
-    return;
-  }
-});
-
-/* =========================================================
-   PANELS
-   ========================================================= */
-const PANEL_TITLES = { files:'Files', search:'Search', vars:'CSS Variables', settings:'Settings' };
-
-function openPanel(name){
-  if(state.panel === name && state.panelVisible && window.innerWidth > 820){
-    // toggle off on desktop
-    state.panelVisible = false;
-  }else{
-    state.panel = name;
-    state.panelVisible = true;
-  }
-  applyPanel();
-  renderPanel();
-}
-
-function applyPanel(){
-  if(state.panelVisible){
-    elPanel.classList.remove('hidden');
-  }else{
-    elPanel.classList.add('hidden');
-  }
-  $$('#rail .iconbtn[data-panel]').forEach(function(b){
-    b.classList.toggle('on', state.panelVisible && b.getAttribute('data-panel') === state.panel);
-  });
-  elPanelTitle.textContent = PANEL_TITLES[state.panel] || '';
-  const action = $('#panelAction');
-  action.style.display = (state.panel === 'files') ? '' : 'none';
-}
-
-function renderPanel(){
-  if(!state.panelVisible) return;
-  if(state.panel === 'files') renderTree();
-  else if(state.panel === 'search') renderSearchPanel();
-  else if(state.panel === 'vars') renderVarsPanel();
-  else if(state.panel === 'settings') renderSettingsPanel();
-}
-
-/* ---------- SEARCH ---------- */
-function renderSearchPanel(){
-  const s = state.search;
-  elPanelBody.innerHTML =
-    '<div class="sfield">'
-    + '<input class="sinput" id="sQuery" placeholder="Search in files…" value="' + esc(s.q) + '" spellcheck="false" autocapitalize="off">'
-    + '<input class="sinput" id="sReplace" placeholder="Replace with…" value="' + esc(s.r) + '" spellcheck="false" autocapitalize="off">'
-    + '<div class="sopts">'
-    +   '<button class="sopt' + (s.case ? ' on' : '') + '" data-opt="case" title="Match case">Aa</button>'
-    +   '<button class="sopt' + (s.regex ? ' on' : '') + '" data-opt="regex" title="Regex">.*</button>'
-    +   '<div style="flex:1"></div>'
-    +   '<button class="sbtn" id="sReplaceOne">Replace</button>'
-    +   '<button class="sbtn accent" id="sReplaceAll">All</button>'
-    + '</div>'
-    + '</div>'
-    + '<div id="sResults"></div>';
-
-  const qEl = $('#sQuery'), rEl = $('#sReplace');
-  qEl.addEventListener('input', function(){ state.search.q = this.value; runSearch(); });
-  rEl.addEventListener('input', function(){ state.search.r = this.value; });
-  qEl.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); runSearch(); } });
-  $('#sReplaceOne').addEventListener('click', replaceOne);
-  $('#sReplaceAll').addEventListener('click', replaceAll);
-  $$('#panelBody [data-opt]').forEach(function(b){
-    b.addEventListener('click', function(){
-      const k = b.getAttribute('data-opt');
-      state.search[k] = !state.search[k];
-      b.classList.toggle('on', state.search[k]);
-      runSearch();
-    });
-  });
-  runSearch();
-}
-
-function makeSearchRegex(){
-  const s = state.search;
-  if(!s.q) return null;
-  let src = s.q;
-  if(!s.regex) src = src.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  try{
-    return new RegExp(src, 'g' + (s.case ? '' : 'i'));
-  }catch(e){
-    return null;
-  }
-}
-
-function runSearch(){
-  const box = $('#sResults');
-  if(!box) return;
-  const s = state.search;
-  if(!s.q){
-    box.innerHTML = '<div class="empty">Type to search across all files.</div>';
-    s.results = [];
-    return;
-  }
-  const re = makeSearchRegex();
-  if(!re){
-    box.innerHTML = '<div class="empty">Invalid regular expression.</div>';
-    return;
-  }
-  const results = [];
-  const keys = Array.from(state.files.keys()).sort();
-  for(let i=0;i<keys.length;i++){
-    const p = keys[i];
-    const f = state.files.get(p);
-    if(!f || typeof f.text !== 'string') continue;
-    if(f.text.length > 700000) continue;
-    const lines = f.text.split('\n');
-    for(let ln=0; ln<lines.length; ln++){
-      re.lastIndex = 0;
-      if(re.test(lines[ln])){
-        results.push({ file:p, line: ln+1, text: lines[ln].slice(0, 240) });
-        if(results.length > 400) break;
-      }
-    }
-    if(results.length > 400) break;
-  }
-  s.results = results;
-
-  if(!results.length){
-    box.innerHTML = '<div class="empty">No matches.</div>';
-    return;
-  }
-  box.innerHTML = results.map(function(r, i){
-    let preview = esc(r.text);
-    try{
-      const re2 = new RegExp(s.regex ? s.q : s.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-      preview = esc(r.text).replace(re2, function(m){ return '<mark>' + m + '</mark>'; });
-    }catch(e){}
-    return '<div class="sresult" data-i="' + i + '">'
-      + '<div class="sfile">' + esc(baseName(r.file)) + ' <span style="opacity:.55">:' + r.line + '</span></div>'
-      + '<div class="sline">' + preview + '</div></div>';
-  }).join('');
-
-  $$('#sResults .sresult').forEach(function(node){
-    node.addEventListener('click', function(){
-      const i = parseInt(node.getAttribute('data-i'), 10);
-      const r = s.results[i];
-      if(r) openFile(r.file, r.line);
-    });
-  });
-}
-
-function replaceOne(){
-  const s = state.search;
-  if(!s.q || !s.results.length) return;
-  const r = s.results[0];
-  const f = state.files.get(r.file);
-  if(!f) return;
-  const lines = f.text.split('\n');
-  const re = makeSearchRegex();
-  if(!re) return;
-  lines[r.line-1] = lines[r.line-1].replace(re, s.r);
-  f.text = lines.join('\n');
-  if(state.active === r.file) elCode.value = f.text, renderHighlight(), renderGutter();
-  runSearch();
-  schedulePreview();
-  scheduleAutosave();
-  toast('Replaced 1 occurrence', 'ok');
-}
-
-function replaceAll(){
-  const s = state.search;
-  if(!s.q) return;
-  const re = makeSearchRegex();
-  if(!re) return;
-  let count = 0;
-  state.files.forEach(function(f, p){
-    if(typeof f.text !== 'string') return;
-    const before = f.text;
-    re.lastIndex = 0;
-    const after = before.replace(re, function(){ count++; return s.r; });
-    if(after !== before){
-      f.text = after;
-      if(state.active === p) elCode.value = after;
-    }
-  });
-  renderHighlight();
-  renderGutter();
-  runSearch();
-  schedulePreview();
-  scheduleAutosave();
-  toast('Replaced ' + count + ' occurrence' + (count === 1 ? '' : 's'), 'ok');
-}
-
-/* ---------- CSS VARIABLES ---------- */
-let varsTimer = 0;
-function scheduleVars(){
-  if(varsTimer) clearTimeout(varsTimer);
-  varsTimer = setTimeout(function(){ varsTimer = 0; renderVarsPanel(); }, 260);
-}
-
-const COLOR_NAMES = { red:'#ff0000', blue:'#0000ff', green:'#008000', black:'#000000', white:'#ffffff',
-  gray:'#808080', grey:'#808080', yellow:'#ffff00', orange:'#ffa500', purple:'#800080', pink:'#ffc0cb',
-  teal:'#008080', navy:'#000080', lime:'#00ff00', cyan:'#00ffff', magenta:'#ff00ff', silver:'#c0c0c0',
-  maroon:'#800000', olive:'#808000', aqua:'#00ffff', fuchsia:'#ff00ff', transparent:'transparent' };
-
-function normalizeColor(v){
-  const s = String(v).trim().toLowerCase();
-  if(!s) return null;
-  if(s.charAt(0) === '#'){
-    if(/^#[0-9a-f]{3}$/.test(s)) return '#' + s[1]+s[1]+s[2]+s[2]+s[3]+s[3];
-    if(/^#[0-9a-f]{6}$/.test(s)) return s;
-    if(/^#[0-9a-f]{8}$/.test(s)) return s.slice(0,7);
-    return null;
-  }
-  if(/^rgba?\(/.test(s) || /^hsla?\(/.test(s)) return s;
-  if(COLOR_NAMES[s]) return COLOR_NAMES[s];
-  return null;
-}
-
-function collectVars(){
-  const out = [];
-  const keys = Array.from(state.files.keys()).sort();
-  for(let k=0;k<keys.length;k++){
-    const p = keys[k];
-    const f = state.files.get(p);
-    if(!f || typeof f.text !== 'string') continue;
-    const e = ext(p);
-    if(e !== 'css' && e !== 'scss' && e !== 'less' && e !== 'html' && e !== 'htm' && e !== 'svg' && e !== 'vue') continue;
-    if(f.text.length > 400000) continue;
-    const txt = f.text;
-    const re = /--([\w-]+)\s*:/g;
-    let m;
-    while((m = re.exec(txt))){
-      const name = m[1];
-      const valueStart = re.lastIndex;
-      let valueEnd = valueStart;
-      while(valueEnd < txt.length && txt[valueEnd] !== ';' && txt[valueEnd] !== '}' && txt[valueEnd] !== '\n') valueEnd++;
-      const raw = txt.slice(valueStart, valueEnd);
-      const value = raw.trim();
-      if(!value) { re.lastIndex = valueEnd; continue; }
-      const lead = raw.length - raw.replace(/^\s+/, '').length;
-      const start = valueStart + lead;
-      const end = start + value.length;
-      out.push({ file:p, name:name, value:value, start:start, end:end });
-      re.lastIndex = valueEnd;
-    }
-  }
-  return out;
-}
-
-function renderVarsPanel(){
-  if(state.panel !== 'vars' || !state.panelVisible) return;
-  const vars = collectVars();
-  if(!vars.length){
-    elPanelBody.innerHTML = '<div class="empty">No CSS custom properties found.<br><br>'
-      + 'Declare one like:<br><code style="color:var(--var);font-size:11px">--brand: #bd96ff;</code></div>';
-    return;
-  }
-  const byFile = new Map();
-  vars.forEach(function(v){
-    if(!byFile.has(v.file)) byFile.set(v.file, []);
-    byFile.get(v.file).push(v);
-  });
-
-  let html = '';
-  byFile.forEach(function(list, file){
-    html += '<div class="vargroup">' + esc(file) + '</div>';
-    list.forEach(function(v, idx){
-      const col = normalizeColor(v.value);
-      html += '<div class="varrow" data-idx="' + (vars.indexOf(v)) + '">'
-        + '<div class="sw">' + (col ? '<i style="background:' + esc(col) + '"></i>' : '') + '</div>'
-        + '<div class="vinfo">'
-        +   '<div class="vname">--' + esc(v.name) + '</div>'
-        +   '<input class="vval" value="' + esc(v.value) + '" spellcheck="false" autocapitalize="off" data-vi="' + (vars.indexOf(v)) + '">'
-        + '</div></div>';
-    });
-  });
-  elPanelBody.innerHTML = html;
-
-  const all = collectVars();
-
-  $$('#panelBody .vval').forEach(function(inp){
-    const apply = function(){
-      const i = parseInt(inp.getAttribute('data-vi'), 10);
-      const v = all[i];
-      if(!v) return;
-      const f = state.files.get(v.file);
-      if(!f || typeof f.text !== 'string') return;
-      const nv = inp.value.trim();
-      if(!nv) return;
-      f.text = f.text.slice(0, v.start) + nv + f.text.slice(v.end);
-      if(state.active === v.file){
-        elCode.value = f.text;
-        renderGutter();
-        renderHighlight();
-      }
-      schedulePreview();
-      scheduleAutosave();
-    };
-    inp.addEventListener('change', apply);
-    inp.addEventListener('blur', apply);
-    inp.addEventListener('keydown', function(e){
-      if(e.key === 'Enter'){ e.preventDefault(); inp.blur(); }
-    });
-  });
-}
-
-/* ---------- SETTINGS ---------- */
-function renderSettingsPanel(){
-  elPanelBody.innerHTML =
-    '<div class="setrow"><div class="sl">Live preview<div class="sd">Rebuild as you type</div></div>'
-    + '<div class="switch' + (state.live ? ' on' : '') + '" data-set="live"></div></div>'
-    + '<div class="setrow"><div class="sl">Autosave<div class="sd">Store project in this browser</div></div>'
-    + '<div class="switch' + (state.autosave ? ' on' : '') + '" data-set="autosave"></div></div>'
-    + '<div class="setrow"><div class="sl">Font size</div>'
-    + '<button class="sbtn" data-font="-1">A−</button>'
-    + '<span style="font-size:11.5px;color:var(--faint);min-width:34px;text-align:center" id="fsLabel">' + state.fontSize + 'px</span>'
-    + '<button class="sbtn" data-font="1">A+</button></div>'
-    + '<div class="setrow"><div class="sl">Tab size</div>'
-    + '<button class="sbtn" data-tab="2" style="' + (state.tabSize===2?'color:var(--accent);border-color:var(--accent-line)':'') + '">2</button>'
-    + '<button class="sbtn" data-tab="4" style="' + (state.tabSize===4?'color:var(--accent);border-color:var(--accent-line)':'') + '">4</button></div>'
-    + '<div class="setrow"><div class="sl">Project<div class="sd">' + state.files.size + ' files · '
-    + Math.round(projectSize()/1024) + ' KB</div></div></div>'
-    + '<div style="padding:12px">'
-    + '<button class="sbtn" id="setReset" style="width:100%;color:var(--err);border-color:rgba(255,135,153,.3)">Reset workspace</button>'
-    + '</div>';
-
-  $$('#panelBody [data-set]').forEach(function(sw){
-    sw.addEventListener('click', function(){
-      const k = sw.getAttribute('data-set');
-      state[k] = !state[k];
-      sw.classList.toggle('on', state[k]);
-      if(k === 'live' && state.live) buildPreview(true);
-      if(k === 'autosave' && state.autosave) saveProject(false);
-    });
-  });
-  $$('#panelBody [data-font]').forEach(function(b){
-    b.addEventListener('click', function(){
-      const d = parseInt(b.getAttribute('data-font'), 10);
-      state.fontSize = Math.min(22, Math.max(10, state.fontSize + d));
-      applyFontSize();
-      const l = $('#fsLabel'); if(l) l.textContent = state.fontSize + 'px';
-    });
-  });
-  $$('#panelBody [data-tab]').forEach(function(b){
-    b.addEventListener('click', function(){
-      state.tabSize = parseInt(b.getAttribute('data-tab'), 10);
-      renderSettingsPanel();
-    });
-  });
-  const rs = $('#setReset');
-  if(rs) rs.addEventListener('click', function(){
-    if(confirm('Reset the workspace? All files will be replaced with the demo project.')){
-      state.files.clear();
-      state.open = [];
-      state.active = null;
-      loadDemo();
-      renderAll();
-      buildPreview(true);
-      saveProject(false);
-      toast('Workspace reset', 'ok');
-    }
-  });
-}
-
-function applyFontSize(){
-  document.documentElement.style.setProperty('--fs', state.fontSize + 'px');
-  renderHighlight();
-}
-
-function projectSize(){
-  let n = 0;
-  state.files.forEach(function(f){
-    if(typeof f.text === 'string') n += f.text.length;
-    else if(f.bytes) n += f.bytes.length;
-  });
-  return n;
-}
-
-/* =========================================================
-   AUTOSAVE
-   ========================================================= */
-let saveTimer = 0;
-function scheduleAutosave(){
-  if(!state.autosave) return;
-  if(saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(function(){ saveTimer = 0; saveProject(false); }, 1200);
-}
-
-function saveProject(notify){
-  try{
-    const out = { v:1, active: state.active, open: state.open, files: [] };
-    state.files.forEach(function(f, p){
-      if(typeof f.text === 'string'){
-        out.files.push({ p:p, t:f.text });
-      }else if(f.bytes){
-        if(f.bytes.length < 900000) out.files.push({ p:p, b: b64encode(f.bytes) });
-      }
-    });
-    const json = JSON.stringify(out);
-    if(json.length > 4600000){
-      if(notify) toast('Project too large to autosave', 'err');
-      return;
-    }
-    localStorage.setItem(LS_KEY, json);
-    if(notify) toast('Project saved', 'ok');
-  }catch(e){
-    if(notify) toast('Save failed: ' + e.message, 'err');
-  }
-}
-
-function loadSaved(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return false;
-    const data = JSON.parse(raw);
-    if(!data || !data.files) return false;
-    state.files.clear();
-    data.files.forEach(function(f){
-      if(typeof f.t === 'string') state.files.set(f.p, { path:f.p, text:f.t });
-      else if(f.b) state.files.set(f.p, { path:f.p, bytes: b64decode(f.b) });
-    });
-    state.open = (data.open || []).filter(function(p){ return state.files.has(p); });
-    state.active = data.active && state.files.has(data.active) ? data.active : (state.open[0] || null);
-    return state.files.size > 0;
-  }catch(e){ return false; }
-}
-
-/* =========================================================
-   ZIP
-   ========================================================= */
-let CRC_TABLE = null;
-function crcTable(){
-  if(CRC_TABLE) return CRC_TABLE;
-  const t = new Uint32Array(256);
-  for(let n=0;n<256;n++){
-    let c = n;
-    for(let k=0;k<8;k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
-    t[n] = c >>> 0;
-  }
-  CRC_TABLE = t;
+  const t=gl.createTexture(); gl.activeTexture(gl.TEXTURE7); gl.bindTexture(gl.TEXTURE_2D,t);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,S,S,0,gl.RGBA,gl.UNSIGNED_BYTE,data);
+  gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.REPEAT);
   return t;
 }
-function crc32(buf){
-  const t = crcTable();
-  let c = -1;
-  for(let i=0;i<buf.length;i++) c = (c >>> 8) ^ t[(c ^ buf[i]) & 0xff];
-  return (c ^ -1) >>> 0;
-}
+const texDetail=makeDetailTexture();
 
-function makeZip(entries){
-  const enc = new TextEncoder();
-  const parts = [];
-  const central = [];
-  let offset = 0;
-
-  entries.forEach(function(e){
-    const nameBytes = enc.encode(e.name);
-    const data = e.data;
-    const crc = crc32(data);
-
-    const local = new Uint8Array(30 + nameBytes.length);
-    const dv = new DataView(local.buffer);
-    dv.setUint32(0, 0x04034b50, true);
-    dv.setUint16(4, 20, true);
-    dv.setUint16(6, 0x0800, true);
-    dv.setUint16(8, 0, true);
-    dv.setUint16(10, 0, true);
-    dv.setUint16(12, 22561, true);
-    dv.setUint32(14, crc, true);
-    dv.setUint32(18, data.length, true);
-    dv.setUint32(22, data.length, true);
-    dv.setUint16(26, nameBytes.length, true);
-    dv.setUint16(28, 0, true);
-    local.set(nameBytes, 30);
-
-    parts.push(local, data);
-
-    const cd = new Uint8Array(46 + nameBytes.length);
-    const cv = new DataView(cd.buffer);
-    cv.setUint32(0, 0x02014b50, true);
-    cv.setUint16(4, 20, true);
-    cv.setUint16(6, 20, true);
-    cv.setUint16(8, 0x0800, true);
-    cv.setUint16(10, 0, true);
-    cv.setUint16(12, 0, true);
-    cv.setUint16(14, 22561, true);
-    cv.setUint32(16, crc, true);
-    cv.setUint32(20, data.length, true);
-    cv.setUint32(24, data.length, true);
-    cv.setUint16(28, nameBytes.length, true);
-    cv.setUint16(30, 0, true);
-    cv.setUint16(32, 0, true);
-    cv.setUint16(34, 0, true);
-    cv.setUint16(36, 0, true);
-    cv.setUint32(38, 0, true);
-    cv.setUint32(42, offset, true);
-    cd.set(nameBytes, 46);
-    central.push(cd);
-
-    offset += local.length + data.length;
-  });
-
-  let cdSize = 0;
-  central.forEach(function(c){ cdSize += c.length; });
-
-  const eocd = new Uint8Array(22);
-  const ev = new DataView(eocd.buffer);
-  ev.setUint32(0, 0x06054b50, true);
-  ev.setUint16(4, 0, true);
-  ev.setUint16(6, 0, true);
-  ev.setUint16(8, entries.length, true);
-  ev.setUint16(10, entries.length, true);
-  ev.setUint32(12, cdSize, true);
-  ev.setUint32(16, offset, true);
-  ev.setUint16(20, 0, true);
-
-  const all = parts.concat(central).concat([eocd]);
-  let total = 0;
-  all.forEach(function(a){ total += a.length; });
-  const out = new Uint8Array(total);
-  let pos = 0;
-  all.forEach(function(a){ out.set(a, pos); pos += a.length; });
-  return out;
-}
-
-async function inflateRaw(data){
-  if(typeof DecompressionStream === 'undefined'){
-    throw new Error('This browser cannot decompress ZIP entries.');
+/* ============================================================
+   Geometry: water grid, sphere, empty VAO, particle buffer
+   ============================================================ */
+const GN=288;
+const waterVAO=gl.createVertexArray(); let waterIdxCount=0;
+(function(){
+  const n1=GN+1, pos=new Float32Array(n1*n1*2);
+  for(let j=0;j<n1;j++)for(let i=0;i<n1;i++){ pos[(j*n1+i)*2]=-1+2*i/GN; pos[(j*n1+i)*2+1]=-1+2*j/GN; }
+  const idx=new Uint32Array(GN*GN*6); let k=0;
+  for(let j=0;j<GN;j++)for(let i=0;i<GN;i++){
+    const a=j*n1+i,b=a+1,c=a+n1,d=c+1;
+    idx[k++]=a;idx[k++]=c;idx[k++]=b; idx[k++]=b;idx[k++]=c;idx[k++]=d;
   }
-  const ds = new DecompressionStream('deflate-raw');
-  const stream = new Blob([data]).stream().pipeThrough(ds);
-  const buf = await new Response(stream).arrayBuffer();
-  return new Uint8Array(buf);
-}
-
-async function readZip(arrayBuffer){
-  const bytes = new Uint8Array(arrayBuffer);
-  const view = new DataView(arrayBuffer);
-
-  let eocd = -1;
-  const minPos = Math.max(0, bytes.length - 66000);
-  for(let i = bytes.length - 22; i >= minPos; i--){
-    if(view.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
-  }
-  if(eocd < 0) throw new Error('Not a valid ZIP file');
-
-  const count = view.getUint16(eocd + 10, true);
-  let off = view.getUint32(eocd + 16, true);
-  const entries = [];
-
-  for(let i=0;i<count;i++){
-    if(off + 46 > bytes.length) throw new Error('The ZIP central directory is incomplete.');
-    if(view.getUint32(off, true) !== 0x02014b50) throw new Error('The ZIP central directory is malformed or uses an unsupported archive variant.');
-    const flags = view.getUint16(off + 8, true);
-    const method = view.getUint16(off + 10, true);
-    if(flags & 1) throw new Error('This ZIP is password-protected or encrypted.');
-    const compSize = view.getUint32(off + 20, true);
-    const nameLen = view.getUint16(off + 28, true);
-    const extraLen = view.getUint16(off + 30, true);
-    const commentLen = view.getUint16(off + 32, true);
-    const localOff = view.getUint32(off + 42, true);
-    const nameBytes = bytes.subarray(off + 46, off + 46 + nameLen);
-    let name;
-    try{ name = new TextDecoder('utf-8').decode(nameBytes); }
-    catch(e){ name = ''; }
-    off += 46 + nameLen + extraLen + commentLen;
-
-    if(!name) continue;
-    if(name.slice(-1) === '/') continue;
-
-    if(localOff + 30 > bytes.length) throw new Error('A ZIP entry points outside the archive.');
-    const lnameLen = view.getUint16(localOff + 26, true);
-    const lextraLen = view.getUint16(localOff + 28, true);
-    const dataStart = localOff + 30 + lnameLen + lextraLen;
-    if(dataStart + compSize > bytes.length) throw new Error('A ZIP entry is truncated or corrupt.');
-    const raw = bytes.subarray(dataStart, dataStart + compSize);
-
-    let data;
-    if(method === 0){
-      data = raw.slice();
-    }else if(method === 8){
-      data = await inflateRaw(raw);
-    }else{
-      throw new Error('ZIP compression method ' + method + ' is not supported by the offline ZIP reader.');
-    }
-    entries.push({ name: name.replace(/\\/g, '/'), data: data });
-  }
-  return entries;
-}
-
-function stripCommonRoot(entries){
-  if(!entries.length) return entries;
-  const first = entries[0].name.split('/');
-  if(first.length < 2) return entries;
-  const root = first[0];
-  let allSame = true;
-  for(let i=0;i<entries.length;i++){
-    const parts = entries[i].name.split('/');
-    if(parts.length < 2 || parts[0] !== root){ allSame = false; break; }
-  }
-  if(!allSame) return entries;
-  return entries.map(function(e){
-    return { name: e.name.slice(root.length + 1), data: e.data };
-  });
-}
-
-function decodeEntry(name, data){
-  const e = ext(name);
-  if(BINARY_EXT.has(e) && e !== 'gltf') return { bytes: data };
-  // try UTF-8 decode
-  try{
-    const txt = new TextDecoder('utf-8', { fatal: true }).decode(data);
-    // heuristic: reject if many control chars
-    let bad = 0;
-    for(let i=0;i<Math.min(txt.length, 4000);i++){
-      const c = txt.charCodeAt(i);
-      if(c < 9 || (c > 13 && c < 32)) bad++;
-    }
-    if(bad > 3) return { bytes: data };
-    return { text: txt };
-  }catch(err){
-    return { bytes: data };
-  }
-}
-
-let jsZipLoadPromise = null;
-function loadExternalScript(src){
-  return new Promise(function(resolve, reject){
-    const script = document.createElement('script');
-    let settled = false;
-    const timer = setTimeout(function(){ finish(new Error('Timed out loading ZIP support')); }, 9000);
-    function finish(err){
-      if(settled) return;
-      settled = true;
-      clearTimeout(timer);
-      script.onload = null;
-      script.onerror = null;
-      if(err){ script.remove(); reject(err); }
-      else resolve();
-    }
-    script.src = src;
-    script.async = true;
-    script.onload = function(){ finish(window.JSZip ? null : new Error('ZIP support did not initialise')); };
-    script.onerror = function(){ finish(new Error('Could not load ZIP support')); };
-    document.head.appendChild(script);
-  });
-}
-
-async function getJSZip(){
-  if(window.JSZip) return window.JSZip;
-  if(!jsZipLoadPromise){
-    jsZipLoadPromise = (async function(){
-      let firstError;
-      try{
-        await loadExternalScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
-        if(window.JSZip) return window.JSZip;
-      }catch(e){ firstError = e; }
-      try{
-        await loadExternalScript('https://unpkg.com/jszip@3.10.1/dist/jszip.min.js');
-        if(window.JSZip) return window.JSZip;
-      }catch(e){ if(!firstError) firstError = e; }
-      throw firstError || new Error('ZIP support is unavailable');
-    })().catch(function(err){ jsZipLoadPromise = null; throw err; });
-  }
-  return jsZipLoadPromise;
-}
-
-function safeArchivePath(name){
-  const raw = String(name || '').replace(/\\/g, '/');
-  if(!raw || raw.charAt(0) === '/' || /^[a-zA-Z]:/.test(raw)) return '';
-  const parts = raw.split('/');
-  if(parts.some(function(part){ return part === '..'; })) return '';
-  const clean = normPath(raw);
-  if(!clean || clean.length > 900 || clean.split('/').some(function(part){ return part.length > 240; })) return '';
-  return clean;
-}
-
-async function readZipWithJSZip(source){
-  const JSZip = await getJSZip();
-  const zip = await JSZip.loadAsync(source, { checkCRC32:false, createFolders:false });
-  const names = Object.keys(zip.files);
-  const entries = [];
-  for(let i=0;i<names.length;i++){
-    const item = zip.files[names[i]];
-    if(!item || item.dir) continue;
-    const name = item.name.replace(/\\/g, '/');
-    if(/(^|\/)__MACOSX\//.test(name) || /(^|\/)\.DS_Store$/i.test(name)) continue;
-    const path = safeArchivePath(name);
-    if(!path) continue;
-    const data = await item.async('uint8array');
-    entries.push({ name:path, data:data });
-  }
-  return entries;
-}
-
-async function importZipFile(file){
-  const buf = await file.arrayBuffer();
-  let entries;
-  let jsZipAvailable = false;
-  try{
-    const JSZip = await getJSZip();
-    jsZipAvailable = !!JSZip;
-  }catch(loadError){
-    // Offline fallback: use the built-in reader for standard stored/deflated ZIPs.
-  }
-  if(jsZipAvailable){
-    try{
-      entries = await readZipWithJSZip(buf);
-    }catch(err){
-      const msg = String(err && err.message || err);
-      if(/encrypt|password|multi.?volume|split archive/i.test(msg)){
-        throw new Error(/encrypt|password/i.test(msg) ? 'This ZIP is password-protected or encrypted. Extract it first, then ZIP the extracted files without a password.' : msg);
-      }
-      throw new Error('Could not read “' + file.name + '”: ' + msg);
-    }
-  }else{
-    try{ entries = await readZip(buf); }
-    catch(err){
-      throw new Error('Could not read “' + file.name + '”. This browser could not load the advanced ZIP reader, and the built-in reader could not open it (' + (err.message || err) + '). Check that it is a standard, non-encrypted .zip file and try again while online.');
-    }
-    entries = entries.filter(function(e){ return !!safeArchivePath(e.name); }).map(function(e){ return { name:safeArchivePath(e.name), data:e.data }; });
-  }
-  if(!entries.length) throw new Error('“' + file.name + '” contains no supported files, or it is empty. Password-protected and split ZIP archives are not supported.');
-  entries = stripCommonRoot(entries);
-  let added = 0;
-  entries.forEach(function(e){
-    const path = safeArchivePath(e.name);
-    if(!path) return;
-    const dec = decodeEntry(path, e.data);
-    if(dec.text != null) state.files.set(path, { path:path, text: dec.text });
-    else state.files.set(path, { path:path, bytes: dec.bytes });
-    added++;
-  });
-  return added;
-}
-
-function exportZip(){
-  const enc = new TextEncoder();
-  const entries = [];
-  state.files.forEach(function(f, p){
-    if(typeof f.text === 'string'){
-      entries.push({ name: p, data: enc.encode(f.text) });
-    }else if(f.bytes){
-      entries.push({ name: p, data: f.bytes });
-    }
-  });
-  if(!entries.length){ toast('Nothing to export', 'err'); return; }
-  try{
-    const zip = makeZip(entries);
-    download(new Blob([zip], { type:'application/zip' }), 'project.zip');
-    toast('Exported project.zip', 'ok');
-  }catch(err){
-    toast('Export failed: ' + err.message, 'err');
-  }
-}
-
-function exportSingleHTML(){
-  const entry = pickEntry();
-  if(!entry){ toast('No HTML file to export', 'err'); return; }
-  try{
-    const res = buildDoc(entry, { boot:false, inline:true });
-    download(new Blob([res.html], { type:'text/html' }), baseName(entry) || 'index.html');
-    toast('Exported single HTML file', 'ok');
-  }catch(err){
-    toast('Export failed: ' + err.message, 'err');
-  }
-}
-
-function download(blob, name){
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  a.rel = 'noopener';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(function(){
-    URL.revokeObjectURL(url);
-    a.remove();
-  }, 4000);
-}
-
-/* =========================================================
-   FILE IMPORT (drag & drop + picker)
-   ========================================================= */
-const fileInput = $('#fileInput');
-
-async function importPlainFiles(fileList){
-  const files = Array.from(fileList || []);
-  if(!files.length) return;
-  let imported = 0;
-  let errors = [];
-  for(let i=0;i<files.length;i++){
-    const f = files[i];
-    try{
-      if(/\.zip$/i.test(f.name)){
-        toast('Importing ZIP ' + (i+1) + ' of ' + files.length + '…');
-        imported += await importZipFile(f);
-        continue;
-      }
-      const path = safeArchivePath(f.webkitRelativePath || f.name);
-      if(!path) { errors.push(f.name + ': unsafe or invalid file path'); continue; }
-      const buf = new Uint8Array(await f.arrayBuffer());
-      const dec = decodeEntry(path, buf);
-      if(dec.text != null) state.files.set(path, { path:path, text: dec.text });
-      else state.files.set(path, { path:path, bytes: dec.bytes });
-      imported++;
-    }catch(err){
-      errors.push(f.name + ': ' + String(err && err.message || err));
-      addLog('error', 'Import failed — ' + f.name + ': ' + String(err && err.message || err));
-    }
-  }
-  if(imported){
-    renderAll();
-    if(!state.active){
-      const e = pickEntry();
-      if(e) openFile(e);
-    }
-    buildPreview(true);
-    saveProject(false);
-  }
-  if(errors.length){
-    const summary = errors.length === 1 ? errors[0] : errors.length + ' files failed. First error: ' + errors[0];
-    toast((imported ? 'Imported ' + imported + ' files; ' : 'Import failed: ') + summary, 'err', 6000);
-    addLog('warn', 'Import finished with ' + errors.length + ' error(s):\n' + errors.join('\n'));
-  }else if(imported){
-    toast('Imported ' + imported + ' file' + (imported===1?'':'s') + ' successfully', 'ok', 3000);
-  }
-}
-
-fileInput.addEventListener('change', function(){
-  if(fileInput.files && fileInput.files.length){
-    importPlainFiles(fileInput.files).then(function(){ fileInput.value = ''; });
-  }
-});
-
-/* drag & drop */
-['dragenter','dragover'].forEach(function(ev){
-  document.addEventListener(ev, function(e){
-    if(e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') >= 0){
-      e.preventDefault();
-    }
-  });
-});
-document.addEventListener('drop', function(e){
-  if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
-    e.preventDefault();
-    importPlainFiles(e.dataTransfer.files);
-  }
-});
-
-/* =========================================================
-   MENUS
-   ========================================================= */
-let openMenu = null;
-function closeMenu(){
-  if(openMenu){ openMenu.remove(); openMenu = null; }
-}
-function showMenu(anchor, items){
-  closeMenu();
-  const m = document.createElement('div');
-  m.className = 'menu';
-  m.innerHTML = items.map(function(it, i){
-    if(it.sep) return '<div class="msep"></div>';
-    return '<button class="mitem" data-i="' + i + '">'
-      + (it.icon ? icon(it.icon) : '<span style="width:15px;flex:0 0 15px"></span>')
-      + '<span>' + esc(it.label) + '</span>'
-      + (it.kbd ? '<kbd>' + esc(it.kbd) + '</kbd>' : '')
-      + '</button>';
-  }).join('');
-  document.body.appendChild(m);
-  const r = anchor.getBoundingClientRect();
-  const mw = m.offsetWidth, mh = m.offsetHeight;
-  let left = r.left;
-  if(left + mw > window.innerWidth - 10) left = window.innerWidth - mw - 10;
-  let top = r.bottom + 6;
-  if(top + mh > window.innerHeight - 10) top = Math.max(10, r.top - mh - 6);
-  m.style.left = Math.max(8, left) + 'px';
-  m.style.top = top + 'px';
-
-  m.addEventListener('click', function(e){
-    const b = e.target.closest('.mitem');
-    if(!b) return;
-    const it = items[parseInt(b.getAttribute('data-i'), 10)];
-    closeMenu();
-    if(it && it.action) it.action();
-  });
-  openMenu = m;
-  setTimeout(function(){
-    document.addEventListener('pointerdown', onDocDown, true);
-  }, 0);
-}
-function onDocDown(e){
-  if(openMenu && !openMenu.contains(e.target)){
-    closeMenu();
-    document.removeEventListener('pointerdown', onDocDown, true);
-  }
-}
-document.addEventListener('keydown', function(e){
-  if(e.key === 'Escape'){ closeMenu(); }
-});
-
-/* =========================================================
-   TOP BAR ACTIONS
-   ========================================================= */
-$('#btnImport').addEventListener('click', function(){
-  showMenu(this, [
-    { label:'Import ZIP…', icon:'package', action:function(){ pickFiles('.zip'); } },
-    { label:'Import files…', icon:'upload', action:function(){ pickFiles(''); } },
-    { sep:true },
-    { label:'Remove all files…', icon:'trash', action:removeAllFiles },
-    { sep:true },
-    { label:'Restore saved project', icon:'refresh', action:function(){
-        if(loadSaved()){ renderAll(); buildPreview(true); toast('Project restored', 'ok'); }
-        else toast('No saved project found', 'err');
-      } }
-  ]);
-});
-
-$('#btnExport').addEventListener('click', function(){
-  showMenu(this, [
-    { label:'Export single HTML', icon:'file', action: exportSingleHTML },
-    { label:'Export project ZIP', icon:'package', action: exportZip },
-    { sep:true },
-    { label:'Download current file', icon:'download', action:function(){
-        if(!state.active){ toast('No file open', 'err'); return; }
-        const f = state.files.get(state.active);
-        if(!f) return;
-        if(typeof f.text === 'string') download(new Blob([f.text], { type: mimeOf(state.active) }), baseName(state.active));
-        else download(new Blob([f.bytes], { type: mimeOf(state.active) }), baseName(state.active));
-        toast('Downloaded ' + baseName(state.active), 'ok');
-      } },
-    { label:'Export project JSON', icon:'code', action:function(){
-        const out = { v:1, files: [] };
-        state.files.forEach(function(f, p){
-          if(typeof f.text === 'string') out.files.push({ p:p, t:f.text });
-          else if(f.bytes) out.files.push({ p:p, b: b64encode(f.bytes) });
-        });
-        download(new Blob([JSON.stringify(out)], { type:'application/json' }), 'project.json');
-        toast('Exported project.json', 'ok');
-      } }
-  ]);
-});
-
-function pickFiles(accept){
-  fileInput.value = '';
-  fileInput.setAttribute('accept', accept === '.zip' ? '.zip,application/zip,application/x-zip-compressed' : (accept || ''));
-  fileInput.click();
-}
-
-$('#btnRefresh').addEventListener('click', function(){ buildPreview(true); });
-$('#btnRefresh2').addEventListener('click', function(){ buildPreview(true); });
-$('#btnSave').addEventListener('click', function(){ saveProject(true); });
-
-$('#btnPopout').addEventListener('click', function(){
-  const entry = pickEntry();
-  if(!entry){ toast('No HTML file to open', 'err'); return; }
-  try{
-    const res = buildDoc(entry, { boot:false, inline:false });
-    const url = URL.createObjectURL(new Blob([res.html], { type:'text/html' }));
-    const w = window.open(url, '_blank');
-    if(!w) toast('Popup blocked — allow popups for this page', 'err', 3200);
-    setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
-  }catch(err){
-    toast('Could not open preview: ' + err.message, 'err');
-  }
-});
-
-$('#btnLive').addEventListener('click', function(){
-  state.live = !state.live;
-  this.classList.toggle('on', state.live);
-  if(state.live) buildPreview(true);
-  toast(state.live ? 'Live preview on' : 'Live preview paused', state.live ? 'ok' : null);
-});
-
-$('#viewseg').addEventListener('click', function(e){
-  const b = e.target.closest('button[data-mode]');
-  if(!b) return;
-  setMode(b.getAttribute('data-mode'));
-});
-
-function setMode(mode){
-  state.mode = mode;
-  elWork.className = 'mode-' + mode;
-  $$('#viewseg button').forEach(function(b){
-    b.classList.toggle('on', b.getAttribute('data-mode') === mode);
-  });
-}
-
-/* =========================================================
-   EDITOR TOOLBAR ACTIONS
-   ========================================================= */
-$('#btnSelAll').addEventListener('click', function(){
-  elCode.focus();
-  elCode.select();
-});
-
-$('#btnEdit').addEventListener('click', function(){
-  const a = this;
-  showMenu(a, [
-    { label:'Select all', icon:'selectall', kbd:'⌘A', action:function(){ elCode.focus(); elCode.select(); } },
-    { label:'Copy', icon:'copy', kbd:'⌘C', action: doCopy },
-    { label:'Cut', icon:'scissors', kbd:'⌘X', action: doCut },
-    { label:'Paste', icon:'clipboard', kbd:'⌘V', action: doPaste },
-    { sep:true },
-    { label:'Duplicate line', icon:'copy', action: duplicateLine },
-    { label:'Toggle comment', icon:'code', kbd:'⌘/', action: toggleComment }
-  ]);
-});
-
-function doCopy(){
-  const s = elCode.selectionStart, e = elCode.selectionEnd;
-  if(s === e){ toast('Nothing selected'); return; }
-  const text = elCode.value.slice(s, e);
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(text).then(function(){ toast('Copied', 'ok'); },
-      function(){ fallbackCopy(text); });
-  }else fallbackCopy(text);
-}
-function fallbackCopy(text){
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.position = 'fixed';
-  ta.style.opacity = '0';
-  document.body.appendChild(ta);
-  ta.select();
-  try{ document.execCommand('copy'); toast('Copied', 'ok'); }
-  catch(e){ toast('Copy failed', 'err'); }
-  ta.remove();
-}
-function doCut(){
-  const s = elCode.selectionStart, e = elCode.selectionEnd;
-  if(s === e){ toast('Nothing selected'); return; }
-  doCopy();
-  elCode.setRangeText('', s, e, 'end');
-  onEditorInput();
-}
-function doPaste(){
-  if(navigator.clipboard && navigator.clipboard.readText){
-    navigator.clipboard.readText().then(function(text){
-      const s = elCode.selectionStart;
-      elCode.setRangeText(text, s, elCode.selectionEnd, 'end');
-      onEditorInput();
-      toast('Pasted', 'ok');
-    }, function(){
-      toast('Clipboard permission denied — use ⌘V', 'err', 3000);
-    });
-  }else{
-    toast('Use ⌘V to paste', null, 2400);
-  }
-}
-function duplicateLine(){
-  const v = elCode.value, s = elCode.selectionStart;
-  const ls = v.lastIndexOf('\n', s-1) + 1;
-  let le = v.indexOf('\n', s);
-  if(le < 0) le = v.length;
-  const line = v.slice(ls, le);
-  elCode.setRangeText('\n' + line, le, le, 'end');
-  onEditorInput();
-}
-function toggleComment(){
-  const v = elCode.value;
-  let s = elCode.selectionStart, e = elCode.selectionEnd;
-  const ls = v.lastIndexOf('\n', s-1) + 1;
-  let le = v.indexOf('\n', e);
-  if(le < 0) le = v.length;
-  const block = v.slice(ls, le);
-  const isCss = state.active && /\.(css|scss|less)$/i.test(state.active);
-  const isHtml = state.active && /\.(html?|xml|svg)$/i.test(state.active);
-  const token = isCss ? '/* ' : isHtml ? '<!-- ' : '// ';
-  const closeTok = isCss ? ' */' : isHtml ? ' -->' : '';
-  const lines = block.split('\n');
-  const allCommented = lines.every(function(l){ return l.trim() === '' || l.trim().indexOf(token.trim()) === 0; });
-  const changed = lines.map(function(l){
-    if(!l.trim()) return l;
-    if(allCommented){
-      const i = l.indexOf(token.trim());
-      let r = l.slice(0, i) + l.slice(i + token.trim().length);
-      if(closeTok && r.lastIndexOf(closeTok.trim()) > 0){
-        const j = r.lastIndexOf(closeTok.trim());
-        r = r.slice(0, j).replace(/\s+$/, '') + r.slice(j + closeTok.trim().length);
-      }
-      return r;
-    }
-    return token + l + closeTok;
-  }).join('\n');
-  elCode.setRangeText(changed, ls, le, 'end');
-  onEditorInput();
-}
-
-$('#btnFont').addEventListener('click', function(){
-  const a = this;
-  showMenu(a, [
-    { label:'Increase font', icon:'textsize', action:function(){ state.fontSize = Math.min(22, state.fontSize + 1); applyFontSize(); } },
-    { label:'Decrease font', icon:'textsize', action:function(){ state.fontSize = Math.max(10, state.fontSize - 1); applyFontSize(); } },
-    { sep:true },
-    { label:'Word wrap', icon:'wraptext', action: function(){
-        elCode.style.whiteSpace = elCode.style.whiteSpace === 'pre-wrap' ? 'pre' : 'pre-wrap';
-        elHigh.style.whiteSpace = elHigh.style.whiteSpace === 'pre-wrap' ? 'pre' : 'pre-wrap';
-      } }
-  ]);
-});
-
-/* =========================================================
-   RAIL / PANEL EVENTS
-   ========================================================= */
-$$('#rail .iconbtn[data-panel]').forEach(function(b){
-  b.addEventListener('click', function(){ openPanel(b.getAttribute('data-panel')); });
-});
-
-$('#btnConsole').addEventListener('click', function(){
-  state.logsOpen = !state.logsOpen;
-  elConsole.classList.toggle('open', state.logsOpen);
-  this.classList.toggle('on', state.logsOpen);
-  if(state.logsOpen) elLogs.scrollTop = elLogs.scrollHeight;
-});
-
-$('#btnCloseConsole').addEventListener('click', function(){
-  state.logsOpen = false;
-  elConsole.classList.remove('open');
-  $('#btnConsole').classList.remove('on');
-});
-
-$('#btnClearLogs').addEventListener('click', clearLogs);
-
-$('#panelClose').addEventListener('click', function(){
-  state.panelVisible = false;
-  applyPanel();
-});
-
-$('#panelAction').addEventListener('click', function(){
-  showMenu(this, [
-    { label:'New file', icon:'file', action: function(){ newFilePrompt(false); } },
-    { label:'New folder', icon:'folder', action: function(){ newFilePrompt(true); } },
-    { sep:true },
-    { label:'Upload files', icon:'upload', action: function(){ pickFiles(''); } },
-    { label:'Import ZIP files…', icon:'package', action: function(){ pickFiles('.zip'); } },
-    { sep:true },
-    { label:'Delete current file', icon:'trash', action:function(){
-        if(!state.active){ toast('No file is selected', 'err'); return; }
-        deletePath(state.active, false);
-      } },
-    { label:'Remove all files…', icon:'trash', action:removeAllFiles }
-  ]);
-});
-
-function newFilePrompt(isFolder){
-  const def = isFolder ? 'assets/' : 'new-file.html';
-  const p = prompt(isFolder ? 'Folder path (e.g. assets/images)' : 'File path (e.g. pages/about.html)', def);
-  if(!p) return;
-  const clean = normPath(p);
-  if(!clean) return;
-  if(isFolder){
-    // create a placeholder inside the folder so it shows in the tree
-    addFile(clean + '/.keep', '');
-    renderTree();
-  }else{
-    if(state.files.has(clean)){ toast('File already exists', 'err'); return; }
-    addFile(clean, '');
-    openFile(clean);
-  }
-  renderAll();
-  saveProject(false);
-}
-
-/* =========================================================
-   TREE EVENTS
-   ========================================================= */
-elPanelBody.addEventListener('click', function(e){
-  const del = e.target.closest('[data-delete-path]');
-  if(del){
-    e.preventDefault();
-    e.stopPropagation();
-    deletePath(del.getAttribute('data-delete-path'), del.hasAttribute('data-delete-dir'));
-    return;
-  }
-  const dir = e.target.closest('.row.dir');
-  if(dir){
-    const p = dir.getAttribute('data-dir');
-    if(state.collapsed.has(p)) state.collapsed.delete(p);
-    else state.collapsed.add(p);
-    renderTree();
-    return;
-  }
-  const file = e.target.closest('.row.file');
-  if(file){
-    openFile(file.getAttribute('data-file'));
-  }
-});
-
-elTabs.addEventListener('click', function(e){
-  const closeBtn = e.target.closest('[data-close]');
-  if(closeBtn){
-    e.stopPropagation();
-    closeTab(closeBtn.getAttribute('data-close'));
-    return;
-  }
-  const tab = e.target.closest('[data-tab]');
-  if(tab) openFile(tab.getAttribute('data-tab'));
-});
-
-/* =========================================================
-   SPLITTERS
-   ========================================================= */
-(function setupSplitters(){
-  const s2 = $('#split2');
-  let dragging = false;
-
-  s2.addEventListener('pointerdown', function(e){
-    if(window.innerWidth <= 820) return;
-    e.preventDefault();
-    dragging = true;
-    s2.classList.add('drag');
-    s2.setPointerCapture(e.pointerId);
-    const rect = elWork.getBoundingClientRect();
-    const ed = $('#editorArea');
-
-    const move = function(ev){
-      if(!dragging) return;
-      let w = ev.clientX - rect.left;
-      const total = rect.width;
-      w = Math.max(180, Math.min(total - 180, w));
-      ed.style.flex = '0 0 ' + w + 'px';
-      $('#previewArea').style.flex = '1 1 0';
-    };
-    const up = function(ev){
-      dragging = false;
-      s2.classList.remove('drag');
-      s2.removeEventListener('pointermove', move);
-      s2.removeEventListener('pointerup', up);
-      s2.removeEventListener('pointercancel', up);
-      try{ s2.releasePointerCapture(ev.pointerId); }catch(err){}
-    };
-    s2.addEventListener('pointermove', move);
-    s2.addEventListener('pointerup', up);
-    s2.addEventListener('pointercancel', up);
-  });
+  waterIdxCount=idx.length;
+  gl.bindVertexArray(waterVAO);
+  const vb=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,vb); gl.bufferData(gl.ARRAY_BUFFER,pos,gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+  const ib=gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,idx,gl.STATIC_DRAW);
+  gl.bindVertexArray(null);
 })();
 
-/* =========================================================
-   REVEAL LINE
-   ========================================================= */
-function offsetOf(text, line, col){
-  const lines = text.split('\n');
-  let off = 0;
-  for(let i=0;i<line-1 && i<lines.length;i++) off += lines[i].length + 1;
-  const ln = lines[line-1] || '';
-  return off + Math.min(Math.max(0, (col||1)-1), ln.length);
+const sphereVAO=gl.createVertexArray(); let sphereIdxCount=0;
+(function(){
+  const LA=36,LO=56, v=[], idx=[];
+  for(let a=0;a<=LA;a++){ const th=a/LA*Math.PI; for(let o=0;o<=LO;o++){ const ph=o/LO*Math.PI*2; v.push(Math.sin(th)*Math.cos(ph),Math.cos(th),Math.sin(th)*Math.sin(ph)); } }
+  for(let a=0;a<LA;a++)for(let o=0;o<LO;o++){ const i=a*(LO+1)+o,j=i+LO+1; idx.push(i,j,i+1,i+1,j,j+1); }
+  sphereIdxCount=idx.length;
+  gl.bindVertexArray(sphereVAO);
+  const vb=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,vb); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(v),gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+  const ib=gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(idx),gl.STATIC_DRAW);
+  gl.bindVertexArray(null);
+})();
+const emptyVAO=gl.createVertexArray();
+
+const MAXP=3200;
+const PX=new Float32Array(MAXP),PY=new Float32Array(MAXP),PZ=new Float32Array(MAXP);
+const PVX=new Float32Array(MAXP),PVY=new Float32Array(MAXP),PVZ=new Float32Array(MAXP);
+const PLife=new Float32Array(MAXP),PSize=new Float32Array(MAXP),PMax=new Float32Array(MAXP);
+let pCount=0;
+const partData=new Float32Array(MAXP*5);
+const partVAO=gl.createVertexArray(), partBuf=gl.createBuffer();
+gl.bindVertexArray(partVAO); gl.bindBuffer(gl.ARRAY_BUFFER,partBuf); gl.bufferData(gl.ARRAY_BUFFER,partData.byteLength,gl.DYNAMIC_DRAW);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,20,0);
+gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,2,gl.FLOAT,false,20,12);
+gl.bindVertexArray(null);
+
+/* ============================================================
+   Ocean wave model (shared by GPU shader and CPU physics)
+   ============================================================ */
+const WIND_ANG=1.1;
+const WL=[26,17,11.5,7.2,4.6,3.0,2.0,1.3];
+const WOFF=[0,0.35,-0.4,0.8,-0.9,1.3,-1.5,2.0];
+const wv=WL.map((Lw,i)=>{const k=2*Math.PI/Lw,a=WIND_ANG+WOFF[i];return{L:Lw,k,om:Math.sqrt(G*k),dx:Math.sin(a),dz:Math.cos(a),ph:i*2.399,A:0,q:0,qk:0};});
+const uWArr=new Float32Array(32), uQArr=new Float32Array(8);
+let waveA0=0.3;
+function updateWaves(s){
+  for(let i=0;i<8;i++){
+    const w=wv[i];
+    w.A=w.L*0.016*(0.25+1.25*s);
+    w.q=0.085*(0.35+0.65*s); w.qk=w.q/w.k;
+    uWArr[i*4]=w.dx;uWArr[i*4+1]=w.dz;uWArr[i*4+2]=w.k;uWArr[i*4+3]=w.A; uQArr[i]=w.q;
+  }
+  waveA0=wv[0].A;
+}
+function waveSample(x,z,t,full,out){
+  let px=x,pz=z; const its=full?3:2;
+  for(let it=0;it<its;it++){
+    let sx=0,sz=0;
+    for(let i=0;i<8;i++){const w=wv[i];const c=Math.cos(w.k*(w.dx*px+w.dz*pz)-w.om*t+w.ph);sx+=w.dx*w.qk*c;sz+=w.dz*w.qk*c;}
+    px=x-sx;pz=z-sz;
+  }
+  let h=0,vx=0,vy=0,vz=0,ax=0,az=0;
+  for(let i=0;i<8;i++){
+    const w=wv[i]; const th=w.k*(w.dx*px+w.dz*pz)-w.om*t+w.ph;
+    const sn=Math.sin(th); h+=w.A*sn;
+    if(full){
+      const c=Math.cos(th); const vh=w.qk*w.om*sn; vx+=w.dx*vh;vz+=w.dz*vh; vy-=w.A*w.om*c;
+      const ah=-w.qk*w.om*w.om*c; ax+=w.dx*ah; az+=w.dz*ah;
+    }
+  }
+  out.h=h;out.vx=vx;out.vy=vy;out.vz=vz;out.ax=ax;out.az=az;
+}
+function approxH(x,z,t){
+  let h=0; for(let i=0;i<3;i++){const w=wv[i];h+=w.A*Math.sin(w.k*(w.dx*x+w.dz*z)-w.om*t+w.ph);} return h;
 }
 
-function revealLine(line, col){
-  if(!state.active) return;
-  const text = elCode.value;
-  const off = offsetOf(text, line, col || 1);
-  elCode.focus();
-  elCode.setSelectionRange(off, off);
-  const lh = 20;
-  elCode.scrollTop = Math.max(0, (line - 1) * lh - elCode.clientHeight / 2);
-  syncScroll();
+/* ============================================================
+   Interactive ripple + foam simulation (2D wave equation)
+   ============================================================ */
+const RN=192, RR=14;
+const rA=new Float32Array(RN*RN), rB=new Float32Array(RN*RN);
+let cur=rA, prv=rB;
+const foamArr=new Float32Array(RN*RN), ripData=new Float32Array(RN*RN*2), dampArr=new Float32Array(RN*RN);
+(function(){
+  for(let y=0;y<RN;y++)for(let x=0;x<RN;x++){
+    const d=Math.min(x,y,RN-1-x,RN-1-y); const e=d>=14?1:0.84+0.16*(d/14);
+    dampArr[y*RN+x]=0.9985*e;
+  }
+})();
+const cellSz=2*RR/RN, RC2=Math.pow(1.8/120/cellSz,2);
+function rippleStep(){
+  for(let y=1;y<RN-1;y++){
+    let i=y*RN+1;
+    for(let x=1;x<RN-1;x++,i++){
+      const c=cur[i];
+      const lap=cur[i-1]+cur[i+1]+cur[i-RN]+cur[i+RN]-4*c;
+      prv[i]=(2*c-prv[i]+RC2*lap)*dampArr[i];
+      foamArr[i]*=0.9972;
+    }
+  }
+  const t=cur;cur=prv;prv=t;
+}
+function addRipple(wx,wz,rad,amt){
+  const gx=(wx/(2*RR)+0.5)*RN-0.5,gz=(wz/(2*RR)+0.5)*RN-0.5,rc=rad/cellSz;
+  const x0=Math.max(1,Math.floor(gx-rc)),x1=Math.min(RN-2,Math.ceil(gx+rc));
+  const z0=Math.max(1,Math.floor(gz-rc)),z1=Math.min(RN-2,Math.ceil(gz+rc));
+  const r2=rc*rc;
+  for(let zi=z0;zi<=z1;zi++)for(let xi=x0;xi<=x1;xi++){
+    const dx=xi-gx,dz=zi-gz,d2=(dx*dx+dz*dz)/r2; if(d2>=1)continue;
+    let w=1-d2;w*=w; const i=zi*RN+xi; let v=cur[i]+amt*w; cur[i]=v>0.7?0.7:v<-0.7?-0.7:v;
+  }
+}
+function addFoam(wx,wz,rad,amt){
+  const gx=(wx/(2*RR)+0.5)*RN-0.5,gz=(wz/(2*RR)+0.5)*RN-0.5,rc=rad/cellSz;
+  const x0=Math.max(1,Math.floor(gx-rc)),x1=Math.min(RN-2,Math.ceil(gx+rc));
+  const z0=Math.max(1,Math.floor(gz-rc)),z1=Math.min(RN-2,Math.ceil(gz+rc));
+  const r2=rc*rc;
+  for(let zi=z0;zi<=z1;zi++)for(let xi=x0;xi<=x1;xi++){
+    const dx=xi-gx,dz=zi-gz,d2=(dx*dx+dz*dz)/r2; if(d2>=1)continue;
+    const i=zi*RN+xi; const v=foamArr[i]+amt*(1-d2); foamArr[i]=v>1.2?1.2:v;
+  }
+}
+const texRip=gl.createTexture();
+gl.activeTexture(gl.TEXTURE7); gl.bindTexture(gl.TEXTURE_2D,texRip);
+gl.texImage2D(gl.TEXTURE_2D,0,gl.RG16F,RN,RN,0,gl.RG,gl.FLOAT,ripData);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+function uploadRipple(){
+  for(let i=0;i<RN*RN;i++){ ripData[i*2]=cur[i]; ripData[i*2+1]=foamArr[i]; }
+  gl.activeTexture(gl.TEXTURE7); gl.bindTexture(gl.TEXTURE_2D,texRip);
+  gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,RN,RN,gl.RG,gl.FLOAT,ripData);
 }
 
-/* =========================================================
-   DEMO PROJECT
-   ========================================================= */
-const DEMO_HTML = [
-'<!DOCTYPE html>',
-'<html lang="en">',
-'<head>',
-'  <meta charset="utf-8">',
-'  <meta name="viewport" content="width=device-width, initial-scale=1">',
-'  <title>My Site</title>',
-'  <link rel="stylesheet" href="style.css">',
-'</head>',
-'<body>',
-'  <main class="card">',
-'    <img class="logo" src="logo.svg" alt="logo" width="52" height="52">',
-'    <h1>Hello, <span id="who">world</span></h1>',
-'    <p>Edit the files in the workspace and watch this update live.</p>',
-'    <button id="go" class="btn">Say hello</button>',
-'    <p class="hint">Try the <b>CSS Variables</b> panel to restyle everything instantly.</p>',
-'  </main>',
-'  <scr' + 'ipt src="app.js"></scr' + 'ipt>',
-'</body>',
-'</html>'
-].join('\n');
-
-const DEMO_CSS = [
-':root {',
-'  --brand: #4f9cf9;',
-'  --brand-soft: rgba(79, 156, 249, 0.16);',
-'  --bg: #0f1620;',
-'  --surface: #16202c;',
-'  --text: #e7eef7;',
-'  --muted: #8fa3b8;',
-'  --radius: 18px;',
-'  --gap: 18px;',
-'}',
-'',
-'* { box-sizing: border-box; }',
-'',
-'body {',
-'  margin: 0;',
-'  min-height: 100vh;',
-'  display: grid;',
-'  place-items: center;',
-'  background: radial-gradient(circle at 30% 20%, #1b2836, var(--bg));',
-'  color: var(--text);',
-'  font-family: -apple-system, system-ui, sans-serif;',
-'  padding: 24px;',
-'}',
-'',
-'.card {',
-'  background: var(--surface);',
-'  border: 1px solid rgba(255,255,255,0.07);',
-'  border-radius: var(--radius);',
-'  padding: 34px;',
-'  max-width: 420px;',
-'  text-align: center;',
-'  box-shadow: 0 24px 60px rgba(0,0,0,0.45);',
-'}',
-'',
-'.logo { margin-bottom: 10px; }',
-'',
-'h1 {',
-'  font-size: 26px;',
-'  margin: 0 0 10px;',
-'  letter-spacing: -0.02em;',
-'}',
-'',
-'p { color: var(--muted); line-height: 1.6; margin: 0 0 var(--gap); }',
-'',
-'.btn {',
-'  border: 0;',
-'  padding: 12px 22px;',
-'  border-radius: 999px;',
-'  background: var(--brand);',
-'  color: #04121f;',
-'  font-weight: 650;',
-'  font-size: 14px;',
-'  cursor: pointer;',
-'  transition: transform 0.15s ease, box-shadow 0.15s ease;',
-'  box-shadow: 0 10px 26px var(--brand-soft);',
-'}',
-'',
-'.btn:active { transform: scale(0.95); }',
-'',
-'.hint { font-size: 12px; margin-top: 22px; opacity: 0.7; }'
-].join('\n');
-
-const DEMO_JS = [
-'// app.js — everything here runs inside the live preview',
-'const btn = document.getElementById("go");',
-'const who = document.getElementById("who");',
-'',
-'const names = ["world", "iPad", "developer", "friend"];',
-'let i = 0;',
-'',
-'btn.addEventListener("click", () => {',
-'  i = (i + 1) % names.length;',
-'  who.textContent = names[i];',
-'  console.log("Greeting changed to:", names[i]);',
-'});',
-'',
-'console.info("Preview booted successfully.");'
-].join('\n');
-
-const DEMO_SVG = [
-'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">',
-'  <defs>',
-'    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">',
-'      <stop offset="0" stop-color="#4f9cf9"/>',
-'      <stop offset="1" stop-color="#8b5cf6"/>',
-'    </linearGradient>',
-'  </defs>',
-'  <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#g)"/>',
-'  <path d="M22 40V26l10 7 10-7v14" fill="none" stroke="#04121f" stroke-width="4"',
-'        stroke-linecap="round" stroke-linejoin="round"/>',
-'</svg>'
-].join('\n');
-
-function loadDemo(){
-  addFile('index.html', DEMO_HTML);
-  addFile('style.css', DEMO_CSS);
-  addFile('app.js', DEMO_JS);
-  addFile('logo.svg', DEMO_SVG);
-  state.open = ['index.html', 'style.css'];
-  state.active = 'index.html';
+/* ============================================================
+   Render targets (scene colour/depth for refraction, reflection)
+   ============================================================ */
+let scene=null, refl=null, rW=0, rH=0;
+function makeTargets(w,h){
+  if(scene){ gl.deleteFramebuffer(scene.fb); gl.deleteTexture(scene.color); gl.deleteTexture(scene.depth); }
+  if(refl){ gl.deleteFramebuffer(refl.fb); gl.deleteTexture(refl.color); gl.deleteRenderbuffer(refl.depth); }
+  gl.activeTexture(gl.TEXTURE7);
+  scene={fb:gl.createFramebuffer(),color:gl.createTexture(),depth:gl.createTexture()};
+  gl.bindTexture(gl.TEXTURE_2D,scene.color);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.bindTexture(gl.TEXTURE_2D,scene.depth);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.DEPTH_COMPONENT24,w,h,0,gl.DEPTH_COMPONENT,gl.UNSIGNED_INT,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,scene.fb);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,scene.color,0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.TEXTURE_2D,scene.depth,0);
+  if(gl.checkFramebufferStatus(gl.FRAMEBUFFER)!==gl.FRAMEBUFFER_COMPLETE) showErr('Scene FBO incomplete');
+  rW=Math.max(2,w>>1); rH=Math.max(2,h>>1);
+  refl={fb:gl.createFramebuffer(),color:gl.createTexture(),depth:gl.createRenderbuffer()};
+  gl.bindTexture(gl.TEXTURE_2D,refl.color);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,rW,rH,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.bindRenderbuffer(gl.RENDERBUFFER,refl.depth); gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,rW,rH);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,refl.fb);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,refl.color,0);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,refl.depth);
+  if(gl.checkFramebufferStatus(gl.FRAMEBUFFER)!==gl.FRAMEBUFFER_COMPLETE) showErr('Reflection FBO incomplete');
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
 }
 
-/* =========================================================
-   RENDER ALL
-   ========================================================= */
-function renderAll(){
-  renderTree();
-  renderTabs();
-  applyPanel();
-  renderPanel();
-  if(state.active){
-    loadActiveIntoEditor();
-  }else{
-    loadActiveIntoEditor();
+/* ============================================================
+   Sky / time of day
+   ============================================================ */
+let sea=0.38, seaT=0.38, sunV=0.58;
+const sky={sun:[0,1,0],sunCol:[1,1,1],zenith:[0,0,0],horizon:[0,0,0],glow:[0,0,0],ambLum:1,sunLum:3,cloudLo:0.6,storm:0};
+function updateSky(){
+  const eps=0.03+sunV*1.22, day=sstep(0.02,0.6,eps), s=sea;
+  const az=-0.5, ce=Math.cos(eps);
+  sky.sun=[Math.sin(az)*ce,Math.sin(eps),-Math.cos(az)*ce];
+  let z=lerp3([0.05,0.08,0.26],[0.09,0.24,0.62],day);
+  let h=lerp3([0.85,0.38,0.2],[0.62,0.77,0.92],Math.pow(day,0.7));
+  const gz=[0.12,0.14,0.17], gh=[0.33,0.36,0.40];
+  z=lerp3(z,gz.map(v=>v*(0.4+day)),s*0.65); z=z.map(v=>v*(1-0.3*s));
+  h=lerp3(h,gh.map(v=>v*(0.5+0.5*day)),s*0.5);
+  sky.zenith=z; sky.horizon=h;
+  const gk=(1-day*0.8)*0.9; sky.glow=[1.0*gk,0.5*gk,0.22*gk].map(v=>v*(1-0.6*s));
+  const inten=2.9*(0.4+0.6*sstep(0,0.3,eps))*(1-0.72*s);
+  const c=lerp3([1,0.42,0.16],[1,0.94,0.84],sstep(0.05,0.5,eps));
+  sky.sunCol=c.map(v=>v*inten); sky.sunLum=inten;
+  sky.ambLum=(0.3+0.7*day)*(1-0.35*s);
+  sky.cloudLo=0.64-0.26*s; sky.storm=s;
+}
+function setSky(p){
+  gl.uniform1f(L(p,'uTime'),simT); gl.uniform1f(L(p,'uStorm'),sky.storm);
+  gl.uniform1f(L(p,'uAmbLum'),sky.ambLum); gl.uniform1f(L(p,'uSunLum'),sky.sunLum);
+  gl.uniform1f(L(p,'uCloudLo'),sky.cloudLo); gl.uniform1f(L(p,'uExp'),0.88);
+  gl.uniform3fv(L(p,'uSun'),sky.sun); gl.uniform3fv(L(p,'uSunCol'),sky.sunCol);
+  gl.uniform3fv(L(p,'uZenith'),sky.zenith); gl.uniform3fv(L(p,'uHorizon'),sky.horizon); gl.uniform3fv(L(p,'uGlow'),sky.glow);
+}
+
+/* ============================================================
+   Balls: rigid body physics
+   ============================================================ */
+const TYPES=[
+  {name:'Beach ball', sub:'hollow · floats high', r:0.62, rho:0.012, e:0.72, ic:0.667, sw:'conic-gradient(#d91420,#f5f5f0,#1040d9,#f9cc1a,#f5f5f0,#12a037,#d91420)'},
+  {name:'Basketball', sub:'light · bouncy',       r:0.46, rho:0.085, e:0.80, ic:0.667, sw:'radial-gradient(circle at 35% 30%,#fbb066,#d9600f 55%,#6e2c04)'},
+  {name:'Tennis ball',sub:'floats · fuzzy',       r:0.30, rho:0.37,  e:0.72, ic:0.667, sw:'radial-gradient(circle at 35% 30%,#e8f56a,#b5d11c 55%,#5e7108)'},
+  {name:'Wood',       sub:'half-submerged',       r:0.40, rho:0.62,  e:0.45, ic:0.4,   sw:'radial-gradient(circle at 35% 30%,#d9a45f,#9a6428 55%,#4a2a0c)'},
+  {name:'Bowling',    sub:'sinks slowly',         r:0.32, rho:1.35,  e:0.22, ic:0.4,   sw:'radial-gradient(circle at 35% 30%,#7c4bd0,#2a0f78 55%,#05031c)'},
+  {name:'Steel',      sub:'sinks fast',           r:0.28, rho:7.8,   e:0.30, ic:0.4,   sw:'linear-gradient(135deg,#f4f7fb,#8f9aab 40%,#e9eef6 55%,#4c5666)'}
+];
+let selType=0, sizeMul=1, timeScale=1;
+const balls=[]; const MAXBALLS=40;
+function qNorm(q){const l=Math.hypot(q[0],q[1],q[2],q[3])||1;q[0]/=l;q[1]/=l;q[2]/=l;q[3]/=l;}
+function spawnBall(x,y,z,ti,vx=0,vy=0,vz=0){
+  const T=TYPES[ti], r=T.r*sizeMul, V=4/3*Math.PI*r*r*r, m=T.rho*RHO_W*V;
+  const q=[Math.random()-0.5,Math.random()-0.5,Math.random()-0.5,Math.random()-0.5]; qNorm(q);
+  const b={x,y,z,vx,vy,vz,wx:(Math.random()-0.5)*5,wy:(Math.random()-0.5)*5,wz:(Math.random()-0.5)*5,q,r,V,m,im:1/m,I:T.ic*m*r*r,
+    type:ti,e:T.e,pf:0,wh:0,grab:null,dead:false,frac:0,rot:new Float32Array(9)};
+  balls.push(b);
+  while(balls.length>MAXBALLS){ const o=balls.shift(); if(grab&&grab.ball===o) grab=null; }
+  return b;
+}
+
+function emit(x,y,z,vx,vy,vz,size,life){
+  if(pCount>=MAXP) return; const i=pCount++;
+  PX[i]=x;PY[i]=y;PZ[i]=z;PVX[i]=vx;PVY[i]=vy;PVZ[i]=vz;PSize[i]=size;PLife[i]=life;PMax[i]=life;
+}
+function splash(b,speed){
+  const n=Math.min(190,Math.floor(12+speed*16*b.r*2)), rho=b.r*0.85;
+  for(let i=0;i<n;i++){
+    const a=Math.random()*6.2832, out=(0.25+Math.random())*speed*0.22, up=(0.5+Math.random()*1.1)*speed*0.4;
+    emit(b.x+Math.cos(a)*rho,b.wh+0.02,b.z+Math.sin(a)*rho,Math.cos(a)*out+b.vx*0.2,up,Math.sin(a)*out+b.vz*0.2,(0.03+Math.random()*0.07)*(0.5+b.r),0.9+Math.random()*0.9);
+  }
+  /* central jet */
+  const nj=Math.floor(speed*3);
+  for(let i=0;i<nj;i++){ const a=Math.random()*6.28; emit(b.x,b.wh,b.z,Math.cos(a)*0.4,speed*(0.35+Math.random()*0.35),Math.sin(a)*0.4,0.035+Math.random()*0.04,1.0+Math.random()*0.8); }
+  addFoam(b.x,b.z,b.r*1.7,Math.min(1.2,speed*0.22));
+}
+function particlesStep(dt){
+  for(let i=pCount-1;i>=0;i--){
+    PLife[i]-=dt; PVY[i]-=G*dt; const dr=1-0.5*dt; PVX[i]*=dr;PVZ[i]*=dr;
+    PX[i]+=PVX[i]*dt;PY[i]+=PVY[i]*dt;PZ[i]+=PVZ[i]*dt;
+    if(PLife[i]<=0||PY[i]<approxH(PX[i],PZ[i],simT)){
+      if(PLife[i]>0&&Math.random()<0.3) addRipple(PX[i],PZ[i],0.13,-0.012);
+      const l=--pCount; if(i!==l){PX[i]=PX[l];PY[i]=PY[l];PZ[i]=PZ[l];PVX[i]=PVX[l];PVY[i]=PVY[l];PVZ[i]=PVZ[l];PLife[i]=PLife[l];PSize[i]=PSize[l];PMax[i]=PMax[l];}
+    }
   }
 }
 
-/* =========================================================
-   BOOT
-   ========================================================= */
-let booted = false;
-function boot(){
-  if(booted) return;
-  booted = true;
-  // icons
-  $$('[data-icon]').forEach(function(el){
-    el.innerHTML = icon(el.getAttribute('data-icon'));
-  });
+const S0={h:0,vx:0,vy:0,vz:0,ax:0,az:0}, S1={h:0,vx:0,vy:0,vz:0,ax:0,az:0};
+let simT=0, stepCount=0, windX=0, windZ=0;
+function capV(h,b){ let d=h-(b.y-b.r); if(d<=0)return 0; if(d>2*b.r)d=2*b.r; return Math.PI*d*d*(3*b.r-d)/3; }
+let grab=null;
 
-  const restored = loadSaved();
-  if(!restored){
-    loadDemo();
+function stepBall(b,dt){
+  const r=b.r,t=simT,o=0.65*r;
+  waveSample(b.x,b.z,t,true,S0);
+  waveSample(b.x+o,b.z,t,false,S1);const h1=S1.h;
+  waveSample(b.x-o,b.z,t,false,S1);const h2=S1.h;
+  waveSample(b.x,b.z+o,t,false,S1);const h3=S1.h;
+  waveSample(b.x,b.z-o,t,false,S1);const h4=S1.h;
+  b.wh=S0.h;
+  const Vs=(capV(S0.h,b)+capV(h1,b)+capV(h2,b)+capV(h3,b)+capV(h4,b))/5;
+  const frac=Vs/b.V; b.frac=frac;
+  const dAvg=clamp((S0.h+h1+h2+h3+h4)/5-(b.y-r),0,2*r);
+  const meff=b.m+0.5*RHO_W*Vs;
+
+  let ay=(-b.m*G+RHO_W*G*Vs)/meff;
+  let ax=RHO_W*Vs*S0.ax/meff, az=RHO_W*Vs*S0.az/meff;
+  const dist=Math.hypot(b.x,b.z);
+  if(dist>10){ const k=(dist-10)*0.9; ax-=b.x/dist*k; az-=b.z/dist*k; }
+  if(b.grab){ const g=b.grab; ax+=150*(g.x-b.x)-20*b.vx; ay+=150*(g.y-b.y)-20*b.vy; az+=150*(g.z-b.z)-20*b.vz; }
+  b.vx+=ax*dt;b.vy+=ay*dt;b.vz+=az*dt;
+
+  /* hydrodynamic drag + torque */
+  if(frac>0.0005){
+    const ux=b.vx-S0.vx,uy=b.vy-S0.vy,uz=b.vz-S0.vz,sp=Math.hypot(ux,uy,uz);
+    const As=Math.PI*r*r*Math.sqrt(frac);
+    const f=Math.min(0.85,0.5*RHO_W*0.47*As*sp*dt/meff);
+    b.vx-=ux*f;b.vy-=uy*f;b.vz-=uz*f;
+    const rcy=-r+dAvg*0.5, Jx=-b.m*ux*f, Jz=-b.m*uz*f;
+    b.wx+=0.6*(rcy*Jz)/b.I; b.wz+=0.6*(-rcy*Jx)/b.I;
+    const wm=Math.hypot(b.wx,b.wy,b.wz);
+    const fr=Math.min(0.5,0.5*RHO_W*0.12*Math.pow(r,5)*wm*frac*dt/b.I)+0.5*frac*dt;
+    b.wx*=1-fr;b.wy*=1-fr;b.wz*=1-fr;
+  }
+  /* air drag, wind & Magnus effect */
+  {
+    const ux=b.vx-windX,uy=b.vy,uz=b.vz-windZ,sp=Math.hypot(ux,uy,uz), airF=1-Math.sqrt(frac);
+    const A=Math.PI*r*r*airF;
+    const f=Math.min(0.5,0.5*RHO_A*0.47*A*sp*dt/meff);
+    b.vx-=ux*f;b.vy-=uy*f;b.vz-=uz*f;
+    if(airF>0.01){
+      const k=0.5*RHO_A*Math.PI*r*r*r*airF/b.m;
+      let mx=k*(b.wy*uz-b.wz*uy),my=k*(b.wz*ux-b.wx*uz),mz=k*(b.wx*uy-b.wy*ux);
+      const ml=Math.hypot(mx,my,mz); if(ml>25){const s=25/ml;mx*=s;my*=s;mz*=s;}
+      b.vx+=mx*dt;b.vy+=my*dt;b.vz+=mz*dt;
+    }
+  }
+  if(b.grab){ const d=1-3*dt; b.wx*=d;b.wy*=d;b.wz*=d; }
+  const vm=Math.hypot(b.vx,b.vy,b.vz); if(vm>40){const s=40/vm;b.vx*=s;b.vy*=s;b.vz*=s;}
+
+  /* splash on entry */
+  if(b.pf<0.003&&frac>=0.003&&b.vy<-1.0) splash(b,-b.vy);
+  b.pf=frac;
+
+  /* push water: ripples, wake and foam */
+  const dpen=S0.h-(b.y-r);
+  if(dpen>0&&dpen<2*r){
+    const dy=b.y-S0.h, rho=Math.max(Math.sqrt(Math.max(r*r-dy*dy,0)),0.06);
+    addRipple(b.x,b.z,rho*1.25+0.12,b.vy*dt*0.35);
+    const ux=b.vx-S0.vx,uz=b.vz-S0.vz,sp=Math.hypot(ux,uz);
+    if(sp>0.4){
+      const dx=ux/sp,dz=uz/sp;
+      addRipple(b.x+dx*rho*0.9,b.z+dz*rho*0.9,rho*0.8+0.1,sp*dt*0.22);
+      addRipple(b.x-dx*rho*0.9,b.z-dz*rho*0.9,rho*0.8+0.1,-sp*dt*0.22);
+    }
+    if(sp>1.4||Math.abs(b.vy)>2) addFoam(b.x,b.z,rho*1.4+0.1,Math.min(1,(sp+Math.abs(b.vy))*0.45)*dt*10);
+    if(sp>3&&frac<0.95&&Math.random()<sp*dt*4){
+      const a=Math.random()*6.28; emit(b.x+Math.cos(a)*rho,S0.h,b.z+Math.sin(a)*rho,b.vx*0.4+Math.cos(a)*0.6,0.8+Math.random()*sp*0.25,b.vz*0.4+Math.sin(a)*0.6,0.025+Math.random()*0.03,0.6+Math.random()*0.5);
+    }
   }
 
-  state.live = true;
-  $('#btnLive').classList.add('on');
-
-  setMode(window.innerWidth <= 820 ? 'code' : 'split');
-
-  applyFontSize();
-  applyPanel();
-  renderTree();
-  renderTabs();
-  renderPanel();
-  loadActiveIntoEditor();
-
-  // initial console greeting
-  addLog('info', 'Studio ready. ' + state.files.size + ' file' + (state.files.size===1?'':'s') + ' loaded.');
-
-  buildPreview(true);
-
-  if(!restored) saveProject(false);
-
-  window.addEventListener('resize', function(){
-    if(window.innerWidth <= 820 && state.mode === 'split') setMode('code');
-  });
-
-  // keep gutter aligned on rotation
-  window.addEventListener('orientationchange', function(){
-    setTimeout(syncScroll, 200);
-  });
+  b.x+=b.vx*dt;b.y+=b.vy*dt;b.z+=b.vz*dt;
+  /* orientation */
+  const q=b.q,hx=0.5*dt;
+  const dqx=b.wx*q[3]+b.wy*q[2]-b.wz*q[1], dqy=-b.wx*q[2]+b.wy*q[3]+b.wz*q[0],
+        dqz=b.wx*q[1]-b.wy*q[0]+b.wz*q[3], dqw=-b.wx*q[0]-b.wy*q[1]-b.wz*q[2];
+  q[0]+=dqx*hx;q[1]+=dqy*hx;q[2]+=dqz*hx;q[3]+=dqw*hx; qNorm(q);
+  if(!isFinite(b.x+b.y+b.z+b.vx+b.vy+b.vz)||dist>28||b.y<-24) b.dead=true;
 }
 
-document.addEventListener('DOMContentLoaded', function(){
-  try{ boot(); }
-  catch(err){
-    console.error(err);
-    document.body.innerHTML = '<pre style="padding:20px;color:#f0616d;font:13px monospace">Boot error: '
-      + esc(err && err.stack || err) + '</pre>';
+function collide(){
+  const n=balls.length;
+  for(let i=0;i<n;i++){const a=balls[i];for(let j=i+1;j<n;j++){const b=balls[j];
+    const dx=b.x-a.x,dy=b.y-a.y,dz=b.z-a.z,rs=a.r+b.r,d2=dx*dx+dy*dy+dz*dz;
+    if(d2>=rs*rs||d2<1e-8)continue;
+    const d=Math.sqrt(d2),nx=dx/d,ny=dy/d,nz=dz/d,pen=rs-d,tot=a.im+b.im;
+    a.x-=nx*pen*a.im/tot;a.y-=ny*pen*a.im/tot;a.z-=nz*pen*a.im/tot;
+    b.x+=nx*pen*b.im/tot;b.y+=ny*pen*b.im/tot;b.z+=nz*pen*b.im/tot;
+    const ra=a.r,rb=b.r;
+    const vax=a.vx+(a.wy*nz-a.wz*ny)*ra,vay=a.vy+(a.wz*nx-a.wx*nz)*ra,vaz=a.vz+(a.wx*ny-a.wy*nx)*ra;
+    const vbx=b.vx-(b.wy*nz-b.wz*ny)*rb,vby=b.vy-(b.wz*nx-b.wx*nz)*rb,vbz=b.vz-(b.wx*ny-b.wy*nx)*rb;
+    const rx=vbx-vax,ry=vby-vay,rz=vbz-vaz,rn=rx*nx+ry*ny+rz*nz;
+    if(rn<0){
+      let e=Math.min(a.e,b.e); if(a.frac>0.5||b.frac>0.5) e*=0.35;
+      const jn=-(1+e)*rn/tot;
+      a.vx-=jn*nx*a.im;a.vy-=jn*ny*a.im;a.vz-=jn*nz*a.im;
+      b.vx+=jn*nx*b.im;b.vy+=jn*ny*b.im;b.vz+=jn*nz*b.im;
+      const tx=rx-rn*nx,ty=ry-rn*ny,tz=rz-rn*nz,tm=Math.hypot(tx,ty,tz);
+      if(tm>1e-5){
+        const dx2=tx/tm,dy2=ty/tm,dz2=tz/tm;
+        const den=tot+ra*ra/a.I+rb*rb/b.I, jt=Math.min(0.3*jn,tm/den);
+        a.vx+=jt*dx2*a.im;a.vy+=jt*dy2*a.im;a.vz+=jt*dz2*a.im;
+        b.vx-=jt*dx2*b.im;b.vy-=jt*dy2*b.im;b.vz-=jt*dz2*b.im;
+        const fx=jt*dx2,fy=jt*dy2,fz=jt*dz2;
+        a.wx+=(ny*ra*fz-nz*ra*fy)/a.I;a.wy+=(nz*ra*fx-nx*ra*fz)/a.I;a.wz+=(nx*ra*fy-ny*ra*fx)/a.I;
+        b.wx+=(ny*rb*fz-nz*rb*fy)/b.I;b.wy+=(nz*rb*fx-nx*rb*fz)/b.I;b.wz+=(nx*rb*fy-ny*rb*fx)/b.I;
+      }
+      if(jn*Math.min(a.im,b.im)>0.8){ const hy=(a.wh+b.wh)*0.5; if(Math.abs(a.y-hy)<a.r*1.5) addFoam((a.x+b.x)/2,(a.z+b.z)/2,0.5,0.4); }
+    }
+  }}
+}
+
+const H=1/240;
+function physicsStep(){
+  simT+=H; stepCount++;
+  for(let i=0;i<balls.length;i++) stepBall(balls[i],H);
+  for(let i=balls.length-1;i>=0;i--) if(balls[i].dead){ if(grab&&grab.ball===balls[i])grab=null; balls.splice(i,1); }
+  collide();
+  if((stepCount&1)===0) rippleStep();
+}
+
+/* ============================================================
+   Camera & input
+   ============================================================ */
+const cam={yaw:0.0,pitch:0.24,dist:13,tYaw:0.0,tPitch:0.24,tDist:13,target:[0,0.3,0]};
+let eye=[0,3,13], camF=[0,0,-1], camR=[1,0,0], camU=[0,1,0], VP=null, tanH=0.466, aspect=1;
+function computeCamera(){
+  const cp=Math.cos(cam.pitch);
+  eye=[cam.target[0]+cam.dist*Math.sin(cam.yaw)*cp, cam.target[1]+cam.dist*Math.sin(cam.pitch), cam.target[2]+cam.dist*Math.cos(cam.yaw)*cp];
+  waveSample(eye[0],eye[2],simT,false,S1); const minY=S1.h+0.5; if(eye[1]<minY) eye[1]=minY;
+  let fx=cam.target[0]-eye[0],fy=cam.target[1]-eye[1],fz=cam.target[2]-eye[2]; const fl=Math.hypot(fx,fy,fz); fx/=fl;fy/=fl;fz/=fl;
+  camF=[fx,fy,fz];
+  let rx=fy*0-fz*1, ry=fz*0-fx*0, rz=fx*1-fy*0; // cross(f, up=(0,1,0))
+  rx=-fz; ry=0; rz=fx; const rl=Math.hypot(rx,rz); rx/=rl;rz/=rl; camR=[rx,0,rz];
+  camU=[ry*fz-rz*fy, rz*fx-rx*fz, rx*fy-ry*fx];
+  aspect=canvas.width/canvas.height;
+  tanH=0.466*Math.max(1,1.15/aspect);
+  const proj=M4.persp(2*Math.atan(tanH),aspect,0.1,3000);
+  VP=M4.mul(proj,M4.look(eye,cam.target,[0,1,0]));
+}
+function rayFrom(px,py){
+  const nx=(px/innerWidth)*2-1, ny=1-(py/innerHeight)*2;
+  const d=[camF[0]+nx*tanH*aspect*camR[0]+ny*tanH*camU[0], camF[1]+ny*tanH*camU[1], camF[2]+nx*tanH*aspect*camR[2]+ny*tanH*camU[2]];
+  const l=Math.hypot(d[0],d[1],d[2]); return [d[0]/l,d[1]/l,d[2]/l];
+}
+function pickBall(px,py){
+  const d=rayFrom(px,py); let best=null,bt=1e9;
+  for(const b of balls){
+    const ox=eye[0]-b.x,oy=eye[1]-b.y,oz=eye[2]-b.z, R=b.r*1.2+0.06;
+    const bb=ox*d[0]+oy*d[1]+oz*d[2], c=ox*ox+oy*oy+oz*oz-R*R, disc=bb*bb-c;
+    if(disc<0)continue; let t=-bb-Math.sqrt(disc); if(t<0)t=-bb+Math.sqrt(disc); if(t>0&&t<bt){bt=t;best=b;}
+  }
+  return best?{ball:best,t:bt}:null;
+}
+function spawnAtPointer(px,py){
+  const d=rayFrom(px,py); let x,z;
+  if(d[1]<-0.002){ const t=-(eye[1]-0.0)/d[1]; x=eye[0]+d[0]*t; z=eye[2]+d[2]*t; }
+  else { x=eye[0]+d[0]*10; z=eye[2]+d[2]*10; }
+  const rr=Math.hypot(x,z); if(rr>10){x*=10/rr;z*=10/rr;}
+  spawnBall(x+(Math.random()-0.5)*0.2,4.2+Math.random()*0.6,z+(Math.random()-0.5)*0.2,selType,0,0,0);
+}
+const ptrs=new Map(); let pinch0=0, pinchDist0=13, downT=0, tapStart=null, lastHintHide=false;
+function hideHint(){ if(lastHintHide)return; lastHintHide=true; $('hint').style.opacity=0; }
+function setGrabTarget(x,y){
+  if(!grab)return; const d=rayFrom(x,y);
+  grab.ball.grab={x:eye[0]+d[0]*grab.depth,y:eye[1]+d[1]*grab.depth,z:eye[2]+d[2]*grab.depth};
+}
+function releaseGrab(){ if(grab){ grab.ball.grab=null; const b=grab.ball; b.wx+=(b.vz)*0.4/b.r*0.3; b.wz-=(b.vx)*0.4/b.r*0.3; grab=null; } }
+canvas.addEventListener('pointerdown',e=>{
+  e.preventDefault(); canvas.setPointerCapture(e.pointerId);
+  ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,t:performance.now(),moved:false});
+  hideHint(); canvas.style.cursor='grabbing';
+  if(ptrs.size===1){
+    const hit=pickBall(e.clientX,e.clientY);
+    if(hit){ grab={ball:hit.ball,pid:e.pointerId,depth:hit.t}; setGrabTarget(e.clientX,e.clientY); }
+  } else {
+    releaseGrab();
+    const [a,b]=[...ptrs.values()]; pinch0=Math.hypot(a.x-b.x,a.y-b.y); pinchDist0=cam.tDist;
   }
 });
+canvas.addEventListener('pointermove',e=>{
+  const p=ptrs.get(e.pointerId); if(!p)return;
+  const dx=e.clientX-p.x,dy=e.clientY-p.y; p.x=e.clientX;p.y=e.clientY;
+  if(Math.hypot(p.x-p.sx,p.y-p.sy)>7) p.moved=true;
+  if(grab&&grab.pid===e.pointerId){ setGrabTarget(e.clientX,e.clientY); return; }
+  if(ptrs.size===1&&p.moved){
+    cam.tYaw-=dx*0.0055; cam.tPitch=clamp(cam.tPitch+dy*0.0045,0.02,1.45);
+  } else if(ptrs.size===2){
+    const [a,b]=[...ptrs.values()]; const d=Math.hypot(a.x-b.x,a.y-b.y);
+    if(pinch0>10) cam.tDist=clamp(pinchDist0*pinch0/Math.max(d,10),3.5,45);
+  }
+});
+function endPtr(e){
+  const p=ptrs.get(e.pointerId); if(!p)return;
+  const wasGrab=grab&&grab.pid===e.pointerId;
+  if(wasGrab) releaseGrab();
+  else if(ptrs.size===1&&!p.moved&&performance.now()-p.t<400&&e.type==='pointerup') spawnAtPointer(p.x,p.y);
+  ptrs.delete(e.pointerId);
+  if(ptrs.size<2) pinch0=0;
+  if(ptrs.size===0) canvas.style.cursor='grab';
+}
+canvas.addEventListener('pointerup',endPtr);
+canvas.addEventListener('pointercancel',endPtr);
+canvas.addEventListener('wheel',e=>{e.preventDefault();cam.tDist=clamp(cam.tDist*Math.exp(e.deltaY*0.0012),3.5,45);},{passive:false});
+['gesturestart','gesturechange','gestureend'].forEach(n=>document.addEventListener(n,e=>e.preventDefault()));
+document.addEventListener('touchmove',e=>{ if(e.target===canvas) e.preventDefault(); },{passive:false});
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
 
-if(document.readyState === 'interactive' || document.readyState === 'complete'){
-  setTimeout(function(){ if(!document.body.dataset.booted){ document.body.dataset.booted = '1'; boot(); } }, 0);
-}else{
-  document.addEventListener('DOMContentLoaded', function(){ document.body.dataset.booted = '1'; });
+/* ============================================================
+   UI
+   ============================================================ */
+const chipsEl=$('chips');
+TYPES.forEach((T,i)=>{
+  const b=document.createElement('button'); b.className='chip'+(i===0?' on':'');
+  b.innerHTML='<span class="sw" style="background:'+T.sw+'"></span><span>'+T.name+'<small>'+T.sub+'</small></span>';
+  b.onclick=()=>{ selType=i; [...chipsEl.children].forEach((c,k)=>c.classList.toggle('on',k===i)); };
+  chipsEl.appendChild(b);
+});
+function setFill(el){ el.style.setProperty('--p',((el.value-el.min)/(el.max-el.min)*100)+'%'); }
+const sSize=$('sSize'),sSea=$('sSea'),sSun=$('sSun');
+function seaName(v){return v<12?'Glassy':v<30?'Calm':v<50?'Moderate':v<72?'Rough':v<90?'Very rough':'Storm';}
+function sunName(v){return v<12?'Sunset':v<30?'Golden hour':v<62?'Afternoon':'Midday';}
+sSize.oninput=()=>{sizeMul=sSize.value/100;$('vSize').textContent=sizeMul.toFixed(1)+'×';setFill(sSize);};
+sSea.oninput=()=>{seaT=sSea.value/100;$('vSea').textContent=seaName(+sSea.value);setFill(sSea);};
+sSun.oninput=()=>{sunV=sSun.value/100;$('vSun').textContent=sunName(+sSun.value);setFill(sSun);};
+[sSize,sSea,sSun].forEach(s=>{s.oninput();});
+$('bDrop').onclick=()=>{ hideHint(); spawnBall((Math.random()-0.5)*3,4.5,(Math.random()-0.5)*3,selType); };
+$('bRain').onclick=()=>{ hideHint(); for(let i=0;i<10;i++){ setTimeout(()=>{ const prev=selType; spawnBall((Math.random()-0.5)*11,5+Math.random()*5,(Math.random()-0.5)*11,Math.floor(Math.random()*TYPES.length)); },i*110); } };
+$('bClear').onclick=()=>{ balls.length=0; grab=null; };
+$('bSlow').onclick=e=>{ timeScale=timeScale===1?0.2:1; e.currentTarget.classList.toggle('on',timeScale!==1); };
+$('bHide').onclick=()=>{ $('dock').classList.add('hidden'); $('fab').classList.add('show'); };
+$('fab').onclick=()=>{ $('dock').classList.remove('hidden'); $('fab').classList.remove('show'); };
+
+// Additional ambience and presentation controls.
+let autoOrbit=false, sprayEnabled=true, statsEnabled=true, ambientMotion=false;
+let orbitClock=0, manualTimeScale=1;
+const settings=$('settings');
+function toggleSetting(id,on){const el=$(id);el.setAttribute('aria-checked',String(on));el.classList.toggle('on',on);}
+function showControls(){document.body.classList.remove('immersive');}
+function enterQuiet(){settings.classList.remove('open');document.body.classList.add('immersive');}
+$('bFullscreen').onclick=enterQuiet;
+$('immersive-exit').onclick=showControls;
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){if(document.body.classList.contains('immersive'))showControls();else settings.classList.remove('open');}
+  if(e.key.toLowerCase()==='f'&&!e.repeat)document.body.classList.contains('immersive')?showControls():enterQuiet();
+});
+$('bSettings').onclick=()=>settings.classList.toggle('open');
+$('bSettingsClose').onclick=()=>settings.classList.remove('open');
+$('tOrbit').onclick=()=>{autoOrbit=!autoOrbit;toggleSetting('tOrbit',autoOrbit);};
+$('tSpray').onclick=()=>{sprayEnabled=!sprayEnabled;toggleSetting('tSpray',sprayEnabled);};
+$('tStats').onclick=()=>{statsEnabled=!statsEnabled;toggleSetting('tStats',statsEnabled);$('stats').style.display=statsEnabled?'block':'none';};
+$('tAmbient').onclick=()=>{ambientMotion=!ambientMotion;timeScale=ambientMotion?0.42:manualTimeScale;toggleSetting('tAmbient',ambientMotion);};
+const sQuality=$('sQuality'),sDistance=$('sDistance');
+function updateQuality(){const q=+sQuality.value/100;prCeil=Math.min(maxPR,Math.max(.65,q*maxPR));pr=Math.min(pr,prCeil);$('vQuality').textContent=q<.76?'Economy':q<.92?'Balanced':'Fine';setFill(sQuality);resize();}
+sQuality.oninput=updateQuality;setTimeout(updateQuality,0);
+sDistance.oninput=()=>{cam.tDist=+sDistance.value/10;$('vDistance').textContent=cam.tDist.toFixed(1);setFill(sDistance);};
+sDistance.value=130; sDistance.oninput();
+const previousSlow=$('bSlow').onclick;
+$('bSlow').onclick=e=>{manualTimeScale=manualTimeScale===1?.2:1;if(!ambientMotion)timeScale=manualTimeScale;e.currentTarget.classList.toggle('on',timeScale!==1);};
+$('fab').onclick=()=>{$('dock').classList.remove('hidden');$('fab').classList.remove('show');};
+
+setTimeout(hideHint,14000);
+
+/* ============================================================
+   Rendering
+   ============================================================ */
+const maxPR=Math.min(window.devicePixelRatio||1,2);
+let pr=Math.min(maxPR,1.5), prCeil=maxPR, curW=0, curH=0;
+function resize(){
+  const w=Math.max(2,Math.floor(innerWidth*pr)), h=Math.max(2,Math.floor(innerHeight*pr));
+  if(w!==curW||h!==curH){ curW=w;curH=h;canvas.width=w;canvas.height=h; makeTargets(w,h); }
+}
+addEventListener('resize',resize); addEventListener('orientationchange',()=>setTimeout(resize,200));
+
+function drawBalls(mode,mirror){
+  if(balls.length===0) return;
+  gl.useProgram(pBall); setSky(pBall);
+  gl.uniformMatrix4fv(L(pBall,'uVP'),false,VP);
+  gl.uniform1f(L(pBall,'uMode'),mode); gl.uniform1f(L(pBall,'uMirror'),mirror);
+  gl.bindVertexArray(sphereVAO);
+  for(const b of balls){
+    const q=b.q,x=q[0],y=q[1],z=q[2],w=q[3],m=b.rot;
+    m[0]=1-2*(y*y+z*z);m[1]=2*(x*y+w*z);m[2]=2*(x*z-w*y);
+    m[3]=2*(x*y-w*z);m[4]=1-2*(x*x+z*z);m[5]=2*(y*z+w*x);
+    m[6]=2*(x*z+w*y);m[7]=2*(y*z-w*x);m[8]=1-2*(x*x+y*y);
+    gl.uniform3f(L(pBall,'uPos'),b.x,b.y,b.z); gl.uniform1f(L(pBall,'uR'),b.r);
+    gl.uniformMatrix3fv(L(pBall,'uRot'),false,m);
+    gl.uniform1f(L(pBall,'uType'),b.type); gl.uniform1f(L(pBall,'uPlane'),b.wh);
+    gl.uniform3f(L(pBall,'uCamEff'),eye[0],mirror?2*b.wh-eye[1]:eye[1],eye[2]);
+    gl.drawElements(gl.TRIANGLES,sphereIdxCount,gl.UNSIGNED_SHORT,0);
+  }
+  gl.bindVertexArray(null);
 }
 
-})();
+function render(){
+  const W=canvas.width,Hh=canvas.height;
+  computeCamera();
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,texDetail);
+  gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL); gl.disable(gl.BLEND); gl.depthMask(true);
+
+  /* reflection pass (mirrored balls) */
+  gl.bindFramebuffer(gl.FRAMEBUFFER,refl.fb); gl.viewport(0,0,rW,rH);
+  gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  drawBalls(1,1);
+  /* scene pass (colour+depth for refraction) */
+  gl.bindFramebuffer(gl.FRAMEBUFFER,scene.fb); gl.viewport(0,0,W,Hh);
+  gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  drawBalls(1,0);
+
+  /* main pass */
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null); gl.viewport(0,0,W,Hh);
+  gl.clearColor(0,0,0,1); gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  gl.disable(gl.DEPTH_TEST);
+  gl.useProgram(pSky); setSky(pSky);
+  gl.uniform3fv(L(pSky,'uCamF'),camF); gl.uniform3fv(L(pSky,'uCamR'),camR); gl.uniform3fv(L(pSky,'uCamU'),camU);
+  gl.uniform2f(L(pSky,'uTanAsp'),tanH,aspect);
+  gl.bindVertexArray(emptyVAO); gl.drawArrays(gl.TRIANGLES,0,3);
+  gl.enable(gl.DEPTH_TEST);
+
+  gl.useProgram(pWater); setSky(pWater);
+  gl.uniformMatrix4fv(L(pWater,'uVP'),false,VP);
+  gl.uniform3fv(L(pWater,'uCam'),eye); gl.uniform3fv(L(pWater,'uCamR'),camR); gl.uniform3fv(L(pWater,'uCamF'),camF);
+  gl.uniform4fv(L(pWater,'uW'),uWArr); gl.uniform1fv(L(pWater,'uQ'),uQArr);
+  gl.uniform1f(L(pWater,'uRipR'),RR); gl.uniform1f(L(pWater,'uRipN'),RN); gl.uniform1f(L(pWater,'uA0'),waveA0);
+  gl.uniform2f(L(pWater,'uRes'),W,Hh); gl.uniform2f(L(pWater,'uNF'),0.1,3000);
+  gl.uniform1i(L(pWater,'uRip'),1); gl.uniform1i(L(pWater,'uScene'),2); gl.uniform1i(L(pWater,'uSceneD'),3); gl.uniform1i(L(pWater,'uRefl'),4);
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D,texRip);
+  gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D,scene.color);
+  gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D,scene.depth);
+  gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D,refl.color);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindVertexArray(waterVAO); gl.drawElements(gl.TRIANGLES,waterIdxCount,gl.UNSIGNED_INT,0);
+  gl.bindVertexArray(null);
+
+  /* balls above the surface */
+  drawBalls(0,0);
+
+  /* spray */
+  if(sprayEnabled&&pCount>0){
+    for(let i=0;i<pCount;i++){
+      const o=i*5; partData[o]=PX[i];partData[o+1]=PY[i];partData[o+2]=PZ[i];
+      const lf=PLife[i]/PMax[i]; partData[o+3]=PSize[i]*(0.6+0.4*lf); partData[o+4]=Math.min(1,PLife[i]/0.35)*0.75;
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER,partBuf); gl.bufferSubData(gl.ARRAY_BUFFER,0,partData,0,pCount*5);
+    gl.useProgram(pPart); setSky(pPart);
+    gl.uniformMatrix4fv(L(pPart,'uVP'),false,VP);
+    gl.uniform1f(L(pPart,'uPx'),Hh/(2*tanH));
+    gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false);
+    gl.bindVertexArray(partVAO); gl.drawArrays(gl.POINTS,0,pCount); gl.bindVertexArray(null);
+    gl.depthMask(true); gl.disable(gl.BLEND);
+  }
+}
+
+/* ============================================================
+   Main loop with adaptive resolution
+   ============================================================ */
+let lastT=performance.now(), acc=0, ema=16.7, frameN=0, lastStat=0, cool=0, ceilTimer=0, fpsShown=60;
+function frame(now){
+  requestAnimationFrame(frame);
+  const rdtMs=now-lastT; lastT=now; if(!(rdtMs>0)) return;
+  const dt=Math.min(rdtMs/1000,0.05);
+  ema=ema*0.94+Math.min(rdtMs,100)*0.06; frameN++; cool--; ceilTimer+=dt;
+  if(cool<=0&&frameN>40){
+    if(ema>20.5&&pr>0.65){ prCeil=Math.max(0.7,pr-0.05); pr=Math.max(0.65,pr-0.12); cool=60; resize(); }
+    else if(ema<17.6&&pr<prCeil-0.001){ pr=Math.min(prCeil,pr+0.06); cool=120; resize(); }
+  }
+  if(ceilTimer>25){ ceilTimer=0; prCeil=Math.min(maxPR,prCeil+0.1); }
+  resize();
+
+  sea+=(seaT-sea)*Math.min(1,dt*1.6);
+  updateWaves(sea); updateSky();
+  const ws=2.5+11*sea; windX=Math.sin(WIND_ANG)*ws; windZ=Math.cos(WIND_ANG)*ws;
+
+  cam.yaw+=(cam.tYaw-cam.yaw)*Math.min(1,dt*10);
+  cam.pitch+=(cam.tPitch-cam.pitch)*Math.min(1,dt*10);
+  cam.dist+=(cam.tDist-cam.dist)*Math.min(1,dt*8);
+  if(autoOrbit&&ptrs.size===0&&!grab){orbitClock+=dt;cam.tYaw+=dt*0.018;}
+
+  acc+=dt*timeScale; let steps=0;
+  while(acc>=H&&steps<12){ physicsStep(); acc-=H; steps++; }
+  if(steps>=12) acc=0;
+  if(sprayEnabled) particlesStep(dt*timeScale);
+  uploadRipple();
+  render();
+
+  if(statsEnabled&&now-lastStat>500){
+    lastStat=now; fpsShown=Math.round(1000/ema);
+    $('stats').innerHTML='FPS '+Math.min(fpsShown,120)+'<br>'+balls.length+' OBJECTS · '+Math.round(sea*100)+'% SEA';
+  }
+}
+resize();
+requestAnimationFrame(t=>{ lastT=t; frame(t); });
+
+/* a couple of balls to start with */
+spawnBall(-2.2,3.6,1.0,0,0,0,0);
+spawnBall(0.6,5.2,-0.4,1,0,0,0);
+spawnBall(2.6,6.4,0.8,5,0,0,0);
 </script>
 </body>
 </html>
