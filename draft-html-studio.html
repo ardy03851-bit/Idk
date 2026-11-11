@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Draft — HTML Studio</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg:#10110f; --surface:#171815; --surface-2:#1d1f1a; --surface-3:#24261f;
+    --line:#303229; --line-soft:#25271f; --text:#eceee5; --muted:#92958a;
+    --faint:#66695f; --accent:#c9e27b; --accent-dark:#222a13; --danger:#e28c82;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+    --sans:"Avenir Next",Avenir,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{width:100%;height:100%;margin:0;overflow:hidden}
+  body{background:var(--bg);color:var(--text);font:13px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+  button{font:inherit}
+  .app{height:100%;display:grid;grid-template-rows:58px minmax(0,1fr)}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 18px;border-bottom:1px solid var(--line);background:#141511}
+  .identity,.actions,.action-group,.panel-heading,.panel-tools,.foot-left,.foot-right{display:flex;align-items:center}
+  .identity{gap:11px;min-width:0}
+  .brand-mark{width:25px;height:25px;display:grid;place-items:center;border:1px solid #58683b;color:var(--accent);font:700 11px var(--mono);letter-spacing:-1px}
+  .brand{font-size:13px;font-weight:700;letter-spacing:.025em}
+  .brand small{margin-left:9px;color:var(--muted);font-size:11px;font-weight:450;letter-spacing:0}
+  .actions{gap:7px}
+  .action-group{gap:6px}
+  button{height:33px;padding:0 11px;border:1px solid var(--line);border-radius:4px;background:var(--surface-2);color:#d8dacf;font-size:11px;font-weight:650;letter-spacing:.01em;cursor:pointer;transition:background .13s,border-color .13s,color .13s,transform .13s}
+  button:hover{background:var(--surface-3);border-color:#505347;color:#fff}
+  button:active{transform:translateY(1px)}
+  button:focus-visible,.source:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-dark);padding:0 15px}
+  button.primary:hover{background:#d8ed91;border-color:#d8ed91}
+  button.icon-button{width:33px;padding:0;font:15px var(--sans)}
+  .workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1px;min-height:0;background:var(--line)}
+  .panel{display:grid;grid-template-rows:43px minmax(0,1fr) 31px;min-width:0;min-height:0;background:var(--surface)}
+  .panel-heading{justify-content:space-between;padding:0 14px;border-bottom:1px solid var(--line-soft)}
+  .heading-left{display:flex;align-items:center;gap:9px}
+  .panel-title{font-size:10px;font-weight:750;letter-spacing:.12em;text-transform:uppercase;color:#c6c9bb}
+  .file-label{color:var(--muted);font:10px var(--mono)}
+  .panel-tools{gap:5px}
+  .tool-label{font-size:10px;color:var(--muted)}
+  .mini-button{height:24px;padding:0 8px;font-size:10px;font-weight:550}
+  .editor-shell{display:grid;grid-template-columns:48px minmax(0,1fr);min-height:0;background:#131410}
+  .gutter{overflow:hidden;padding:16px 10px 16px 0;border-right:1px solid #24261f;color:#606358;text-align:right;white-space:pre;font:12px/1.75 var(--mono);user-select:none}
+  .source{display:block;width:100%;height:100%;min-width:0;resize:none;border:0;border-radius:0;outline:0;padding:16px 18px;background:transparent;color:#e3e6da;caret-color:var(--accent);font:12px/1.75 var(--mono);tab-size:2;white-space:pre;overflow:auto;scrollbar-width:thin;scrollbar-color:#44473c transparent}
+  .source::selection{background:#56663a;color:#fff}
+  .preview-shell{position:relative;min-height:0;background:#fff}
+  iframe{display:block;width:100%;height:100%;border:0;background:#fff}
+  .empty-hint{position:absolute;inset:auto 0 0 0;padding:8px 12px;background:linear-gradient(transparent,rgba(0,0,0,.07));color:rgba(0,0,0,.38);font:10px var(--sans);pointer-events:none;text-align:right}
+  .panel-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 13px;border-top:1px solid var(--line-soft);color:var(--muted);font:10px var(--mono)}
+  .foot-left{gap:7px;min-width:0}
+  .status-dot{width:6px;height:6px;flex:none;border-radius:50%;background:var(--accent)}
+  .status-dot.error{background:var(--danger)}
+  .foot-right{gap:12px;white-space:nowrap}
+  .file-input{display:none}
+  .toast{position:fixed;left:50%;bottom:45px;z-index:5;transform:translate(-50%,8px);padding:8px 12px;border:1px solid #424638;border-radius:4px;background:#20221c;color:#e9ebdf;font-size:11px;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  @media(max-width:760px){
+    html,body{overflow:auto}.app{min-height:100%;height:auto;grid-template-rows:58px minmax(0,1fr)}
+    .topbar{padding:0 10px}.brand small{display:none}.actions{gap:4px}.action-group{gap:4px}
+    button{padding:0 8px}.action-secondary{display:none}
+    .workspace{grid-template-columns:1fr;grid-template-rows:minmax(370px,54vh) minmax(340px,46vh)}
+    .panel{min-height:330px}
+  }
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="identity">
+      <div class="brand-mark">&lt;/&gt;</div>
+      <div class="brand">Draft<small>HTML studio</small></div>
+    </div>
+    <div class="actions">
+      <div class="action-group">
+        <button id="selectAll" class="action-secondary" type="button" title="Select all source code (Ctrl/Cmd + A)">Select all</button>
+        <button id="importBtn" type="button" title="Import an HTML file">Import</button>
+        <button id="downloadBtn" class="action-secondary" type="button" title="Download the current HTML file">Export</button>
+      </div>
+      <button id="runBtn" class="primary" type="button" title="Run preview (Ctrl/Cmd + Enter)">Run&nbsp; ↗</button>
+      <input id="fileInput" class="file-input" type="file" accept=".html,.htm,text/html">
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="panel" aria-label="HTML source editor">
+      <div class="panel-heading">
+        <div class="heading-left"><span class="panel-title">Source</span><span id="fileName" class="file-label">untitled.html</span></div>
+        <div class="panel-tools"><span class="tool-label">HTML</span><button id="clearBtn" class="mini-button" type="button" title="Clear editor">Clear</button></div>
+      </div>
+      <div class="editor-shell">
+        <div id="gutter" class="gutter" aria-hidden="true">1</div>
+        <textarea id="editor" class="source" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="HTML source code"></textarea>
+      </div>
+      <div class="panel-foot">
+        <div class="foot-left"><span id="editorDot" class="status-dot"></span><span id="editorStatus">Ready</span></div>
+        <div class="foot-right"><span id="lineCount">1 line</span><span id="charCount">0 chars</span></div>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Live HTML preview">
+      <div class="panel-heading">
+        <div class="heading-left"><span class="panel-title">Preview</span></div>
+        <div class="panel-tools"><span class="tool-label">SANDBOXED</span><button id="refreshBtn" class="mini-button" type="button" title="Refresh preview">↻ Refresh</button></div>
+      </div>
+      <div class="preview-shell">
+        <iframe id="preview" title="HTML preview" sandbox="allow-scripts allow-forms allow-modals allow-downloads"></iframe>
+        <div class="empty-hint">Rendered locally in your browser</div>
+      </div>
+      <div class="panel-foot">
+        <div class="foot-left"><span id="previewDot" class="status-dot"></span><span id="previewStatus">Preview ready</span></div>
+        <div class="foot-right"><span id="runTime">Not run yet</span></div>
+      </div>
+    </section>
+  </main>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const editor = $("editor"), preview = $("preview"), fileInput = $("fileInput");
+  const gutter = $("gutter"), toast = $("toast");
+  const starter = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My page</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #f1f0e9;
+      color: #20211d;
+      font-family: system-ui, sans-serif;
+    }
+    h1 { font-size: clamp(2rem, 7vw, 5rem); letter-spacing: -.06em; }
+  </style>
+</head>
+<body>
+  <h1>Hello, world.</h1>
+</body>
+</html>`;
+
+  let filename = "untitled.html";
+  let debounceTimer = 0, toastTimer = 0, lastRun = 0;
+
+  function notify(message) {
+    toast.textContent = message;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 1900);
+  }
+
+  function updateMetrics() {
+    const text = editor.value;
+    const lines = text.split("\n").length;
+    $("lineCount").textContent = `${lines} ${lines === 1 ? "line" : "lines"}`;
+    $("charCount").textContent = `${text.length.toLocaleString()} chars`;
+    gutter.textContent = Array.from({length: lines}, (_, i) => i + 1).join("\n");
+    syncGutter();
+  }
+
+  function syncGutter() {
+    gutter.scrollTop = editor.scrollTop;
+  }
+
+  function run() {
+    clearTimeout(debounceTimer);
+    const started = performance.now();
+    // srcdoc keeps the preview local. The sandbox intentionally omits allow-same-origin.
+    preview.srcdoc = editor.value;
+    lastRun = performance.now() - started;
+    $("runTime").textContent = `Rendered · ${lastRun.toFixed(1)} ms`;
+    $("previewStatus").textContent = "Preview updated";
+    $("previewDot").classList.remove("error");
+    $("editorStatus").textContent = "Run complete";
+  }
+
+  function scheduleRun() {
+    updateMetrics();
+    $("editorStatus").textContent = "Unsaved edits";
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(run, 500);
+  }
+
+  function setFilename(name) {
+    filename = name.toLowerCase().endsWith(".html") || name.toLowerCase().endsWith(".htm") ? name : `${name}.html`;
+    $("fileName").textContent = filename;
+  }
+
+  $("runBtn").addEventListener("click", run);
+  $("refreshBtn").addEventListener("click", run);
+  $("selectAll").addEventListener("click", () => {
+    editor.focus();
+    editor.select();
+    notify("All source selected");
+  });
+  $("importBtn").addEventListener("click", () => fileInput.click());
+  $("clearBtn").addEventListener("click", () => {
+    if (!editor.value) return;
+    editor.value = "";
+    updateMetrics();
+    $("editorStatus").textContent = "Editor cleared";
+    run();
+    editor.focus();
+  });
+
+  fileInput.addEventListener("change", async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+    try {
+      const content = await file.text();
+      editor.value = content;
+      setFilename(file.name);
+      updateMetrics();
+      run();
+      $("editorStatus").textContent = `Imported ${file.name}`;
+      notify("HTML file imported");
+    } catch (error) {
+      $("editorStatus").textContent = "Import failed";
+      notify("Could not read that file");
+    } finally {
+      fileInput.value = "";
+    }
+  });
+
+  $("downloadBtn").addEventListener("click", () => {
+    const blob = new Blob([editor.value], {type:"text/html;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    $("editorStatus").textContent = "Exported";
+    notify("HTML file exported");
+  });
+
+  editor.addEventListener("input", scheduleRun);
+  editor.addEventListener("scroll", syncGutter, {passive:true});
+  editor.addEventListener("keydown", event => {
+    if (event.key === "Tab") {
+      event.preventDefault();
+      const start = editor.selectionStart, end = editor.selectionEnd;
+      editor.setRangeText("  ", start, end, "end");
+      scheduleRun();
+    } else if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+      event.preventDefault();
+      run();
+    } else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+      event.preventDefault();
+      $("downloadBtn").click();
+    }
+  });
+
+  // Support dropping a local HTML document directly onto the editor.
+  $("editor").addEventListener("dragover", event => {
+    event.preventDefault();
+    $("editorStatus").textContent = "Drop HTML file to import";
+  });
+  $("editor").addEventListener("drop", async event => {
+    const file = event.dataTransfer?.files?.[0];
+    if (!file) return;
+    event.preventDefault();
+    if (!/\.(html?|HTML?)$/.test(file.name)) {
+      notify("Choose an .html or .htm file");
+      return;
+    }
+    try {
+      editor.value = await file.text();
+      setFilename(file.name);
+      updateMetrics();
+      run();
+      notify("HTML file imported");
+    } catch {
+      notify("Could not read that file");
+    }
+  });
+
+  editor.value = starter;
+  updateMetrics();
+  run();
+})();
+</script>
+</body>
+</html>
