@@ -2,131 +2,161 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <title>Draft — HTML Studio</title>
 <style>
-  :root {
-    color-scheme: dark;
-    --bg:#10110f; --surface:#171815; --surface-2:#1d1f1a; --surface-3:#24261f;
-    --line:#303229; --line-soft:#25271f; --text:#eceee5; --muted:#92958a;
-    --faint:#66695f; --accent:#c9e27b; --accent-dark:#222a13; --danger:#e28c82;
-    --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
-    --sans:"Avenir Next",Avenir,"Segoe UI",sans-serif;
-  }
-  *{box-sizing:border-box}
-  html,body{width:100%;height:100%;margin:0;overflow:hidden}
-  body{background:var(--bg);color:var(--text);font:13px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
-  button{font:inherit}
-  .app{height:100%;display:grid;grid-template-rows:58px minmax(0,1fr)}
-  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 18px;border-bottom:1px solid var(--line);background:#141511}
-  .identity,.actions,.action-group,.panel-heading,.panel-tools,.foot-left,.foot-right{display:flex;align-items:center}
-  .identity{gap:11px;min-width:0}
-  .brand-mark{width:25px;height:25px;display:grid;place-items:center;border:1px solid #58683b;color:var(--accent);font:700 11px var(--mono);letter-spacing:-1px}
-  .brand{font-size:13px;font-weight:700;letter-spacing:.025em}
-  .brand small{margin-left:9px;color:var(--muted);font-size:11px;font-weight:450;letter-spacing:0}
-  .actions{gap:7px}
-  .action-group{gap:6px}
-  button{height:33px;padding:0 11px;border:1px solid var(--line);border-radius:4px;background:var(--surface-2);color:#d8dacf;font-size:11px;font-weight:650;letter-spacing:.01em;cursor:pointer;transition:background .13s,border-color .13s,color .13s,transform .13s}
-  button:hover{background:var(--surface-3);border-color:#505347;color:#fff}
-  button:active{transform:translateY(1px)}
-  button:focus-visible,.source:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-dark);padding:0 15px}
-  button.primary:hover{background:#d8ed91;border-color:#d8ed91}
-  button.icon-button{width:33px;padding:0;font:15px var(--sans)}
-  .workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1px;min-height:0;background:var(--line)}
-  .panel{display:grid;grid-template-rows:43px minmax(0,1fr) 31px;min-width:0;min-height:0;background:var(--surface)}
-  .panel-heading{justify-content:space-between;padding:0 14px;border-bottom:1px solid var(--line-soft)}
-  .heading-left{display:flex;align-items:center;gap:9px}
-  .panel-title{font-size:10px;font-weight:750;letter-spacing:.12em;text-transform:uppercase;color:#c6c9bb}
-  .file-label{color:var(--muted);font:10px var(--mono)}
-  .panel-tools{gap:5px}
-  .tool-label{font-size:10px;color:var(--muted)}
-  .mini-button{height:24px;padding:0 8px;font-size:10px;font-weight:550}
-  .editor-shell{display:grid;grid-template-columns:48px minmax(0,1fr);min-height:0;background:#131410}
-  .gutter{overflow:hidden;padding:16px 10px 16px 0;border-right:1px solid #24261f;color:#606358;text-align:right;white-space:pre;font:12px/1.75 var(--mono);user-select:none}
-  .source{display:block;width:100%;height:100%;min-width:0;resize:none;border:0;border-radius:0;outline:0;padding:16px 18px;background:transparent;color:#e3e6da;caret-color:var(--accent);font:12px/1.75 var(--mono);tab-size:2;white-space:pre;overflow:auto;scrollbar-width:thin;scrollbar-color:#44473c transparent}
-  .source::selection{background:#56663a;color:#fff}
-  .preview-shell{position:relative;min-height:0;background:#fff}
-  iframe{display:block;width:100%;height:100%;border:0;background:#fff}
-  .empty-hint{position:absolute;inset:auto 0 0 0;padding:8px 12px;background:linear-gradient(transparent,rgba(0,0,0,.07));color:rgba(0,0,0,.38);font:10px var(--sans);pointer-events:none;text-align:right}
-  .panel-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 13px;border-top:1px solid var(--line-soft);color:var(--muted);font:10px var(--mono)}
-  .foot-left{gap:7px;min-width:0}
-  .status-dot{width:6px;height:6px;flex:none;border-radius:50%;background:var(--accent)}
-  .status-dot.error{background:var(--danger)}
-  .foot-right{gap:12px;white-space:nowrap}
-  .file-input{display:none}
-  .toast{position:fixed;left:50%;bottom:45px;z-index:5;transform:translate(-50%,8px);padding:8px 12px;border:1px solid #424638;border-radius:4px;background:#20221c;color:#e9ebdf;font-size:11px;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s}
-  .toast.show{opacity:1;transform:translate(-50%,0)}
-  @media(max-width:760px){
-    html,body{overflow:auto}.app{min-height:100%;height:auto;grid-template-rows:58px minmax(0,1fr)}
-    .topbar{padding:0 10px}.brand small{display:none}.actions{gap:4px}.action-group{gap:4px}
-    button{padding:0 8px}.action-secondary{display:none}
-    .workspace{grid-template-columns:1fr;grid-template-rows:minmax(370px,54vh) minmax(340px,46vh)}
-    .panel{min-height:330px}
-  }
-  @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}}
+:root{
+  color-scheme:dark;
+  --bg:#111310;--chrome:#171a16;--panel:#1b1e19;--panel-hi:#22261f;
+  --line:#343a30;--line-soft:#292e26;--ink:#edf0e8;--muted:#9aa092;--quiet:#697064;--accent:#d68a63;--accent-hi:#e6a17a;
+  --accent-ink:#24170f;--good:#a9c58c;--bad:#e28d80;--mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+  --sans: "Avenir Next",Avenir,"Segoe UI",sans-serif;
+  --safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--ink);font:13px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+button,select{font:inherit}
+button{color:inherit}
+.app{height:100%;min-height:0;display:grid;grid-template-rows:62px minmax(0,1fr);padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0 22px;border-bottom:1px solid var(--line);background:var(--chrome);z-index:3}
+.identity{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{width:27px;height:27px;display:grid;place-items:center;border:1px solid #81543e;color:var(--accent-hi);font:700 11px var(--mono);letter-spacing:-1px;position:relative}
+.logo:after{content:"";position:absolute;right:-4px;bottom:-4px;width:5px;height:5px;background:var(--accent);border:2px solid var(--chrome)}
+.brand{font-size:13px;font-weight:750;letter-spacing:.04em}
+.brand-sub{margin-left:10px;color:var(--muted);font-size:11px;font-weight:450;letter-spacing:0}
+.top-actions,.button-row,.panel-left,.panel-right,.status-left,.status-right{display:flex;align-items:center}
+.top-actions{gap:7px}
+.button-row{gap:6px}
+button,.select-wrap select{height:35px;padding:0 12px;border:1px solid var(--line);border-radius:4px;background:var(--panel);font-size:11px;font-weight:650;letter-spacing:.015em;cursor:pointer;transition:background .18s,border-color .18s,color .18s,transform .18s,box-shadow .18s}
+button:hover{background:var(--panel-hi);border-color:#596052}
+button:active{transform:translateY(1px)}
+button:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);padding:0 16px}
+button.primary:hover{background:var(--accent-hi);border-color:var(--accent-hi);box-shadow:0 3px 14px #d68a6326}
+button.quiet{color:var(--muted)}
+button.square{width:35px;padding:0;font-size:15px}
+.workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1px;min-height:0;background:var(--line)}
+.panel{display:grid;grid-template-rows:46px minmax(0,1fr) 34px;min-width:0;min-height:0;background:var(--panel);overflow:hidden}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 15px;border-bottom:1px solid var(--line-soft);background:#1a1d18}
+.panel-left{gap:10px;min-width:0}
+.panel-right{gap:6px}
+.eyebrow{font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#d0d4c8}
+.file-name{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font:10px var(--mono)}
+.language-tag{color:var(--quiet);font:10px var(--mono);letter-spacing:.06em}
+.tiny{height:25px;padding:0 8px;font-size:10px;font-weight:550}
+.editor-stage{display:grid;grid-template-columns:49px minmax(0,1fr);min-height:0;background:#141712;position:relative}
+.gutter{overflow:hidden;padding:17px 11px 17px 0;border-right:1px solid #272d25;color:#687064;text-align:right;white-space:pre;font:12px/1.78 var(--mono);user-select:none}
+textarea{display:block;width:100%;height:100%;min-width:0;resize:none;border:0;border-radius:0;outline:0;padding:17px 19px;background:transparent;color:#e1e7dc;caret-color:var(--accent-hi);font:12px/1.78 var(--mono);tab-size:2;white-space:pre;overflow:auto;scrollbar-width:thin;scrollbar-color:#485044 transparent}
+textarea::selection{background:#77533f;color:#fff}
+.preview-stage{min-height:0;position:relative;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:18px;background:#252922;scrollbar-width:thin;scrollbar-color:#50584b transparent}
+.preview-frame{width:100%;height:100%;min-height:100%;background:#fff;box-shadow:0 8px 35px #0005;transition:width .28s cubic-bezier(.2,.75,.25,1),box-shadow .25s;overflow:hidden}
+.preview-frame.tablet{width:min(820px,100%);height:calc(100% - 2px);min-height:calc(100% - 2px);border:7px solid #10130f;border-radius:17px;box-shadow:0 12px 38px #0008}
+.preview-frame.mobile{width:min(390px,100%);height:calc(100% - 2px);min-height:calc(100% - 2px);border:7px solid #10130f;border-radius:24px;box-shadow:0 12px 38px #0008}
+iframe{display:block;width:100%;height:100%;border:0;background:#fff}
+.panel-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 14px;border-top:1px solid var(--line-soft);color:var(--muted);font:10px var(--mono);background:#191c17}
+.status-left{gap:8px;min-width:0;overflow:hidden}
+.status-left span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status-right{gap:12px;white-space:nowrap}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--good);flex:none;box-shadow:0 0 0 3px #a9c58c12}
+.dot.busy{background:var(--accent);box-shadow:0 0 0 3px #d68a6318;animation:pulse 1s infinite}
+.dot.error{background:var(--bad);box-shadow:0 0 0 3px #e28d8018}
+.select-wrap select{height:27px;padding:0 24px 0 9px;border-radius:3px;background-color:#20241e;color:#d6dacd;font:10px var(--mono)}
+.toast{position:fixed;z-index:10;left:50%;bottom:calc(48px + var(--safe-bottom));transform:translate(-50%,10px);padding:9px 13px;border:1px solid #555d4b;border-radius:4px;background:#252a22;color:#eff2e9;font-size:11px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;box-shadow:0 8px 25px #0005}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.file-input{display:none}
+@keyframes pulse{50%{opacity:.45}}
+@keyframes appear{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.panel{animation:appear .35s ease both}.panel:nth-child(2){animation-delay:.06s}
+@media(max-width:900px){
+ .topbar{padding:0 14px}.workspace{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ .brand-sub{display:none}.panel-head{padding:0 11px}.preview-stage{padding:12px}
+}
+@media(max-width:700px){
+ html,body{overflow:hidden}.app{grid-template-rows:auto minmax(0,1fr)}
+ .topbar{min-height:58px;height:auto;padding:9px 10px;gap:8px;flex-wrap:wrap}
+ .top-actions{gap:5px}.top-actions button{height:34px;padding:0 9px}.top-actions .primary{padding:0 12px}
+ .workspace{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:1px}
+ .panel{grid-template-rows:42px minmax(0,1fr) 30px}
+ .panel-head{padding:0 10px}.editor-stage{grid-template-columns:38px minmax(0,1fr)}
+ .gutter{font-size:11px;padding-right:8px}textarea{font-size:11px;padding:13px}
+ .preview-stage{padding:9px}.preview-frame.tablet,.preview-frame.mobile{border-width:4px;border-radius:12px}
+}
+@media(max-width:480px){
+ .topbar{align-items:center}.identity{gap:8px}.logo{width:24px;height:24px}
+ .top-actions{margin-left:auto}.top-actions .secondary{display:none}
+ .panel-right .language-tag{display:none}.status-right{gap:7px}
+}
+@media(orientation:portrait) and (min-width:701px) and (max-width:1100px){
+ .workspace{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr)}
+ .app{grid-template-rows:60px minmax(0,1fr)}
+ .panel{grid-template-rows:44px minmax(0,1fr) 32px}
+ .preview-stage{padding:15px}
+}
+@media(hover:none){
+ button{min-height:38px}.tiny{min-height:30px}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
+}
 </style>
 </head>
 <body>
 <div class="app">
-  <header class="topbar">
-    <div class="identity">
-      <div class="brand-mark">&lt;/&gt;</div>
-      <div class="brand">Draft<small>HTML studio</small></div>
+ <header class="topbar">
+  <div class="identity"><div class="logo">&lt;/&gt;</div><div class="brand">DRAFT<span class="brand-sub">HTML STUDIO</span></div></div>
+  <div class="top-actions">
+   <div class="button-row">
+    <button id="selectAll" class="quiet secondary" type="button" title="Select all code">Select all</button>
+    <button id="importBtn" type="button" title="Import an HTML file">Import</button>
+    <button id="exportBtn" class="quiet secondary" type="button" title="Export HTML file">Export</button>
+   </div>
+   <button id="openTabBtn" type="button" title="Open this HTML as a standalone page in a new tab">Open tab&nbsp; ↗</button>
+   <button id="runBtn" class="primary" type="button" title="Run preview · Ctrl or Cmd + Enter">Run&nbsp; ↗</button>
+   <input id="fileInput" class="file-input" type="file" accept=".html,.htm,text/html">
+  </div>
+ </header>
+ <main class="workspace">
+  <section class="panel" aria-label="HTML source editor">
+   <div class="panel-head">
+    <div class="panel-left"><span class="eyebrow">01 / Source</span><span class="file-name" id="fileName">untitled.html</span></div>
+    <div class="panel-right"><span class="language-tag">HTML</span><button class="tiny" id="clearBtn" type="button">Clear</button></div>
+   </div>
+   <div class="editor-stage">
+    <div class="gutter" id="gutter" aria-hidden="true">1</div>
+    <textarea id="editor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="HTML source code"></textarea>
+   </div>
+   <div class="panel-foot">
+    <div class="status-left"><i class="dot" id="editorDot"></i><span id="editorStatus">Ready</span></div>
+    <div class="status-right"><span id="lineCount">1 line</span><span id="charCount">0 chars</span></div>
+   </div>
+  </section>
+  <section class="panel" aria-label="HTML preview">
+   <div class="panel-head">
+    <div class="panel-left"><span class="eyebrow">02 / Preview</span></div>
+    <div class="panel-right">
+     <div class="select-wrap"><select id="viewport" aria-label="Preview viewport"><option value="desktop">Desktop</option><option value="tablet">Tablet</option><option value="mobile">Mobile</option></select></div>
+     <button class="tiny" id="refreshBtn" type="button" title="Refresh preview">↻</button>
     </div>
-    <div class="actions">
-      <div class="action-group">
-        <button id="selectAll" class="action-secondary" type="button" title="Select all source code (Ctrl/Cmd + A)">Select all</button>
-        <button id="importBtn" type="button" title="Import an HTML file">Import</button>
-        <button id="downloadBtn" class="action-secondary" type="button" title="Download the current HTML file">Export</button>
-      </div>
-      <button id="runBtn" class="primary" type="button" title="Run preview (Ctrl/Cmd + Enter)">Run&nbsp; ↗</button>
-      <input id="fileInput" class="file-input" type="file" accept=".html,.htm,text/html">
-    </div>
-  </header>
-
-  <main class="workspace">
-    <section class="panel" aria-label="HTML source editor">
-      <div class="panel-heading">
-        <div class="heading-left"><span class="panel-title">Source</span><span id="fileName" class="file-label">untitled.html</span></div>
-        <div class="panel-tools"><span class="tool-label">HTML</span><button id="clearBtn" class="mini-button" type="button" title="Clear editor">Clear</button></div>
-      </div>
-      <div class="editor-shell">
-        <div id="gutter" class="gutter" aria-hidden="true">1</div>
-        <textarea id="editor" class="source" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="HTML source code"></textarea>
-      </div>
-      <div class="panel-foot">
-        <div class="foot-left"><span id="editorDot" class="status-dot"></span><span id="editorStatus">Ready</span></div>
-        <div class="foot-right"><span id="lineCount">1 line</span><span id="charCount">0 chars</span></div>
-      </div>
-    </section>
-
-    <section class="panel" aria-label="Live HTML preview">
-      <div class="panel-heading">
-        <div class="heading-left"><span class="panel-title">Preview</span></div>
-        <div class="panel-tools"><span class="tool-label">SANDBOXED</span><button id="refreshBtn" class="mini-button" type="button" title="Refresh preview">↻ Refresh</button></div>
-      </div>
-      <div class="preview-shell">
-        <iframe id="preview" title="HTML preview" sandbox="allow-scripts allow-forms allow-modals allow-downloads"></iframe>
-        <div class="empty-hint">Rendered locally in your browser</div>
-      </div>
-      <div class="panel-foot">
-        <div class="foot-left"><span id="previewDot" class="status-dot"></span><span id="previewStatus">Preview ready</span></div>
-        <div class="foot-right"><span id="runTime">Not run yet</span></div>
-      </div>
-    </section>
-  </main>
+   </div>
+   <div class="preview-stage" id="previewStage">
+    <div class="preview-frame" id="previewFrame"><iframe id="preview" title="Rendered HTML preview" sandbox="allow-scripts allow-forms allow-modals allow-downloads"></iframe></div>
+   </div>
+   <div class="panel-foot">
+    <div class="status-left"><i class="dot" id="previewDot"></i><span id="previewStatus">Preview ready</span></div>
+    <div class="status-right"><span id="runTime">Not run yet</span></div>
+   </div>
+  </section>
+ </main>
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
 <script>
 (() => {
-  "use strict";
-  const $ = id => document.getElementById(id);
-  const editor = $("editor"), preview = $("preview"), fileInput = $("fileInput");
-  const gutter = $("gutter"), toast = $("toast");
-  const starter = `<!doctype html>
+ "use strict";
+ const $ = id => document.getElementById(id);
+ const editor=$("editor"), preview=$("preview"), gutter=$("gutter"), frame=$("previewFrame");
+ const starter=`<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -149,148 +179,134 @@
   <h1>Hello, world.</h1>
 </body>
 </html>`;
+ let filename="untitled.html", timer=0, toastTimer=0, runNumber=0;
 
-  let filename = "untitled.html";
-  let debounceTimer = 0, toastTimer = 0, lastRun = 0;
+ function toast(message){
+  $("toast").textContent=message;$("toast").classList.add("show");
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>$("toast").classList.remove("show"),1900);
+ }
+ function metrics(){
+  const value=editor.value, count=value.split("\n").length;
+  $("lineCount").textContent=count+(count===1?" line":" lines");
+  $("charCount").textContent=value.length.toLocaleString()+" chars";
+  gutter.textContent=Array.from({length:count},(_,i)=>i+1).join("\n");
+  gutter.scrollTop=editor.scrollTop;
+ }
+ function status(id,dotId,message,state=""){
+  $(id).textContent=message;$(dotId).className="dot"+(state?" "+state:"");
+ }
+ function run(){
+  clearTimeout(timer);
+  const thisRun=++runNumber, start=performance.now();
+  status("editorStatus","editorDot","Running","busy");
+  // The preview is deliberately cross-origin isolated by sandbox (no allow-same-origin).
+  // Bridge reports runtime errors without granting the preview access to the parent DOM.
+  const bridge=`<script>
+  (()=>{const send=(kind,message)=>parent.postMessage({draftPreview:1,kind,message},'*');
+  addEventListener('error',e=>send('error',e.message||'Script error'));
+  addEventListener('unhandledrejection',e=>send('error',String(e.reason||'Unhandled promise rejection')));
+  })();
+  <\/script>`;
+  let source=editor.value;
+  if(/<\/body\s*>/i.test(source)) source=source.replace(/<\/body\s*>/i,bridge+"</body>");
+  else source+=bridge;
+  preview.srcdoc=source;
+  const elapsed=performance.now()-start;
+  $("runTime").textContent="Started · "+elapsed.toFixed(1)+" ms";
+  status("previewStatus","previewDot","Preview refreshed");
+  status("editorStatus","editorDot","Run complete");
+ }
+ function schedule(){
+  metrics();status("editorStatus","editorDot","Edits pending");
+  clearTimeout(timer);timer=setTimeout(run,550);
+ }
+ function setName(name){
+  filename=/\.html?$/i.test(name)?name:name+".html";$("fileName").textContent=filename;
+ }
+ function exportFile(){
+  const blob=new Blob([editor.value],{type:"text/html;charset=utf-8"});
+  const url=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1200);
+  status("editorStatus","editorDot","Exported");toast("HTML file exported");
+ }
+ $("runBtn").addEventListener("click",run);$("refreshBtn").addEventListener("click",run);
+ $("openTabBtn").addEventListener("click",openInNewTab);
 
-  function notify(message) {
-    toast.textContent = message;
-    toast.classList.add("show");
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove("show"), 1900);
+ // Open a standalone copy of the current source. The anchor click stays inside
+ // the user's click gesture, which avoids most popup blockers on desktop and iPad.
+ const standaloneUrls = new Set();
+ function openInNewTab(){
+  let url;
+  try{
+   const blob=new Blob([editor.value],{type:"text/html;charset=utf-8"});
+   url=URL.createObjectURL(blob);
+   standaloneUrls.add(url);
+   const link=document.createElement("a");
+   link.href=url;
+   link.target="_blank";
+   link.rel="noopener noreferrer";
+   link.style.display="none";
+   document.body.appendChild(link);
+   link.click();
+   link.remove();
+   status("editorStatus","editorDot","Opened standalone tab");
+   toast("Opened in a new tab");
+  }catch(error){
+   if(url){URL.revokeObjectURL(url);standaloneUrls.delete(url);}
+   status("editorStatus","editorDot","Could not open new tab","error");
+   toast("Could not open tab — check your browser's pop-up settings");
   }
-
-  function updateMetrics() {
-    const text = editor.value;
-    const lines = text.split("\n").length;
-    $("lineCount").textContent = `${lines} ${lines === 1 ? "line" : "lines"}`;
-    $("charCount").textContent = `${text.length.toLocaleString()} chars`;
-    gutter.textContent = Array.from({length: lines}, (_, i) => i + 1).join("\n");
-    syncGutter();
+ }
+ window.addEventListener("pagehide",()=>{
+  for(const url of standaloneUrls)URL.revokeObjectURL(url);
+  standaloneUrls.clear();
+ });
+ $("selectAll").addEventListener("click",()=>{editor.focus();editor.select();toast("All source selected");});
+ $("importBtn").addEventListener("click",()=>$("fileInput").click());
+ $("exportBtn").addEventListener("click",exportFile);
+ $("clearBtn").addEventListener("click",()=>{
+  if(!editor.value)return;
+  editor.value="";metrics();run();editor.focus();toast("Editor cleared");
+ });
+ $("fileInput").addEventListener("change",async e=>{
+  const file=e.target.files&&e.target.files[0];if(!file)return;
+  try{
+   editor.value=await file.text();setName(file.name);metrics();run();toast("Imported "+file.name);
+  }catch{toast("Could not read this file");}
+  finally{e.target.value="";}
+ });
+ $("viewport").addEventListener("change",e=>{
+  frame.classList.remove("tablet","mobile");
+  if(e.target.value!=="desktop")frame.classList.add(e.target.value);
+ });
+ editor.addEventListener("input",schedule);
+ editor.addEventListener("scroll",()=>{gutter.scrollTop=editor.scrollTop},{passive:true});
+ editor.addEventListener("keydown",e=>{
+  if(e.key==="Tab"){
+   e.preventDefault();editor.setRangeText("  ",editor.selectionStart,editor.selectionEnd,"end");schedule();
+  }else if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){
+   e.preventDefault();run();
+  }else if((e.ctrlKey||e.metaKey)&&e.shiftKey&&e.key==="Enter"){
+   e.preventDefault();openInNewTab();
+  }else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="s"){
+   e.preventDefault();exportFile();
   }
-
-  function syncGutter() {
-    gutter.scrollTop = editor.scrollTop;
+ });
+ editor.addEventListener("dragover",e=>{e.preventDefault();status("editorStatus","editorDot","Drop an HTML file");});
+ editor.addEventListener("drop",async e=>{
+  e.preventDefault();const file=e.dataTransfer&&e.dataTransfer.files[0];if(!file)return;
+  if(!/\.html?$/i.test(file.name)){toast("Choose an .html or .htm file");return;}
+  try{editor.value=await file.text();setName(file.name);metrics();run();toast("Imported "+file.name);}
+  catch{toast("Could not read this file");}
+ });
+ window.addEventListener("message",e=>{
+  if(e.source!==preview.contentWindow||!e.data||e.data.draftPreview!==1)return;
+  if(e.data.kind==="error"){
+   status("previewStatus","previewDot","Preview error: "+String(e.data.message).slice(0,100),"error");
   }
-
-  function run() {
-    clearTimeout(debounceTimer);
-    const started = performance.now();
-    // srcdoc keeps the preview local. The sandbox intentionally omits allow-same-origin.
-    preview.srcdoc = editor.value;
-    lastRun = performance.now() - started;
-    $("runTime").textContent = `Rendered · ${lastRun.toFixed(1)} ms`;
-    $("previewStatus").textContent = "Preview updated";
-    $("previewDot").classList.remove("error");
-    $("editorStatus").textContent = "Run complete";
-  }
-
-  function scheduleRun() {
-    updateMetrics();
-    $("editorStatus").textContent = "Unsaved edits";
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(run, 500);
-  }
-
-  function setFilename(name) {
-    filename = name.toLowerCase().endsWith(".html") || name.toLowerCase().endsWith(".htm") ? name : `${name}.html`;
-    $("fileName").textContent = filename;
-  }
-
-  $("runBtn").addEventListener("click", run);
-  $("refreshBtn").addEventListener("click", run);
-  $("selectAll").addEventListener("click", () => {
-    editor.focus();
-    editor.select();
-    notify("All source selected");
-  });
-  $("importBtn").addEventListener("click", () => fileInput.click());
-  $("clearBtn").addEventListener("click", () => {
-    if (!editor.value) return;
-    editor.value = "";
-    updateMetrics();
-    $("editorStatus").textContent = "Editor cleared";
-    run();
-    editor.focus();
-  });
-
-  fileInput.addEventListener("change", async () => {
-    const file = fileInput.files?.[0];
-    if (!file) return;
-    try {
-      const content = await file.text();
-      editor.value = content;
-      setFilename(file.name);
-      updateMetrics();
-      run();
-      $("editorStatus").textContent = `Imported ${file.name}`;
-      notify("HTML file imported");
-    } catch (error) {
-      $("editorStatus").textContent = "Import failed";
-      notify("Could not read that file");
-    } finally {
-      fileInput.value = "";
-    }
-  });
-
-  $("downloadBtn").addEventListener("click", () => {
-    const blob = new Blob([editor.value], {type:"text/html;charset=utf-8"});
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    $("editorStatus").textContent = "Exported";
-    notify("HTML file exported");
-  });
-
-  editor.addEventListener("input", scheduleRun);
-  editor.addEventListener("scroll", syncGutter, {passive:true});
-  editor.addEventListener("keydown", event => {
-    if (event.key === "Tab") {
-      event.preventDefault();
-      const start = editor.selectionStart, end = editor.selectionEnd;
-      editor.setRangeText("  ", start, end, "end");
-      scheduleRun();
-    } else if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
-      event.preventDefault();
-      run();
-    } else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
-      event.preventDefault();
-      $("downloadBtn").click();
-    }
-  });
-
-  // Support dropping a local HTML document directly onto the editor.
-  $("editor").addEventListener("dragover", event => {
-    event.preventDefault();
-    $("editorStatus").textContent = "Drop HTML file to import";
-  });
-  $("editor").addEventListener("drop", async event => {
-    const file = event.dataTransfer?.files?.[0];
-    if (!file) return;
-    event.preventDefault();
-    if (!/\.(html?|HTML?)$/.test(file.name)) {
-      notify("Choose an .html or .htm file");
-      return;
-    }
-    try {
-      editor.value = await file.text();
-      setFilename(file.name);
-      updateMetrics();
-      run();
-      notify("HTML file imported");
-    } catch {
-      notify("Could not read that file");
-    }
-  });
-
-  editor.value = starter;
-  updateMetrics();
-  run();
+ });
+ editor.value=starter;metrics();run();
 })();
 </script>
 </body>
