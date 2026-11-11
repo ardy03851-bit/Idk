@@ -629,7 +629,7 @@ function run() {
   let source = ed.getValue();
   // inject the console bridge as early as possible so user scripts are captured;
   // the bridge is a single line, so preview line numbers stay correct.
-  if (/<\/head\s*[^>]*>/i.test(source)) source = source.replace(/<\/head\s*[^>]*>/i, BRIDGE + "<\\/head>");
+  if (/<\/head\s*[^>]*>/i.test(source)) source = source.replace(/<\/head\s*[^>]*>/i, BRIDGE + "<\/head>");
   else if (/<script/i.test(source)) source = source.replace(/<script/i, BRIDGE + "<script");
   else source = BRIDGE + source;
 
@@ -788,14 +788,14 @@ const TPL = [
       background: #fafafa;
     }
   </style>
-<\\/head>
+<\/head>
 <body>
   <main>
     <h1>It works.</h1>
     <p>Edit this document in the source editor — the preview updates live.</p>
   </main>
-<\\/body>
-<\\/html>`},
+<\/body>
+<\/html>`},
   {name: "Landing page", desc: "Hero, feature grid and call to action on a dark modern layout.", art: "landing", code: `<!doctype html>
 <html lang="en">
 <head>
@@ -826,7 +826,7 @@ const TPL = [
     .card .dot { width: 34px; height: 34px; border-radius: 9px; background: rgba(124,108,240,.16); }
     footer { border-top: 1px solid #1a1f2a; padding: 26px 0; color: var(--muted); font-size: 13px; text-align: center; }
   </style>
-<\\/head>
+<\/head>
 <body>
   <div class="wrap">
     <header>
@@ -848,8 +848,8 @@ const TPL = [
     </section>
     <footer>© 2026 Aurora Labs — built with Draft Studio.</footer>
   </div>
-<\\/body>
-<\\/html>`},
+<\/body>
+<\/html>`},
   {name: "Canvas particles", desc: "Animated particle field with mouse interaction, pure canvas.", art: "canvas", code: `<!doctype html>
 <html lang="en">
 <head>
@@ -860,7 +860,7 @@ const TPL = [
     html, body { margin: 0; height: 100%; overflow: hidden; background: #06080c; }
     canvas { display: block; }
   </style>
-<\\/head>
+<\/head>
 <body>
   <canvas id="c"></canvas>
   <script>
@@ -899,8 +899,8 @@ const TPL = [
       requestAnimationFrame(tick);
     })();
   <\/script>
-<\\/body>
-<\\/html>`},
+<\/body>
+<\/html>`},
   {name: "CSS motion", desc: "Gradient headline, floating cards and a shimmering button.", art: "motion", code: `<!doctype html>
 <html lang="en">
 <head>
@@ -930,15 +930,15 @@ const TPL = [
       cursor: pointer; animation: shine 2.2s linear infinite; }
     @keyframes shine { to { background-position: -200% 0; } }
   </style>
-<\\/head>
+<\/head>
 <body>
   <div class="stage">
     <h1 class="grad">Motion in pure CSS</h1>
     <div class="float"><div class="card"></div><div class="card"></div><div class="card"></div></div>
     <button class="shimmer">Hover-free shimmer</button>
   </div>
-<\\/body>
-<\\/html>`},
+<\/body>
+<\/html>`},
   {name: "Dashboard UI", desc: "Sidebar, KPI cards and a mini chart — admin-panel starter.", art: "dash", code: `<!doctype html>
 <html lang="en">
 <head>
@@ -966,7 +966,7 @@ const TPL = [
     .bars { display: flex; align-items: flex-end; gap: 10px; height: 150px; padding-top: 8px; }
     .bar { flex: 1; background: linear-gradient(180deg, #5b8def, #7fa7f2); border-radius: 6px 6px 2px 2px; }
   </style>
-<\\/head>
+<\/head>
 <body>
   <aside>
     <h4>Acme Analytics</h4>
@@ -994,8 +994,8 @@ const TPL = [
       </div>
     </div>
   </main>
-<\\/body>
-<\\/html>`},
+<\/body>
+<\/html>`},
   {name: "Contact form", desc: "Accessible, styled form with validation feedback.", art: "form", code: `<!doctype html>
 <html lang="en">
 <head>
@@ -1020,7 +1020,7 @@ const TPL = [
     button:hover { background: #3d5bf5; }
     .note { margin-top: 14px; font-size: 13px; color: #178a50; min-height: 18px; }
   </style>
-<\\/head>
+<\/head>
 <body>
   <form class="card" onsubmit="event.preventDefault(); document.getElementById('note').textContent = 'Thanks — message sent (demo).';">
     <h1>Get in touch</h1>
@@ -1036,8 +1036,8 @@ const TPL = [
     <button type="submit">Send message</button>
     <p class="note" id="note"></p>
   </form>
-<\\/body>
-<\\/html>`}
+<\/body>
+<\/html>`}
 ];
 
 const ART = {
@@ -1287,7 +1287,7 @@ const WELCOME = `<!doctype html>
     .hint b { color: #e8ecf4; font-weight: 650; }
     footer { margin-top: 40px; color: #7d8799; font-size: 12.5px; letter-spacing: .04em; }
   </style>
-<\\/head>
+<\/head>
 <body>
   <main class="card">
     <div class="mark">&lt;/&gt;</div>
@@ -1301,8 +1301,8 @@ const WELCOME = `<!doctype html>
     </div>
     <footer>Autosaves as you work · sandboxed preview</footer>
   </main>
-<\\/body>
-<\\/html>`;
+<\/body>
+<\/html>`;
 
 initEditor("");
 const restored = restore();
