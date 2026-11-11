@@ -4,309 +4,1322 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark">
+<meta name="description" content="Draft — a fast, polished HTML studio: write, run and debug large HTML documents with a live sandboxed preview, console, templates and a command palette.">
 <title>Draft — HTML Studio</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e1116'/%3E%3Crect x='1' y='1' width='30' height='30' rx='6' fill='none' stroke='%23f0a83c' stroke-width='2'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='13' font-weight='700' fill='%23f0a83c' text-anchor='middle'%3E%26lt;/&gt;%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.css">
 <style>
+/* ============ tokens ============ */
 :root{
   color-scheme:dark;
-  --bg:#111310;--chrome:#171a16;--panel:#1b1e19;--panel-hi:#22261f;
-  --line:#343a30;--line-soft:#292e26;--ink:#edf0e8;--muted:#9aa092;--quiet:#697064;--accent:#d68a63;--accent-hi:#e6a17a;
-  --accent-ink:#24170f;--good:#a9c58c;--bad:#e28d80;--mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
-  --sans: "Avenir Next",Avenir,"Segoe UI",sans-serif;
+  --bg:#0b0d10;--chrome:#0f1216;--panel:#11141a;--panel-2:#151922;--panel-3:#191e29;
+  --line:#1f2531;--line-soft:#191e27;
+  --ink:#e4e9f1;--muted:#8d97a6;--quiet:#7d8799;
+  --accent:#f0a83c;--accent-hi:#ffbb5e;--accent-ink:#221803;
+  --good:#7ed6a0;--bad:#f2837f;--warn:#f0cd6d;--info:#7db8f5;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:'Switzer','Inter','Segoe UI',system-ui,sans-serif;
+  --r-sm:6px;--r-md:9px;--r-lg:13px;
+  --tr:160ms cubic-bezier(.2,.7,.3,1);
   --safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);
+  --shadow-pop:0 18px 60px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.4);
+  --split:1fr;
 }
-*{box-sizing:border-box}
+*,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden}
-body{background:var(--bg);color:var(--ink);font:13px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
-button,select{font:inherit}
-button{color:inherit}
-.app{height:100%;min-height:0;display:grid;grid-template-rows:62px minmax(0,1fr);padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0 22px;border-bottom:1px solid var(--line);background:var(--chrome);z-index:3}
-.identity{display:flex;align-items:center;gap:12px;min-width:0}
-.logo{width:27px;height:27px;display:grid;place-items:center;border:1px solid #81543e;color:var(--accent-hi);font:700 11px var(--mono);letter-spacing:-1px;position:relative}
-.logo:after{content:"";position:absolute;right:-4px;bottom:-4px;width:5px;height:5px;background:var(--accent);border:2px solid var(--chrome)}
-.brand{font-size:13px;font-weight:750;letter-spacing:.04em}
-.brand-sub{margin-left:10px;color:var(--muted);font-size:11px;font-weight:450;letter-spacing:0}
-.top-actions,.button-row,.panel-left,.panel-right,.status-left,.status-right{display:flex;align-items:center}
-.top-actions{gap:7px}
-.button-row{gap:6px}
-button,.select-wrap select{height:35px;padding:0 12px;border:1px solid var(--line);border-radius:4px;background:var(--panel);font-size:11px;font-weight:650;letter-spacing:.015em;cursor:pointer;transition:background .18s,border-color .18s,color .18s,transform .18s,box-shadow .18s}
-button:hover{background:var(--panel-hi);border-color:#596052}
-button:active{transform:translateY(1px)}
-button:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);padding:0 16px}
-button.primary:hover{background:var(--accent-hi);border-color:var(--accent-hi);box-shadow:0 3px 14px #d68a6326}
-button.quiet{color:var(--muted)}
-button.square{width:35px;padding:0;font-size:15px}
-.workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1px;min-height:0;background:var(--line)}
-.panel{display:grid;grid-template-rows:46px minmax(0,1fr) 34px;min-width:0;min-height:0;background:var(--panel);overflow:hidden}
-.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 15px;border-bottom:1px solid var(--line-soft);background:#1a1d18}
-.panel-left{gap:10px;min-width:0}
-.panel-right{gap:6px}
-.eyebrow{font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#d0d4c8}
-.file-name{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font:10px var(--mono)}
-.language-tag{color:var(--quiet);font:10px var(--mono);letter-spacing:.06em}
-.tiny{height:25px;padding:0 8px;font-size:10px;font-weight:550}
-.editor-stage{display:grid;grid-template-columns:49px minmax(0,1fr);min-height:0;background:#141712;position:relative}
-.gutter{overflow:hidden;padding:17px 11px 17px 0;border-right:1px solid #272d25;color:#687064;text-align:right;white-space:pre;font:12px/1.78 var(--mono);user-select:none}
-textarea{display:block;width:100%;height:100%;min-width:0;resize:none;border:0;border-radius:0;outline:0;padding:17px 19px;background:transparent;color:#e1e7dc;caret-color:var(--accent-hi);font:12px/1.78 var(--mono);tab-size:2;white-space:pre;overflow:auto;scrollbar-width:thin;scrollbar-color:#485044 transparent}
-textarea::selection{background:#77533f;color:#fff}
-.preview-stage{min-height:0;position:relative;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:18px;background:#252922;scrollbar-width:thin;scrollbar-color:#50584b transparent}
-.preview-frame{width:100%;height:100%;min-height:100%;background:#fff;box-shadow:0 8px 35px #0005;transition:width .28s cubic-bezier(.2,.75,.25,1),box-shadow .25s;overflow:hidden}
-.preview-frame.tablet{width:min(820px,100%);height:calc(100% - 2px);min-height:calc(100% - 2px);border:7px solid #10130f;border-radius:17px;box-shadow:0 12px 38px #0008}
-.preview-frame.mobile{width:min(390px,100%);height:calc(100% - 2px);min-height:calc(100% - 2px);border:7px solid #10130f;border-radius:24px;box-shadow:0 12px 38px #0008}
-iframe{display:block;width:100%;height:100%;border:0;background:#fff}
-.panel-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 14px;border-top:1px solid var(--line-soft);color:var(--muted);font:10px var(--mono);background:#191c17}
-.status-left{gap:8px;min-width:0;overflow:hidden}
-.status-left span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.status-right{gap:12px;white-space:nowrap}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--good);flex:none;box-shadow:0 0 0 3px #a9c58c12}
-.dot.busy{background:var(--accent);box-shadow:0 0 0 3px #d68a6318;animation:pulse 1s infinite}
-.dot.error{background:var(--bad);box-shadow:0 0 0 3px #e28d8018}
-.select-wrap select{height:27px;padding:0 24px 0 9px;border-radius:3px;background-color:#20241e;color:#d6dacd;font:10px var(--mono)}
-.toast{position:fixed;z-index:10;left:50%;bottom:calc(48px + var(--safe-bottom));transform:translate(-50%,10px);padding:9px 13px;border:1px solid #555d4b;border-radius:4px;background:#252a22;color:#eff2e9;font-size:11px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;box-shadow:0 8px 25px #0005}
-.toast.show{opacity:1;transform:translate(-50%,0)}
+body{background:var(--bg);color:var(--ink);font:13px/1.5 var(--sans);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+::selection{background:rgba(240,168,60,.28)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-thumb{background:#242b38;border:3px solid var(--bg);border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:#313a4a}
+::-webkit-scrollbar-corner{background:transparent}
+*{scrollbar-width:thin;scrollbar-color:#242b38 transparent}
+
+/* ============ shell ============ */
+.app{height:100%;min-height:0;display:grid;grid-template-rows:54px minmax(0,1fr) auto 30px;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+.topbar{display:flex;align-items:center;gap:14px;padding:0 16px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#12151b,#0f1216);z-index:6}
+.identity{display:flex;align-items:center;gap:11px;min-width:0}
+.logo{width:28px;height:28px;flex:none;display:grid;place-items:center;border:1.5px solid #6b4a1a;border-radius:7px;color:var(--accent-hi);font:700 11px var(--mono);letter-spacing:-1px;background:#141107;box-shadow:inset 0 0 12px rgba(240,168,60,.07)}
+.brand{font-size:13.5px;font-weight:700;letter-spacing:.05em;white-space:nowrap}
+.brand-sub{margin-left:9px;color:var(--quiet);font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}
+.top-actions{margin-left:auto;display:flex;align-items:center;gap:7px}
+.sep{width:1px;height:22px;background:var(--line);margin:0 3px}
+button.btn{display:inline-flex;align-items:center;gap:7px;height:33px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--panel-2);font-size:12px;font-weight:600;letter-spacing:.01em;transition:background var(--tr),border-color var(--tr),color var(--tr),box-shadow var(--tr),transform var(--tr);white-space:nowrap}
+button.btn:hover{background:var(--panel-3);border-color:#2c3547}
+button.btn:active{transform:translateY(1px)}
+button.btn svg{flex:none;opacity:.85}
+button.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);padding:0 16px;font-weight:700}
+button.btn.primary:hover{background:var(--accent-hi);border-color:var(--accent-hi);box-shadow:0 4px 18px rgba(240,168,60,.25)}
+button.btn.icon{width:33px;padding:0;justify-content:center}
+button.btn.quiet{background:transparent;border-color:transparent;color:var(--muted)}
+button.btn.quiet:hover{color:var(--ink);background:var(--panel-2)}
+.kbd{display:inline-block;padding:1px 6px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;background:var(--panel-3);color:var(--muted);font:600 10px var(--mono)}
+
+/* ============ workspace ============ */
+.workspace{display:grid;min-height:0;min-width:0;position:relative;background:var(--bg)}
+.workspace[data-layout="split-h"]{grid-template-columns:var(--split) 6px minmax(0,1fr)}
+.workspace[data-layout="split-v"]{grid-template-rows:minmax(0,var(--split)) 6px minmax(0,1fr);grid-template-columns:minmax(0,1fr)}
+.workspace[data-layout="editor"]{grid-template-columns:minmax(0,1fr)}
+.workspace[data-layout="editor"] .pane-preview,.workspace[data-layout="editor"] .splitter{display:none}
+.workspace[data-layout="preview"]{grid-template-columns:minmax(0,1fr)}
+.workspace[data-layout="preview"] .pane-editor,.workspace[data-layout="preview"] .splitter{display:none}
+.splitter{background:var(--line);position:relative;z-index:2;transition:background var(--tr)}
+.workspace[data-layout="split-h"] .splitter{cursor:col-resize;width:6px}
+.workspace[data-layout="split-v"] .splitter{cursor:row-resize;height:6px}
+.splitter:hover,.splitter.active{background:var(--accent)}
+.pane{display:grid;grid-template-rows:42px minmax(0,1fr);min-width:0;min-height:0;background:var(--panel);overflow:hidden;animation:paneIn .32s cubic-bezier(.2,.7,.3,1) both}
+.pane-preview{animation-delay:.05s}
+@keyframes paneIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.pane-head{display:flex;align-items:center;gap:10px;padding:0 12px;border-bottom:1px solid var(--line-soft);background:linear-gradient(180deg,#13161c,#11141a);min-width:0}
+.pane-head .grow{flex:1;min-width:0}
+.eyebrow{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#c2cad6;white-space:nowrap}
+.file-name{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font:11px var(--mono);padding:2px 8px;border:1px solid var(--line-soft);border-radius:99px;background:var(--panel-2)}
+.pane-tools{display:flex;align-items:center;gap:5px}
+button.tool{display:inline-flex;align-items:center;gap:6px;height:27px;padding:0 9px;border:1px solid transparent;border-radius:var(--r-sm);color:var(--muted);font-size:11px;font-weight:600;transition:all var(--tr);white-space:nowrap}
+button.tool:hover{color:var(--ink);background:var(--panel-3);border-color:var(--line)}
+button.tool.on{color:var(--accent-hi);background:rgba(240,168,60,.1);border-color:#4a3a1c}
+button.tool svg{flex:none;opacity:.9}
+button.tool.icon{width:27px;padding:0;justify-content:center}
+.select-wrap{position:relative;display:inline-flex}
+.select-wrap select{appearance:none;height:27px;padding:0 22px 0 9px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--panel-2);color:#cfd7e2;font:600 11px var(--sans);cursor:pointer;transition:all var(--tr)}
+.select-wrap select:hover{border-color:#2c3547;background:var(--panel-3)}
+.select-wrap::after{content:"";position:absolute;right:8px;top:50%;width:5px;height:5px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+
+/* ============ editor ============ */
+.editor-host{position:relative;min-height:0;background:#0e1116}
+.editor-host .CodeMirror{height:100%}
+.fallback-editor{display:block;width:100%;height:100%;border:0;outline:0;resize:none;background:#0e1116;color:#dbe3ee;caret-color:var(--accent-hi);font:12.5px/1.7 var(--mono);tab-size:2;white-space:pre;overflow:auto;padding:14px 16px}
+.drop-veil{position:absolute;inset:0;z-index:20;display:none;place-items:center;background:rgba(11,13,16,.86);backdrop-filter:blur(3px);border:2px dashed var(--accent);border-radius:10px;margin:10px;color:var(--accent-hi);font-weight:700;letter-spacing:.04em}
+.drop-veil.show{display:grid}
+.drop-veil small{display:block;color:var(--muted);font-weight:500;text-align:center;margin-top:6px}
+
+/* CodeMirror theme */
+.cm-s-draft.CodeMirror{background:#0e1116;color:#e0e6ef;font-family:var(--mono);font-size:12.5px;line-height:1.7}
+.cm-s-draft .CodeMirror-gutters{background:#0e1116;border-right:1px solid var(--line-soft)}
+.cm-s-draft .CodeMirror-linenumber{color:#6b7587;padding:0 8px 0 12px;font-size:11px}
+.cm-s-draft .CodeMirror-cursor{border-left:2px solid var(--accent-hi)}
+.cm-s-draft .CodeMirror-selected,.cm-s-draft .CodeMirror-focused .CodeMirror-selected{background:#28324a}
+.cm-s-draft .CodeMirror-activeline-background{background:#12161e}
+.cm-s-draft .CodeMirror-matchingbracket{color:var(--accent-hi)!important;background:rgba(240,168,60,.14);outline:1px solid rgba(240,168,60,.35)}
+.cm-s-draft .cm-tag{color:#ffb45e}
+.cm-s-draft .cm-attribute{color:#7db8f5}
+.cm-s-draft .cm-string{color:#9ed48a}
+.cm-s-draft .cm-string-2{color:#9ed48a}
+.cm-s-draft .cm-comment{color:#76809a;font-style:italic}
+.cm-s-draft .cm-keyword{color:#c792ea}
+.cm-s-draft .cm-atom,.cm-s-draft .cm-number{color:#f2837f}
+.cm-s-draft .cm-def{color:#7ed6a0}
+.cm-s-draft .cm-variable{color:#e0e6ef}
+.cm-s-draft .cm-variable-2{color:#b8c6da}
+.cm-s-draft .cm-variable-3,.cm-s-draft .cm-type{color:#7db8f5}
+.cm-s-draft .cm-property{color:#7ed6a0}
+.cm-s-draft .cm-operator{color:#8d97a6}
+.cm-s-draft .cm-builtin{color:#7db8f5}
+.cm-s-draft .cm-meta{color:#8d97a6}
+.cm-s-draft .cm-qualifier{color:#f0cd6d}
+.cm-s-draft .CodeMirror-foldgutter-open:after{content:"▾";color:#7d8799;font-size:11px}
+.cm-s-draft .CodeMirror-foldgutter-folded:after{content:"▸";color:var(--accent);font-size:11px}
+.cm-s-draft .CodeMirror-foldmarker{color:var(--accent);background:rgba(240,168,60,.1);border:1px solid rgba(240,168,60,.3);border-radius:4px;padding:0 5px;font-size:11px}
+.CodeMirror-dialog{background:#13161c!important;color:var(--ink)!important;border-bottom:1px solid var(--line)!important;font:12px var(--sans)!important;padding:8px 12px!important}
+.CodeMirror-dialog input{background:var(--panel-3)!important;border:1px solid var(--line)!important;color:var(--ink)!important;border-radius:5px!important;padding:4px 8px!important;font:12px var(--mono)!important;outline:none!important}
+.CodeMirror-dialog button{background:var(--panel-3)!important;border:1px solid var(--line)!important;color:var(--muted)!important;border-radius:5px!important;padding:4px 10px!important;font-size:11px!important;cursor:pointer}
+.CodeMirror-hints{z-index:60;background:#151922;border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow-pop);font-family:var(--mono);font-size:12px}
+.CodeMirror-hint{color:var(--muted)}
+li.CodeMirror-hint-active{background:rgba(240,168,60,.15);color:var(--accent-hi)}
+
+/* ============ preview ============ */
+.preview-stage{min-height:0;position:relative;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:16px;background:radial-gradient(1200px 500px at 50% -100px,rgba(125,184,245,.05),transparent),repeating-conic-gradient(#0d1015 0% 25%,#0f1218 0% 50%) 0 0/22px 22px}
+.preview-frame{width:100%;height:calc(100% - 2px);min-height:calc(100% - 2px);background:#fff;border-radius:4px;box-shadow:0 10px 40px rgba(0,0,0,.5);transition:width .3s cubic-bezier(.2,.75,.25,1);overflow:hidden;position:relative}
+.preview-frame.tablet{width:min(834px,100%);height:calc(100% - 2px);min-height:calc(100% - 2px);border:8px solid #05070a;border-radius:22px;box-shadow:0 14px 44px rgba(0,0,0,.6)}
+.preview-frame.mobile{width:min(390px,100%);height:calc(100% - 2px);min-height:calc(100% - 2px);border:8px solid #05070a;border-radius:26px;box-shadow:0 14px 44px rgba(0,0,0,.6)}
+.preview-frame iframe{display:block;width:100%;height:100%;border:0;background:#fff}
+
+/* ============ console ============ */
+.console{border-top:1px solid var(--line);background:var(--chrome);display:none;grid-template-rows:38px minmax(0,1fr);height:230px;min-height:0}
+.console.open{display:grid}
+.console-head{display:flex;align-items:center;gap:10px;padding:0 12px;border-bottom:1px solid var(--line-soft);min-width:0}
+.console-title{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#c2cad6}
+.badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:17px;padding:0 5px;border-radius:99px;font:700 10px var(--mono)}
+.badge.err{background:rgba(242,131,127,.15);color:var(--bad);border:1px solid rgba(242,131,127,.3)}
+.badge.warn{background:rgba(240,205,109,.13);color:var(--warn);border:1px solid rgba(240,205,109,.3)}
+.badge.info{background:rgba(125,184,245,.13);color:var(--info);border:1px solid rgba(125,184,245,.3)}
+.console-body{overflow-y:auto;font:11.5px/1.55 var(--mono);padding:6px 0}
+.console-empty{padding:14px;color:var(--quiet);font-family:var(--sans);font-size:12px}
+.log{display:flex;gap:10px;padding:4px 14px;border-left:2px solid transparent;align-items:baseline}
+.log:hover{background:rgba(255,255,255,.02)}
+.log .t{color:var(--muted);font-size:10px;flex:none;padding-top:1px}
+.log .msg{white-space:pre-wrap;word-break:break-word;min-width:0}
+.log.log-log .msg{color:#c6d0de}
+.log.log-info{border-left-color:var(--info)}.log.log-info .msg{color:var(--info)}
+.log.log-warn{border-left-color:var(--warn);background:rgba(240,205,109,.04)}.log.log-warn .msg{color:var(--warn)}
+.log.log-error{border-left-color:var(--bad);background:rgba(242,131,127,.05)}.log.log-error .msg{color:var(--bad)}
+.log.jump{cursor:pointer}
+.log.jump:hover{background:rgba(240,168,60,.07)}
+.log .where{color:var(--quiet);font-size:10px;flex:none}
+
+/* ============ status bar ============ */
+.statusbar{display:flex;align-items:center;gap:14px;padding:0 12px;border-top:1px solid var(--line);background:var(--chrome);color:var(--muted);font:10.5px var(--mono);white-space:nowrap;overflow:hidden}
+.status-left{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden}
+.status-left .msg{overflow:hidden;text-overflow:ellipsis}
+.status-right{margin-left:auto;display:flex;align-items:center;gap:13px;flex:none}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none;box-shadow:0 0 0 3px rgba(126,214,160,.12)}
+.dot.busy{background:var(--accent);box-shadow:0 0 0 3px rgba(240,168,60,.15);animation:pulse 1s infinite}
+.dot.error{background:var(--bad);box-shadow:0 0 0 3px rgba(242,131,127,.15)}
+@keyframes pulse{50%{opacity:.4}}
+.sb-btn{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font:10.5px var(--mono);padding:3px 6px;border-radius:4px;transition:all var(--tr)}
+.sb-btn:hover{color:var(--ink);background:var(--panel-3)}
+.sb-btn.on{color:var(--accent-hi)}
+.sb-btn.alert{color:var(--bad);font-weight:700}
+.sb-btn.alert::before{content:"●";margin-right:2px}
+
+/* ============ modals ============ */
+.backdrop{position:fixed;inset:0;z-index:40;background:rgba(6,8,10,.62);backdrop-filter:blur(4px);display:none;align-items:flex-start;justify-content:center;padding:9vh 16px 16px}
+.backdrop.open{display:flex;animation:fadeIn .16s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{width:100%;max-width:620px;background:var(--panel-2);border:1px solid #232b39;border-radius:var(--r-lg);box-shadow:var(--shadow-pop);overflow:hidden;animation:popIn .2s cubic-bezier(.2,.8,.3,1.1)}
+@keyframes popIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+.modal-head{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line-soft)}
+.modal-title{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#c2cad6}
+.modal-x{margin-left:auto;color:var(--muted);width:28px;height:28px;display:grid;place-items:center;border-radius:6px;transition:all var(--tr)}
+.modal-x:hover{color:var(--ink);background:var(--panel-3)}
+/* palette */
+.palette-input{width:100%;background:transparent;border:0;outline:0;color:var(--ink);font:14px var(--sans);padding:15px 18px}
+.palette-input::placeholder{color:var(--quiet)}
+.palette-list{max-height:46vh;overflow-y:auto;padding:6px}
+.cmd{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:var(--r-sm);cursor:pointer;color:var(--ink)}
+.cmd:hover,.cmd.sel{background:var(--panel-3)}
+.cmd .glyph{width:26px;height:26px;flex:none;display:grid;place-items:center;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--muted)}
+.cmd.sel .glyph{color:var(--accent-hi);border-color:#4a3a1c}
+.cmd .name{flex:1;font-size:13px;font-weight:500}
+.cmd .keys{display:flex;gap:4px}
+.palette-empty{padding:26px;text-align:center;color:var(--quiet);font-size:12.5px}
+/* templates */
+.templates{max-width:840px}
+.tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;padding:14px 16px 16px;max-height:60vh;overflow-y:auto}
+.tpl{display:flex;flex-direction:column;gap:8px;padding:14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--panel);cursor:pointer;transition:all var(--tr);text-align:left}
+.tpl:hover{border-color:#3a4356;background:var(--panel-3);transform:translateY(-2px)}
+.tpl .art{height:74px;border-radius:6px;border:1px solid var(--line-soft);background:#0d1014;display:grid;place-items:center;color:var(--accent);overflow:hidden}
+.tpl .art svg{opacity:.9}
+.tpl h4{margin:0;font-size:13px;font-weight:600}
+.tpl p{margin:0;color:var(--muted);font-size:11px;line-height:1.45}
+/* confirm */
+.confirm-body{padding:18px;color:var(--muted);font-size:13px;line-height:1.55}
+.confirm-body strong{color:var(--ink)}
+.confirm-actions{display:flex;justify-content:flex-end;gap:8px;padding:0 16px 16px}
+.btn.danger{background:rgba(242,131,127,.12);border-color:rgba(242,131,127,.35);color:var(--bad)}
+.btn.danger:hover{background:rgba(242,131,127,.2);border-color:var(--bad)}
+
+/* ============ toasts ============ */
+.toasts{position:fixed;left:50%;bottom:calc(44px + var(--safe-bottom));transform:translateX(-50%);z-index:50;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{display:flex;align-items:center;gap:9px;padding:10px 15px;border:1px solid #2b3546;border-radius:var(--r-md);background:#171c25;color:var(--ink);font-size:12px;font-weight:500;box-shadow:var(--shadow-pop);animation:toastIn .24s cubic-bezier(.2,.8,.3,1.1)}
+.toast.out{animation:toastOut .2s ease forwards}
+.toast .ic{flex:none;display:grid;place-items:center;color:var(--accent-hi)}
+.toast.err .ic{color:var(--bad)}
+.toast.err{border-color:rgba(242,131,127,.35)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1}}
+@keyframes toastOut{to{opacity:0;transform:translateY(8px)}}
+
 .file-input{display:none}
-@keyframes pulse{50%{opacity:.45}}
-@keyframes appear{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-.panel{animation:appear .35s ease both}.panel:nth-child(2){animation-delay:.06s}
-@media(max-width:900px){
- .topbar{padding:0 14px}.workspace{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
- .brand-sub{display:none}.panel-head{padding:0 11px}.preview-stage{padding:12px}
+
+/* ============ responsive ============ */
+.ws-tabs{display:none}
+@media(max-width:1060px){.brand-sub{display:none}.file-name{max-width:120px}}
+@media(max-width:860px){
+  .app{grid-template-rows:auto auto minmax(0,1fr) auto 30px}
+  .topbar{flex-wrap:wrap;padding:8px 10px;gap:8px;min-height:0}
+  .top-actions{margin-left:auto;flex-wrap:wrap;gap:6px}
+  .btn span.lbl{display:none}
+  .btn{padding:0 10px}
+  .btn.primary{padding:0 13px}
+  .sep{display:none}
+  .workspace{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important}
+  .splitter{display:none!important}
+  .ws-tabs{display:flex;gap:4px;padding:6px 10px;border-bottom:1px solid var(--line);background:var(--chrome)}
+  .ws-tab{flex:1;height:32px;border-radius:var(--r-sm);color:var(--muted);font-size:12px;font-weight:600;border:1px solid transparent;transition:all var(--tr)}
+  .ws-tab.on{color:var(--ink);background:var(--panel-3);border-color:var(--line)}
+  .workspace[data-mtab="preview"] .pane-editor{display:none}
+  .workspace:not([data-mtab="preview"]) .pane-preview{display:none}
+  .preview-stage{padding:10px}
+  .preview-frame.tablet,.preview-frame.mobile{border-width:5px}
+  .console{height:200px}
+  .status-right .opt{display:none}
+  #cursorPos{display:none}
+  .sb-btn#autorunSb{padding:3px 4px}
 }
-@media(max-width:700px){
- html,body{overflow:hidden}.app{grid-template-rows:auto minmax(0,1fr)}
- .topbar{min-height:58px;height:auto;padding:9px 10px;gap:8px;flex-wrap:wrap}
- .top-actions{gap:5px}.top-actions button{height:34px;padding:0 9px}.top-actions .primary{padding:0 12px}
- .workspace{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:1px}
- .panel{grid-template-rows:42px minmax(0,1fr) 30px}
- .panel-head{padding:0 10px}.editor-stage{grid-template-columns:38px minmax(0,1fr)}
- .gutter{font-size:11px;padding-right:8px}textarea{font-size:11px;padding:13px}
- .preview-stage{padding:9px}.preview-frame.tablet,.preview-frame.mobile{border-width:4px;border-radius:12px}
-}
-@media(max-width:480px){
- .topbar{align-items:center}.identity{gap:8px}.logo{width:24px;height:24px}
- .top-actions{margin-left:auto}.top-actions .secondary{display:none}
- .panel-right .language-tag{display:none}.status-right{gap:7px}
-}
-@media(orientation:portrait) and (min-width:701px) and (max-width:1100px){
- .workspace{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr)}
- .app{grid-template-rows:60px minmax(0,1fr)}
- .panel{grid-template-rows:44px minmax(0,1fr) 32px}
- .preview-stage{padding:15px}
-}
-@media(hover:none){
- button{min-height:38px}.tiny{min-height:30px}
-}
-@media(prefers-reduced-motion:reduce){
- *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
-}
+@media(max-width:480px){#lineCount{display:none}}
+@media(hover:none){button.btn,button.tool{min-height:34px}button.tool{min-height:30px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
 <div class="app">
- <header class="topbar">
-  <div class="identity"><div class="logo">&lt;/&gt;</div><div class="brand">DRAFT<span class="brand-sub">HTML STUDIO</span></div></div>
-  <div class="top-actions">
-   <div class="button-row">
-    <button id="selectAll" class="quiet secondary" type="button" title="Select all code">Select all</button>
-    <button id="importBtn" type="button" title="Import an HTML file">Import</button>
-    <button id="exportBtn" class="quiet secondary" type="button" title="Export HTML file">Export</button>
-   </div>
-   <button id="openTabBtn" type="button" title="Open this HTML as a standalone page in a new tab">Open tab&nbsp; ↗</button>
-   <button id="runBtn" class="primary" type="button" title="Run preview · Ctrl or Cmd + Enter">Run&nbsp; ↗</button>
-   <input id="fileInput" class="file-input" type="file" accept=".html,.htm,text/html">
-  </div>
- </header>
- <main class="workspace">
-  <section class="panel" aria-label="HTML source editor">
-   <div class="panel-head">
-    <div class="panel-left"><span class="eyebrow">01 / Source</span><span class="file-name" id="fileName">untitled.html</span></div>
-    <div class="panel-right"><span class="language-tag">HTML</span><button class="tiny" id="clearBtn" type="button">Clear</button></div>
-   </div>
-   <div class="editor-stage">
-    <div class="gutter" id="gutter" aria-hidden="true">1</div>
-    <textarea id="editor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="HTML source code"></textarea>
-   </div>
-   <div class="panel-foot">
-    <div class="status-left"><i class="dot" id="editorDot"></i><span id="editorStatus">Ready</span></div>
-    <div class="status-right"><span id="lineCount">1 line</span><span id="charCount">0 chars</span></div>
-   </div>
-  </section>
-  <section class="panel" aria-label="HTML preview">
-   <div class="panel-head">
-    <div class="panel-left"><span class="eyebrow">02 / Preview</span></div>
-    <div class="panel-right">
-     <div class="select-wrap"><select id="viewport" aria-label="Preview viewport"><option value="desktop">Desktop</option><option value="tablet">Tablet</option><option value="mobile">Mobile</option></select></div>
-     <button class="tiny" id="refreshBtn" type="button" title="Refresh preview">↻</button>
+  <header class="topbar">
+    <div class="identity">
+      <div class="logo">&lt;/&gt;</div>
+      <div class="brand">Draft<span class="brand-sub">HTML Studio</span></div>
     </div>
-   </div>
-   <div class="preview-stage" id="previewStage">
-    <div class="preview-frame" id="previewFrame"><iframe id="preview" title="Rendered HTML preview" sandbox="allow-scripts allow-forms allow-modals allow-downloads"></iframe></div>
-   </div>
-   <div class="panel-foot">
-    <div class="status-left"><i class="dot" id="previewDot"></i><span id="previewStatus">Preview ready</span></div>
-    <div class="status-right"><span id="runTime">Not run yet</span></div>
-   </div>
+    <div class="top-actions">
+      <button class="btn quiet" id="paletteBtn" type="button" title="Command palette · Ctrl K">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0 3-3"/></svg>
+        <span class="lbl">Commands</span><span class="kbd">Ctrl K</span>
+      </button>
+      <div class="sep"></div>
+      <button class="btn" id="importBtn" type="button" title="Import an HTML file">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span class="lbl">Import</span>
+      </button>
+      <button class="btn" id="exportBtn" type="button" title="Export HTML file · Ctrl S">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span class="lbl">Export</span>
+      </button>
+      <button class="btn icon" id="openTabBtn" type="button" title="Open standalone tab · Ctrl Shift Enter">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </button>
+      <button class="btn primary" id="runBtn" type="button" title="Run preview · Ctrl Enter">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v13.72c0 .8.87 1.3 1.56.86l10.5-6.86a1 1 0 0 0 0-1.72L9.56 4.28A1 1 0 0 0 8 5.14z"/></svg>
+        Run
+      </button>
+    </div>
+  </header>
+
+  <div class="ws-tabs" id="wsTabs" role="tablist">
+    <button class="ws-tab on" id="tabEditor" role="tab" aria-selected="true" type="button">Editor</button>
+    <button class="ws-tab" id="tabPreview" role="tab" aria-selected="false" type="button">Preview</button>
+  </div>
+
+  <main class="workspace" id="workspace" data-layout="split-h" data-mtab="editor">
+    <section class="pane pane-editor" aria-label="Source editor">
+      <div class="pane-head">
+        <span class="eyebrow">01 · Source</span>
+        <span class="file-name" id="fileName">untitled.html</span>
+        <span class="grow"></span>
+        <div class="pane-tools">
+          <button class="tool icon" id="layoutBtn2" type="button" title="Cycle layout: split / vertical / editor / preview">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 3v18"/></svg>
+          </button>
+          <button class="tool" id="tplBtn" type="button" title="Starter templates">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+            Templates
+          </button>
+          <button class="tool" id="formatBtn" type="button" title="Format document · Ctrl Shift F">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h6"/><path d="m17 15 4 3-4 3"/></svg>
+            Format
+          </button>
+          <button class="tool" id="wrapBtn" type="button" title="Toggle word wrap">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h15a3 3 0 1 1 0 6h-4"/><path d="m16 15-3 3 3 3"/></svg>
+            Wrap
+          </button>
+          <button class="tool" id="autorunBtn" type="button" title="Toggle auto-run on change">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+            Auto
+          </button>
+          <button class="tool icon" id="clearBtn" type="button" title="Clear editor">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="editor-host" id="editorHost">
+        <div class="drop-veil" id="dropVeil"><div>Drop your HTML file<small>It will open in the editor</small></div></div>
+      </div>
+    </section>
+
+    <div class="splitter" id="splitter" role="separator" aria-orientation="vertical" tabindex="0" title="Drag to resize"></div>
+
+    <section class="pane pane-preview" aria-label="Live preview">
+      <div class="pane-head">
+        <span class="eyebrow">02 · Preview</span>
+        <span class="grow"></span>
+        <div class="pane-tools">
+          <div class="select-wrap">
+            <select id="viewport" aria-label="Preview viewport">
+              <option value="desktop">Desktop</option>
+              <option value="tablet">Tablet</option>
+              <option value="mobile">Mobile</option>
+            </select>
+          </div>
+          <button class="tool icon" id="layoutBtn" type="button" title="Cycle layout: split / vertical / editor / preview">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18"/></svg>
+          </button>
+          <button class="tool icon" id="refreshBtn" type="button" title="Refresh preview">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="preview-stage" id="previewStage">
+        <div class="preview-frame" id="previewFrame"><iframe id="preview" title="Rendered HTML preview" sandbox="allow-scripts allow-forms allow-modals allow-downloads allow-popups"></iframe></div>
+      </div>
+    </section>
+  </main>
+
+  <section class="console" id="console" aria-label="Preview console">
+    <div class="console-head">
+      <span class="console-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 17 6-6-6-6"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        Console
+      </span>
+      <span class="badge err" id="errCount" hidden>0</span>
+      <span class="badge warn" id="warnCount" hidden>0</span>
+      <span class="grow"></span>
+      <button class="tool" id="consoleClear" type="button">Clear</button>
+      <button class="tool icon" id="consoleClose" type="button" title="Close console">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="console-body" id="consoleBody"><div class="console-empty">Console output from your preview appears here — console.log, warnings and runtime errors are captured live.</div></div>
   </section>
- </main>
+
+  <footer class="statusbar">
+    <div class="status-left">
+      <i class="dot" id="statusDot"></i>
+      <span class="msg" id="statusMsg">Starting up…</span>
+    </div>
+    <div class="status-right">
+      <span id="cursorPos">Ln 1, Col 1</span>
+      <span id="lineCount">1 line</span>
+      <span id="charCount" class="opt">0 chars</span>
+      <span id="docSize" class="opt">0 B</span>
+      <span id="savedAt" class="opt"></span>
+      <span class="opt">UTF-8</span>
+      <span class="opt">HTML</span>
+      <button class="sb-btn on" id="autorunSb" type="button" title="Toggle auto-run">auto-run on</button>
+      <button class="sb-btn" id="consoleSb" type="button" title="Toggle console · Ctrl `">console</button>
+    </div>
+  </footer>
 </div>
-<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<!-- command palette -->
+<div class="backdrop" id="paletteBd">
+  <div class="modal" role="dialog" aria-label="Command palette" style="max-width:580px">
+    <input class="palette-input" id="paletteInput" type="text" placeholder="Type a command…" autocomplete="off" spellcheck="false">
+    <div class="palette-list" id="paletteList"></div>
+  </div>
+</div>
+
+<!-- templates -->
+<div class="backdrop" id="tplBd">
+  <div class="modal templates" role="dialog" aria-label="Starter templates">
+    <div class="modal-head"><span class="modal-title">Starter templates</span>
+      <button class="modal-x" id="tplClose" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="tpl-grid" id="tplGrid"></div>
+  </div>
+</div>
+
+<!-- confirm -->
+<div class="backdrop" id="confirmBd">
+  <div class="modal" role="dialog" aria-label="Confirm" style="max-width:400px">
+    <div class="modal-head"><span class="modal-title" id="confirmTitle">Are you sure?</span></div>
+    <div class="confirm-body" id="confirmBody"></div>
+    <div class="confirm-actions">
+      <button class="btn quiet" id="confirmNo" type="button">Cancel</button>
+      <button class="btn danger" id="confirmYes" type="button">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+<input id="fileInput" class="file-input" type="file" accept=".html,.htm,.txt,text/html,text/plain">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/searchcursor.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/search.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/jump-to-line.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/xml-fold.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/indent-fold.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/comment/comment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify-html.min.js"></script>
 <script>
 (() => {
- "use strict";
- const $ = id => document.getElementById(id);
- const editor=$("editor"), preview=$("preview"), gutter=$("gutter"), frame=$("previewFrame");
- const starter=`<!doctype html>
+"use strict";
+const $ = id => document.getElementById(id);
+const preview = $("preview"), frame = $("previewFrame"), workspace = $("workspace");
+let filename = "untitled.html";
+
+/* ================= helpers ================= */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtBytes = n => n < 1024 ? n + " B" : n < 1048576 ? (n / 1024).toFixed(1) + " KB" : (n / 1048576).toFixed(2) + " MB";
+const nowTime = () => new Date().toLocaleTimeString("en-GB", {hour12:false});
+
+function toast(message, kind) {
+  const host = $("toasts");
+  const t = document.createElement("div");
+  t.className = "toast" + (kind === "err" ? " err" : "");
+  const ic = kind === "err"
+    ? '<span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></span>'
+    : '<span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>';
+  t.innerHTML = ic + "<span>" + esc(message) + "</span>";
+  host.appendChild(t);
+  setTimeout(() => { t.classList.add("out"); setTimeout(() => t.remove(), 220); }, 2100);
+  while (host.children.length > 4) host.firstChild.remove();
+}
+
+function setStatus(msg, state) {
+  $("statusMsg").textContent = msg;
+  $("statusDot").className = "dot" + (state ? " " + state : "");
+}
+
+let confirmResolve = null;
+function confirmDialog(title, body, okLabel) {
+  $("confirmTitle").textContent = title;
+  $("confirmBody").innerHTML = body;
+  $("confirmYes").textContent = okLabel || "Confirm";
+  $("confirmBd").classList.add("open");
+  $("confirmYes").focus();
+  return new Promise(res => { confirmResolve = res; });
+}
+function closeConfirm(v) { $("confirmBd").classList.remove("open"); if (confirmResolve) { confirmResolve(v); confirmResolve = null; } }
+$("confirmYes").addEventListener("click", () => closeConfirm(true));
+$("confirmNo").addEventListener("click", () => closeConfirm(false));
+$("confirmBd").addEventListener("mousedown", e => { if (e.target === $("confirmBd")) closeConfirm(false); });
+
+/* guarded storage (sandboxed iframes may block it) */
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); return true; } catch { return false; } },
+  del(k) { try { localStorage.removeItem(k); } catch {} }
+};
+
+/* ================= editor adapter ================= */
+let ed; // {getValue, setValue, focus, gotoLine, onChange, onCursor, setWrap, cm?}
+
+function initEditor(initial) {
+  const host = $("editorHost");
+  if (typeof CodeMirror !== "undefined") {
+    const cm = CodeMirror(host, {
+      value: initial,
+      mode: "htmlmixed",
+      theme: "draft",
+      lineNumbers: true,
+      autoCloseTags: true,
+      autoCloseBrackets: true,
+      matchBrackets: true,
+      styleActiveLine: true,
+      foldGutter: true,
+      gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+      indentUnit: 2, tabSize: 2,
+      spellcheck: false, autocorrect: false, autocapitalize: false,
+      historyEventDelay: 250,
+      extraKeys: {
+        "Ctrl-/": "toggleComment", "Cmd-/": "toggleComment",
+        "Ctrl-Space": "autocomplete"
+      }
+    });
+    ed = {
+      cm,
+      getValue: () => cm.getValue(),
+      setValue: v => { cm.setValue(v); cm.clearHistory(); },
+      focus: () => cm.focus(),
+      gotoLine: n => { cm.setCursor(Math.max(0, n - 1), 0); cm.scrollIntoView(null, 90); cm.focus(); },
+      onChange: cb => cm.on("change", cb),
+      onCursor: cb => cm.on("cursorActivity", cb),
+      setWrap: on => cm.setOption("lineWrapping", on)
+    };
+  } else {
+    // graceful fallback: plain textarea, same features otherwise
+    const ta = document.createElement("textarea");
+    ta.className = "fallback-editor";
+    ta.spellcheck = false;
+    ta.wrap = "off";
+    ta.value = initial;
+    host.appendChild(ta);
+    ed = {
+      getValue: () => ta.value,
+      setValue: v => { ta.value = v; },
+      focus: () => ta.focus(),
+      gotoLine: n => {
+        const pos = ta.value.split("\n").slice(0, n - 1).join("\n").length;
+        ta.focus(); ta.setSelectionRange(pos, pos);
+      },
+      onChange: cb => ta.addEventListener("input", cb),
+      onCursor: cb => ta.addEventListener("click", cb),
+      setWrap: on => { ta.wrap = on ? "soft" : "off"; }
+    };
+    toast("CodeMirror CDN unreachable — using plain-text editor", "err");
+  }
+}
+
+/* ================= console capture ================= */
+const MAX_LOGS = 600;
+let logCount = 0;
+const BRIDGE = '<script>(function(){var P=function(m){try{parent.postMessage({draftBridge:1,payload:m},"*")}catch(e){}};var fmt=function(v){try{if(typeof v==="string")return v;if(v instanceof Error)return v.stack||String(v);if(typeof v==="function")return"[Function "+(v.name||"anonymous")+"]";var s=JSON.stringify(v);return s===undefined?String(v):s}catch(e){return String(v)}};["log","info","warn","error","debug"].forEach(function(m){var o=console[m];console[m]=function(){var a=[].slice.call(arguments).map(fmt).slice(0,20);P({type:m,args:a});try{o.apply(console,arguments)}catch(e){}}});addEventListener("error",function(e){P({type:"error",args:[String(e.message)],line:e.lineno||0})});addEventListener("unhandledrejection",function(e){var r=e.reason;var msg=r&&r.message?r.message:String(r);P({type:"error",args:["Unhandled promise rejection: "+msg],line:0})});P({type:"__ready"})})();<\/script>';
+
+function addLog(type, args, line) {
+  const body = $("consoleBody");
+  if (logCount === 0) body.textContent = "";
+  logCount++;
+  const div = document.createElement("div");
+  div.className = "log log-" + type + (line ? " jump" : "");
+  const parts = args.map(a => esc(String(a).length > 2000 ? String(a).slice(0, 2000) + " …" : a)).join(" ");
+  div.innerHTML = '<span class="t">' + nowTime() + '</span><span class="msg">' + parts + "</span>" +
+    (line ? '<span class="where">line ' + line + " — jump ↗</span>" : "");
+  if (line) div.addEventListener("click", () => { ed.gotoLine(line); toast("Jumped to line " + line); });
+  body.appendChild(div);
+  while (body.children.length > MAX_LOGS) body.firstChild.remove();
+  body.scrollTop = body.scrollHeight;
+  if (type === "error" || type === "warn") updateLogBadges();
+}
+function updateLogBadges() {
+  const errs = $("consoleBody").querySelectorAll(".log-error").length;
+  const warns = $("consoleBody").querySelectorAll(".log-warn").length;
+  const eb = $("errCount"), wb = $("warnCount");
+  eb.hidden = !errs; eb.textContent = errs;
+  wb.hidden = !warns; wb.textContent = warns;
+}
+function clearConsole() {
+  $("consoleBody").innerHTML = '<div class="console-empty">Console output from your preview appears here — console.log, warnings and runtime errors are captured live.</div>';
+  logCount = 0; updateLogBadges();
+  $("consoleSb").classList.remove("alert");
+}
+function toggleConsole(force) {
+  const c = $("console");
+  const open = force !== undefined ? force : !c.classList.contains("open");
+  c.classList.toggle("open", open);
+  $("consoleSb").classList.toggle("on", open);
+  if (open) $("consoleSb").classList.remove("alert");
+  $("consoleBody").scrollTop = $("consoleBody").scrollHeight;
+}
+$("consoleSb").addEventListener("click", () => toggleConsole());
+$("consoleClose").addEventListener("click", () => toggleConsole(false));
+$("consoleClear").addEventListener("click", clearConsole);
+
+window.addEventListener("message", e => {
+  if (e.source !== preview.contentWindow || !e.data || e.data.draftBridge !== 1) return;
+  const p = e.data.payload || {};
+  if (p.type === "__ready") { previewReady = true; return; }
+  if (!Array.isArray(p.args)) return;
+  const type = ["log", "info", "warn", "error", "debug"].includes(p.type) ? p.type : "log";
+  addLog(type, p.args, p.line || 0);
+  if (type === "error") {
+    setStatus("Preview error — see console", "error");
+    $("consoleSb").classList.add("alert");
+  }
+});
+
+/* ================= run preview ================= */
+let runTimer = 0, previewUrl = null, previewReady = false, autorun = true;
+
+function run() {
+  clearTimeout(runTimer);
+  const t0 = performance.now();
+  setStatus("Rendering preview…", "busy");
+  clearConsole();
+  previewReady = false;
+  let source = ed.getValue();
+  // inject the console bridge as early as possible so user scripts are captured;
+  // the bridge is a single line, so preview line numbers stay correct.
+  if (/<\/head\s*[^>]*>/i.test(source)) source = source.replace(/<\/head\s*[^>]*>/i, BRIDGE + "</head>");
+  else if (/<script/i.test(source)) source = source.replace(/<script/i, BRIDGE + "<script");
+  else source = BRIDGE + source;
+
+  // large documents render faster through a blob URL than srcdoc
+  if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
+  if (source.length > 2_500_000) {
+    previewUrl = URL.createObjectURL(new Blob([source], {type: "text/html"}));
+    preview.removeAttribute("srcdoc");
+    preview.src = previewUrl;
+  } else {
+    preview.srcdoc = source;
+  }
+  const ms = performance.now() - t0;
+  setStatus("Preview updated · " + ms.toFixed(1) + " ms");
+}
+
+function scheduleRun() {
+  updateMetricsSoon();
+  setStatus("Editing — pending run", "busy");
+  if (!autorun) return;
+  clearTimeout(runTimer);
+  runTimer = setTimeout(run, 900);
+}
+
+/* ================= metrics & autosave ================= */
+let metricsTimer = 0, saveTimer = 0, lastSize = 0;
+
+function updateMetrics() {
+  const v = ed.getValue();
+  let lines;
+  if (ed.cm) lines = ed.cm.lineCount();
+  else { // chunked newline count keeps fallback cheap on huge files
+    lines = 1;
+    for (let i = 0; i < v.length; i = v.indexOf("\n", i) + 1) lines++;
+  }
+  $("lineCount").textContent = lines.toLocaleString() + (lines === 1 ? " line" : " lines");
+  $("charCount").textContent = v.length.toLocaleString() + " chars";
+  $("docSize").textContent = fmtBytes(v.length);
+}
+function updateMetricsSoon() { clearTimeout(metricsTimer); metricsTimer = setTimeout(updateMetrics, 400); }
+
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const ok = store.set("draft-studio.doc.v2", JSON.stringify({name: filename, source: ed.getValue(), time: Date.now()}));
+    if (ok) $("savedAt").textContent = "saved " + nowTime();
+  }, 800);
+}
+function restore() {
+  try {
+    const raw = store.get("draft-studio.doc.v2");
+    if (!raw) return false;
+    const doc = JSON.parse(raw);
+    if (doc && doc.source) {
+      if (doc.name) setName(doc.name);
+      ed.setValue(doc.source);
+      return true;
+    }
+  } catch {}
+  return false;
+}
+
+/* ================= files ================= */
+function setName(name) {
+  filename = /\.(html?|txt)$/i.test(name) ? name : name + ".html";
+  $("fileName").textContent = filename;
+  document.title = filename + " — Draft Studio";
+}
+function exportFile() {
+  const blob = new Blob([ed.getValue()], {type: "text/html;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  setStatus("Exported " + filename);
+  toast("Exported " + filename);
+}
+function openInNewTab() {
+  try {
+    const blob = new Blob([ed.getValue()], {type: "text/html;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url; link.target = "_blank"; link.rel = "noopener noreferrer";
+    document.body.appendChild(link); link.click(); link.remove();
+    toast("Opened in a new tab");
+  } catch {
+    setStatus("Could not open tab", "error");
+    toast("Could not open tab — check pop-up settings", "err");
+  }
+}
+async function importFile(file) {
+  if (!file) return;
+  if (!/\.(html?|txt)$/i.test(file.name)) { toast("Choose an .html, .htm or .txt file", "err"); return; }
+  setStatus("Reading " + file.name + "…", "busy");
+  await new Promise(r => setTimeout(r, 30)); // let the status paint before a big parse
+  try {
+    const text = await file.text();
+    ed.setValue(text);
+    setName(file.name);
+    updateMetrics();
+    run();
+    const mb = file.size / 1048576;
+    toast("Imported " + file.name + " · " + fmtBytes(file.size) + (mb > 5 ? " — large document mode" : ""));
+    if (mb > 5) setStatus("Loaded " + fmtBytes(file.size) + " — large document", "busy");
+  } catch {
+    setStatus("Import failed", "error");
+    toast("Could not read this file", "err");
+  }
+}
+function copySource() {
+  const v = ed.getValue();
+  const done = () => toast("Source copied to clipboard");
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(v).then(done, () => fallbackCopy(v, done));
+  } else fallbackCopy(v, done);
+}
+function fallbackCopy(v, done) {
+  const ta = document.createElement("textarea");
+  ta.value = v; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); done(); } catch { toast("Copy failed", "err"); }
+  ta.remove();
+}
+
+/* ================= format ================= */
+function formatDoc() {
+  const v = ed.getValue();
+  if (v.length > 3_000_000) { toast("Document too large to format safely", "err"); return; }
+  if (typeof html_beautify !== "function") { toast("Formatter unavailable (CDN blocked)", "err"); return; }
+  try {
+    const out = html_beautify(v, {indent_size: 2, wrap_line_length: 0, preserve_newlines: true, max_preserve_newlines: 2, indent_inner_html: false, extra_liners: []});
+    if (out === v) { toast("Already formatted"); return; }
+    ed.setValue(out);
+    scheduleRun();
+    setStatus("Formatted");
+    toast("Document formatted");
+  } catch {
+    toast("Could not format this document", "err");
+  }
+}
+
+/* ================= templates ================= */
+const TPL = [
+  {name: "Blank document", desc: "A clean, minimal HTML5 skeleton to start from scratch.", art: "blank", code: `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My page</title>
+  <title>Document</title>
   <style>
     body {
       margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      background: #f1f0e9;
-      color: #20211d;
       font-family: system-ui, sans-serif;
+      color: #1a1d23;
+      background: #fafafa;
     }
-    h1 { font-size: clamp(2rem, 7vw, 5rem); letter-spacing: -.06em; }
   </style>
 </head>
 <body>
-  <h1>Hello, world.</h1>
+  <main>
+    <h1>It works.</h1>
+    <p>Edit this document in the source editor — the preview updates live.</p>
+  </main>
+</body>
+</html>`},
+  {name: "Landing page", desc: "Hero, feature grid and call to action on a dark modern layout.", art: "landing", code: `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aurora — landing page</title>
+  <style>
+    :root { --accent: #7c6cf0; --ink: #eef0f6; --muted: #9aa1b5; }
+    * { box-sizing: border-box; margin: 0; }
+    body { font-family: system-ui, sans-serif; background: #0d0f14; color: var(--ink); }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+    header { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+    .logo { font-weight: 800; letter-spacing: .12em; }
+    .logo span { color: var(--accent); }
+    nav a { color: var(--muted); text-decoration: none; margin-left: 26px; font-size: 14px; }
+    nav a:hover { color: var(--ink); }
+    .hero { text-align: center; padding: 90px 0 70px; }
+    .hero .pill { display: inline-block; padding: 6px 14px; border: 1px solid #262b3a; border-radius: 99px; color: var(--muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+    .hero h1 { font-size: clamp(2.4rem, 6vw, 4.2rem); letter-spacing: -.03em; line-height: 1.05; margin: 26px 0 18px; }
+    .hero h1 em { font-style: normal; color: var(--accent); }
+    .hero p { color: var(--muted); max-width: 520px; margin: 0 auto 34px; font-size: 17px; line-height: 1.6; }
+    .cta { display: inline-block; padding: 14px 30px; border-radius: 10px; background: var(--accent); color: #fff; font-weight: 700; text-decoration: none; }
+    .cta:hover { filter: brightness(1.12); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; padding: 40px 0 90px; }
+    .card { padding: 26px; border: 1px solid #1e2330; border-radius: 14px; background: #12151d; }
+    .card h3 { margin: 14px 0 8px; font-size: 16px; }
+    .card p { color: var(--muted); font-size: 14px; line-height: 1.55; }
+    .card .dot { width: 34px; height: 34px; border-radius: 9px; background: rgba(124,108,240,.16); }
+    footer { border-top: 1px solid #1a1f2a; padding: 26px 0; color: var(--muted); font-size: 13px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">Aurora<span>.</span></div>
+      <nav>
+        <a href="#">Features</a><a href="#">Pricing</a><a href="#">Docs</a>
+      </nav>
+    </header>
+    <section class="hero">
+      <span class="pill">Now in open beta</span>
+      <h1>Ship your ideas <em>at lightspeed</em></h1>
+      <p>Aurora is the toolkit for teams who move fast — build, test and deploy from one place.</p>
+      <a class="cta" href="#">Get started free</a>
+    </section>
+    <section class="grid">
+      <div class="card"><div class="dot"></div><h3>Instant previews</h3><p>Every change is live in milliseconds, on every device your team tests on.</p></div>
+      <div class="card"><div class="dot"></div><h3>One-click deploys</h3><p>Push to production with a single command, rollbacks included.</p></div>
+      <div class="card"><div class="dot"></div><h3>Team-ready</h3><p>Roles, review flows and audit trails built in from day one.</p></div>
+    </section>
+    <footer>© 2026 Aurora Labs — built with Draft Studio.</footer>
+  </div>
+</body>
+</html>`},
+  {name: "Canvas particles", desc: "Animated particle field with mouse interaction, pure canvas.", art: "canvas", code: `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Particles</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #06080c; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <script>
+    var canvas = document.getElementById("c"), ctx = canvas.getContext("2d");
+    var W, H, mouse = {x: -9999, y: -9999};
+    function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+    resize(); addEventListener("resize", resize);
+    addEventListener("mousemove", function(e) { mouse.x = e.clientX; mouse.y = e.clientY; });
+    var N = Math.min(160, Math.floor(innerWidth / 8));
+    var parts = [];
+    for (var i = 0; i < N; i++) {
+      parts.push({ x: Math.random() * innerWidth, y: Math.random() * innerHeight,
+        vx: (Math.random() - .5) * 1.4, vy: (Math.random() - .5) * 1.4, r: Math.random() * 2 + .8 });
+    }
+    (function tick() {
+      ctx.fillStyle = "rgba(6,8,12,.35)"; ctx.fillRect(0, 0, W, H);
+      for (var i = 0; i < parts.length; i++) {
+        var p = parts[i];
+        var dx = p.x - mouse.x, dy = p.y - mouse.y, d2 = dx * dx + dy * dy;
+        if (d2 < 22500) { var d = Math.sqrt(d2) || 1; p.vx += dx / d * .35; p.vy += dy / d * .35; }
+        p.vx *= .97; p.vy *= .97;
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < -10) p.x = W + 10; if (p.x > W + 10) p.x = -10;
+        if (p.y < -10) p.y = H + 10; if (p.y > H + 10) p.y = -10;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.283);
+        ctx.fillStyle = "rgba(120,190,255,.85)"; ctx.fill();
+        for (var j = i + 1; j < parts.length; j++) {
+          var q = parts[j], ex = p.x - q.x, ey = p.y - q.y, ed2 = ex * ex + ey * ey;
+          if (ed2 < 9000) {
+            ctx.strokeStyle = "rgba(110,140,240," + (0.16 * (1 - ed2 / 9000)) + ")";
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(tick);
+    })();
+  <\/script>
+</body>
+</html>`},
+  {name: "CSS motion", desc: "Gradient headline, floating cards and a shimmering button.", art: "motion", code: `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Motion</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; }
+    body { min-height: 100vh; display: grid; place-items: center; background: #0b0d12;
+      font-family: system-ui, sans-serif; color: #eee; overflow-x: hidden; }
+    .stage { text-align: center; padding: 40px 20px; }
+    .grad { font-size: clamp(2.5rem, 8vw, 5rem); font-weight: 800; letter-spacing: -.04em;
+      background: linear-gradient(90deg, #f6a13c, #ee5f8a, #8f6af0, #f6a13c);
+      background-size: 300% 100%; -webkit-background-clip: text; background-clip: text;
+      color: transparent; animation: slide 6s linear infinite; }
+    @keyframes slide { to { background-position: 300% 0; } }
+    .float { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; margin: 54px 0; }
+    .card { width: 130px; height: 150px; border-radius: 16px; border: 1px solid #232838;
+      background: linear-gradient(160deg, #161a24, #10131b);
+      animation: bob 4s ease-in-out infinite; }
+    .card:nth-child(2) { animation-delay: .6s; }
+    .card:nth-child(3) { animation-delay: 1.2s; }
+    @keyframes bob { 50% { transform: translateY(-16px); } }
+    .shimmer { position: relative; padding: 15px 38px; border: 0; border-radius: 99px;
+      background: linear-gradient(100deg, #6f5cf0 40%, #9f8cff 50%, #6f5cf0 60%);
+      background-size: 200% 100%; color: #fff; font-size: 15px; font-weight: 700;
+      cursor: pointer; animation: shine 2.2s linear infinite; }
+    @keyframes shine { to { background-position: -200% 0; } }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <h1 class="grad">Motion in pure CSS</h1>
+    <div class="float"><div class="card"></div><div class="card"></div><div class="card"></div></div>
+    <button class="shimmer">Hover-free shimmer</button>
+  </div>
+</body>
+</html>`},
+  {name: "Dashboard UI", desc: "Sidebar, KPI cards and a mini chart — admin-panel starter.", art: "dash", code: `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; }
+    body { font-family: system-ui, sans-serif; background: #f2f4f8; color: #22262e; display: flex; }
+    aside { width: 220px; background: #14171d; color: #aeb6c6; padding: 22px 16px; min-height: 100vh; }
+    aside h4 { color: #fff; font-size: 15px; margin-bottom: 26px; letter-spacing: .02em; }
+    aside a { display: block; padding: 10px 12px; border-radius: 8px; color: #aeb6c6;
+      text-decoration: none; font-size: 14px; margin-bottom: 4px; }
+    aside a.active, aside a:hover { background: #232837; color: #fff; }
+    main { flex: 1; padding: 28px 32px; }
+    h1 { font-size: 22px; margin-bottom: 4px; }
+    .sub { color: #7c8494; font-size: 13px; margin-bottom: 26px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+    .kpi { background: #fff; border: 1px solid #e3e7ee; border-radius: 14px; padding: 18px; }
+    .kpi .label { font-size: 12px; color: #7c8494; text-transform: uppercase; letter-spacing: .07em; }
+    .kpi .value { font-size: 26px; font-weight: 750; margin: 8px 0 4px; }
+    .kpi .delta { font-size: 12px; font-weight: 650; }
+    .up { color: #178a50; } .down { color: #c0392b; }
+    .panel { margin-top: 20px; background: #fff; border: 1px solid #e3e7ee; border-radius: 14px; padding: 20px; }
+    .bars { display: flex; align-items: flex-end; gap: 10px; height: 150px; padding-top: 8px; }
+    .bar { flex: 1; background: linear-gradient(180deg, #5b8def, #7fa7f2); border-radius: 6px 6px 2px 2px; }
+  </style>
+</head>
+<body>
+  <aside>
+    <h4>Acme Analytics</h4>
+    <a class="active" href="#">Overview</a>
+    <a href="#">Traffic</a>
+    <a href="#">Revenue</a>
+    <a href="#">Users</a>
+    <a href="#">Settings</a>
+  </aside>
+  <main>
+    <h1>Overview</h1>
+    <p class="sub">Last 30 days · updated just now</p>
+    <div class="kpis">
+      <div class="kpi"><div class="label">Visitors</div><div class="value">48,210</div><div class="delta up">▲ 12.4%</div></div>
+      <div class="kpi"><div class="label">Revenue</div><div class="value">€9,842</div><div class="delta up">▲ 6.1%</div></div>
+      <div class="kpi"><div class="label">Churn</div><div class="value">1.9%</div><div class="delta down">▼ 0.4%</div></div>
+    </div>
+    <div class="panel">
+      <strong style="font-size:14px">Weekly traffic</strong>
+      <div class="bars">
+        <div class="bar" style="height:45%"></div><div class="bar" style="height:70%"></div>
+        <div class="bar" style="height:52%"></div><div class="bar" style="height:88%"></div>
+        <div class="bar" style="height:64%"></div><div class="bar" style="height:97%"></div>
+        <div class="bar" style="height:80%"></div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>`},
+  {name: "Contact form", desc: "Accessible, styled form with validation feedback.", art: "form", code: `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contact</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; display: grid; place-items: center; margin: 0;
+      background: #eef1f6; font-family: system-ui, sans-serif; color: #232732; }
+    .card { width: min(420px, 92vw); background: #fff; border-radius: 18px; padding: 34px;
+      box-shadow: 0 18px 50px rgba(20,26,44,.12); }
+    h1 { font-size: 22px; margin: 0 0 6px; }
+    .sub { color: #6b7280; font-size: 14px; margin: 0 0 26px; }
+    label { display: block; font-size: 13px; font-weight: 600; margin: 14px 0 6px; }
+    input, textarea { width: 100%; padding: 11px 13px; border: 1.5px solid #d5dae3; border-radius: 10px;
+      font: inherit; font-size: 14px; transition: border-color .15s, box-shadow .15s; }
+    input:focus, textarea:focus { outline: 0; border-color: #4f6ef7; box-shadow: 0 0 0 4px rgba(79,110,247,.14); }
+    .row { display: flex; gap: 14px; } .row > div { flex: 1; }
+    button { margin-top: 24px; width: 100%; padding: 13px; border: 0; border-radius: 10px;
+      background: #4f6ef7; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
+    button:hover { background: #3d5bf5; }
+    .note { margin-top: 14px; font-size: 13px; color: #178a50; min-height: 18px; }
+  </style>
+</head>
+<body>
+  <form class="card" onsubmit="event.preventDefault(); document.getElementById('note').textContent = 'Thanks — message sent (demo).';">
+    <h1>Get in touch</h1>
+    <p class="sub">We usually reply within one business day.</p>
+    <div class="row">
+      <div><label for="fn">First name</label><input id="fn" required placeholder="Ada"></div>
+      <div><label for="ln">Last name</label><input id="ln" required placeholder="Lovelace"></div>
+    </div>
+    <label for="em">Email</label>
+    <input id="em" type="email" required placeholder="ada@example.com">
+    <label for="ms">Message</label>
+    <textarea id="ms" rows="4" required placeholder="How can we help?"></textarea>
+    <button type="submit">Send message</button>
+    <p class="note" id="note"></p>
+  </form>
+</body>
+</html>`}
+];
+
+const ART = {
+  blank: '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16M4 12h10M4 17h7"/></svg>',
+  landing: '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 9v11"/></svg>',
+  canvas: '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="7" cy="8" r="1.4"/><circle cx="16" cy="6" r="1.4"/><circle cx="12" cy="13" r="1.4"/><circle cx="18" cy="17" r="1.4"/><path d="M8 9l3 3.2M13 12l3.5 4M7 9.4l4 3"/></svg>',
+  motion: '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 12c2.5-6 5-6 7.5 0s5 6 7.5 0 3.5-3 5 0"/></svg>',
+  dash: '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M13 8h5M13 12h5M13 16h3"/></svg>',
+  form: '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M7 14h6"/></svg>'
+};
+
+function useTemplate(i) {
+  const tpl = TPL[i];
+  ed.setValue(tpl.code);
+  setName(tpl.name.toLowerCase().replace(/\s+/g, "-") + ".html");
+  $("tplBd").classList.remove("open");
+  updateMetrics();
+  run();
+  toast("Template loaded — press Ctrl+Z to undo");
+}
+
+function buildTemplates() {
+  const grid = $("tplGrid");
+  grid.innerHTML = "";
+  TPL.forEach((tpl, i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "tpl";
+    b.innerHTML = '<div class="art">' + ART[tpl.art] + "</div><h4>" + esc(tpl.name) + "</h4><p>" + esc(tpl.desc) + "</p>";
+    b.addEventListener("click", () => useTemplate(i));
+    grid.appendChild(b);
+  });
+}
+
+/* ================= command palette ================= */
+const COMMANDS = [
+  {name: "Run preview", keys: ["Ctrl", "↵"], fn: () => run()},
+  {name: "Format document", keys: ["Ctrl", "⇧", "F"], fn: formatDoc},
+  {name: "Toggle console", keys: ["Ctrl", "`"], fn: () => toggleConsole()},
+  {name: "Import HTML file…", fn: () => $("fileInput").click()},
+  {name: "Export HTML file", keys: ["Ctrl", "S"], fn: exportFile},
+  {name: "Copy source to clipboard", fn: copySource},
+  {name: "Open in new tab", keys: ["Ctrl", "⇧", "↵"], fn: openInNewTab},
+  {name: "New from template…", fn: () => { $("tplBd").classList.add("open"); }},
+  {name: "Toggle word wrap", fn: () => toggleWrap()},
+  {name: "Toggle auto-run", fn: () => toggleAutorun()},
+  {name: "Viewport: desktop", fn: () => setViewport("desktop")},
+  {name: "Viewport: tablet", fn: () => setViewport("tablet")},
+  {name: "Viewport: mobile", fn: () => setViewport("mobile")},
+  {name: "Layout: split side-by-side", fn: () => setLayout("split-h")},
+  {name: "Layout: split stacked", fn: () => setLayout("split-v")},
+  {name: "Layout: editor only", fn: () => setLayout("editor")},
+  {name: "Layout: preview only", fn: () => setLayout("preview")},
+  {name: "Clear editor", fn: () => clearEditor()},
+  {name: "Load welcome page", fn: () => loadWelcome()}
+];
+let paletteSel = 0, paletteItems = [];
+
+function openPalette() {
+  $("paletteBd").classList.add("open");
+  const inp = $("paletteInput");
+  inp.value = ""; paletteSel = 0;
+  renderPalette("");
+  inp.focus();
+}
+function closePalette() { $("paletteBd").classList.remove("open"); }
+function renderPalette(q) {
+  q = (q || "").toLowerCase();
+  const list = $("paletteList");
+  paletteItems = COMMANDS.filter(c => !q || c.name.toLowerCase().includes(q));
+  list.innerHTML = "";
+  if (!paletteItems.length) { list.innerHTML = '<div class="palette-empty">No matching commands</div>'; return; }
+  if (paletteSel >= paletteItems.length) paletteSel = 0;
+  paletteItems.forEach((c, i) => {
+    const div = document.createElement("div");
+    div.className = "cmd" + (i === paletteSel ? " sel" : "");
+    div.innerHTML = '<span class="glyph"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 9 5 12 1.8-5.2L21 14 9 9zM9 9l-.6-.6"/></svg></span><span class="name">' + esc(c.name) + '</span><span class="keys">' + (c.keys || []).map(k => '<span class="kbd">' + k + "</span>").join("") + "</span>";
+    div.addEventListener("click", () => { closePalette(); c.fn(); });
+    list.appendChild(div);
+  });
+}
+$("paletteInput").addEventListener("input", e => { paletteSel = 0; renderPalette(e.target.value); });
+$("paletteInput").addEventListener("keydown", e => {
+  if (e.key === "ArrowDown") { e.preventDefault(); paletteSel = Math.min(paletteSel + 1, paletteItems.length - 1); renderPalette(e.target.value); }
+  else if (e.key === "ArrowUp") { e.preventDefault(); paletteSel = Math.max(paletteSel - 1, 0); renderPalette(e.target.value); }
+  else if (e.key === "Enter") { e.preventDefault(); const c = paletteItems[paletteSel]; if (c) { closePalette(); c.fn(); } }
+  else if (e.key === "Escape") { closePalette(); }
+});
+$("paletteBd").addEventListener("mousedown", e => { if (e.target === $("paletteBd")) closePalette(); });
+$("paletteBtn").addEventListener("click", openPalette);
+
+/* ================= viewport / layout / wrap / autorun ================= */
+function setViewport(v) {
+  $("viewport").value = v;
+  frame.classList.remove("tablet", "mobile");
+  if (v !== "desktop") frame.classList.add(v);
+}
+$("viewport").addEventListener("change", e => setViewport(e.target.value));
+
+const LAYOUTS = ["split-h", "split-v", "editor", "preview"];
+function setLayout(l) { workspace.dataset.layout = l; if (l === "split-v") workspace.style.setProperty("--split", "1fr"); }
+$("layoutBtn").addEventListener("click", cycleLayout);
+$("layoutBtn2").addEventListener("click", cycleLayout);
+function cycleLayout() {
+  const next = LAYOUTS[(LAYOUTS.indexOf(workspace.dataset.layout) + 1) % LAYOUTS.length];
+  setLayout(next);
+  toast("Layout: " + {["split-h"]: "split side-by-side", ["split-v"]: "split stacked", editor: "editor only", preview: "preview only"}[next]);
+}
+
+function toggleWrap() {
+  const btn = $("wrapBtn");
+  const on = !btn.classList.contains("on");
+  btn.classList.toggle("on", on);
+  ed.setWrap(on);
+  toast("Word wrap " + (on ? "on" : "off"));
+}
+function toggleAutorun() {
+  autorun = !autorun;
+  $("autorunBtn").classList.toggle("on", autorun);
+  $("autorunSb").classList.toggle("on", autorun);
+  $("autorunSb").textContent = "auto-run " + (autorun ? "on" : "off");
+  toast("Auto-run " + (autorun ? "enabled" : "disabled"));
+}
+
+/* ================= splitter ================= */
+(function initSplitter() {
+  const sp = $("splitter");
+  let dragging = false;
+  const apply = pos => {
+    const rect = workspace.getBoundingClientRect();
+    const frac = Math.min(.85, Math.max(.15, pos / (rect.width || 1)));
+    workspace.style.setProperty("--split", (frac * 100).toFixed(2) + "%");
+  };
+  sp.addEventListener("pointerdown", e => {
+    if (workspace.dataset.layout !== "split-h") return;
+    dragging = true; sp.classList.add("active");
+    sp.setPointerCapture(e.pointerId);
+  });
+  sp.addEventListener("pointermove", e => { if (dragging) apply(e.clientX - workspace.getBoundingClientRect().left); });
+  sp.addEventListener("pointerup", () => { dragging = false; sp.classList.remove("active"); });
+  sp.addEventListener("keydown", e => {
+    if (workspace.dataset.layout !== "split-h") return;
+    const cur = parseFloat(getComputedStyle(workspace).gridTemplateColumns[0]) || 0;
+    if (e.key === "ArrowLeft") { e.preventDefault(); apply(cur - 24); }
+    if (e.key === "ArrowRight") { e.preventDefault(); apply(cur + 24); }
+  });
+})();
+
+/* ================= mobile tabs ================= */
+$("tabEditor").addEventListener("click", () => setMobileTab("editor"));
+$("tabPreview").addEventListener("click", () => setMobileTab("preview"));
+function setMobileTab(t) {
+  workspace.dataset.mtab = t;
+  $("tabEditor").classList.toggle("on", t === "editor");
+  $("tabPreview").classList.toggle("on", t === "preview");
+  $("tabEditor").setAttribute("aria-selected", t === "editor");
+  $("tabPreview").setAttribute("aria-selected", t === "preview");
+}
+
+/* ================= editor actions ================= */
+function clearEditor() {
+  if (!ed.getValue()) { toast("Editor is already empty"); return; }
+  confirmDialog("Clear editor", "This will remove all source code. You can undo with <strong>Ctrl&nbsp;Z</strong> right after.", "Clear").then(ok => {
+    if (!ok) return;
+    ed.setValue("");
+    updateMetrics(); run(); ed.focus();
+    toast("Editor cleared");
+  });
+}
+function loadWelcome() { ed.setValue(WELCOME); setName("welcome.html"); updateMetrics(); run(); }
+
+/* ================= wire up ================= */
+$("runBtn").addEventListener("click", run);
+$("refreshBtn").addEventListener("click", run);
+$("openTabBtn").addEventListener("click", openInNewTab);
+$("exportBtn").addEventListener("click", exportFile);
+$("importBtn").addEventListener("click", () => $("fileInput").click());
+$("fileInput").addEventListener("change", async e => {
+  const f = e.target.files && e.target.files[0];
+  e.target.value = "";
+  await importFile(f);
+});
+$("clearBtn").addEventListener("click", clearEditor);
+$("formatBtn").addEventListener("click", formatDoc);
+$("wrapBtn").addEventListener("click", toggleWrap);
+$("autorunBtn").addEventListener("click", toggleAutorun);
+$("tplBtn").addEventListener("click", () => $("tplBd").classList.add("open"));
+$("tplClose").addEventListener("click", () => $("tplBd").classList.remove("open"));
+$("tplBd").addEventListener("mousedown", e => { if (e.target === $("tplBd")) $("tplBd").classList.remove("open"); });
+
+/* drag & drop anywhere */
+let dragDepth = 0;
+window.addEventListener("dragenter", e => {
+  if (![...(e.dataTransfer.types || [])].includes("Files")) return;
+  dragDepth++; $("dropVeil").classList.add("show");
+});
+window.addEventListener("dragleave", () => { if (--dragDepth <= 0) { dragDepth = 0; $("dropVeil").classList.remove("show"); } });
+window.addEventListener("dragover", e => e.preventDefault());
+window.addEventListener("drop", async e => {
+  e.preventDefault(); dragDepth = 0; $("dropVeil").classList.remove("show");
+  const f = e.dataTransfer.files && e.dataTransfer.files[0];
+  await importFile(f);
+});
+
+/* global shortcuts */
+window.addEventListener("keydown", e => {
+  const mod = e.ctrlKey || e.metaKey;
+  if (e.key === "Escape") { closePalette(); $("tplBd").classList.remove("open"); return; }
+  if (!mod) return;
+  const k = e.key.toLowerCase();
+  if (k === "enter" && e.shiftKey) { e.preventDefault(); openInNewTab(); }
+  else if (k === "enter") { e.preventDefault(); run(); }
+  else if (k === "s") { e.preventDefault(); exportFile(); }
+  else if (k === "k") { e.preventDefault(); if ($("paletteBd").classList.contains("open")) closePalette(); else openPalette(); }
+  else if (k === "`") { e.preventDefault(); toggleConsole(); }
+  else if (k === "f" && e.shiftKey) { e.preventDefault(); formatDoc(); }
+});
+
+/* ================= boot ================= */
+const WELCOME = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Welcome to Draft</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      min-height: 100vh; display: grid; place-items: center;
+      background: #0d1016; color: #e8ecf4;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .card { text-align: center; padding: 48px 36px; max-width: 560px; }
+    .mark {
+      width: 54px; height: 54px; margin: 0 auto 26px; border-radius: 14px;
+      border: 2px solid #f0a83c; display: grid; place-items: center;
+      color: #f0a83c; font: 800 18px/1 monospace; letter-spacing: -1px;
+      box-shadow: inset 0 0 22px rgba(240,168,60,.14);
+    }
+    h1 { font-size: clamp(1.7rem, 5vw, 2.4rem); letter-spacing: -.02em; }
+    h1 span { color: #f0a83c; }
+    p { color: #98a2b3; margin: 16px auto 30px; line-height: 1.65; font-size: 16px; max-width: 44ch; }
+    .hints { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .hint {
+      padding: 9px 16px; border: 1px solid #232a38; border-radius: 99px;
+      background: #131722; color: #aeb8c9; font-size: 13px;
+    }
+    .hint b { color: #e8ecf4; font-weight: 650; }
+    footer { margin-top: 40px; color: #7d8799; font-size: 12.5px; letter-spacing: .04em; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="mark">&lt;/&gt;</div>
+    <h1>Welcome to <span>Draft Studio</span></h1>
+    <p>Edit this document on the left — the preview refreshes itself as you type. Drop in a huge HTML file, or start from a template in the toolbar.</p>
+    <div class="hints">
+      <span class="hint"><b>Ctrl K</b> commands</span>
+      <span class="hint"><b>Ctrl F</b> find in code</span>
+      <span class="hint"><b>Ctrl \`</b> console</span>
+      <span class="hint"><b>Ctrl Enter</b> run</span>
+    </div>
+    <footer>Autosaves as you work · sandboxed preview</footer>
+  </main>
 </body>
 </html>`;
- let filename="untitled.html", timer=0, toastTimer=0, runNumber=0;
 
- function toast(message){
-  $("toast").textContent=message;$("toast").classList.add("show");
-  clearTimeout(toastTimer);toastTimer=setTimeout(()=>$("toast").classList.remove("show"),1900);
- }
- function metrics(){
-  const value=editor.value, count=value.split("\n").length;
-  $("lineCount").textContent=count+(count===1?" line":" lines");
-  $("charCount").textContent=value.length.toLocaleString()+" chars";
-  gutter.textContent=Array.from({length:count},(_,i)=>i+1).join("\n");
-  gutter.scrollTop=editor.scrollTop;
- }
- function status(id,dotId,message,state=""){
-  $(id).textContent=message;$(dotId).className="dot"+(state?" "+state:"");
- }
- function run(){
-  clearTimeout(timer);
-  const thisRun=++runNumber, start=performance.now();
-  status("editorStatus","editorDot","Running","busy");
-  // The preview is deliberately cross-origin isolated by sandbox (no allow-same-origin).
-  // Bridge reports runtime errors without granting the preview access to the parent DOM.
-  const bridge=`<script>
-  (()=>{const send=(kind,message)=>parent.postMessage({draftPreview:1,kind,message},'*');
-  addEventListener('error',e=>send('error',e.message||'Script error'));
-  addEventListener('unhandledrejection',e=>send('error',String(e.reason||'Unhandled promise rejection')));
-  })();
-  <\/script>`;
-  let source=editor.value;
-  if(/<\/body\s*>/i.test(source)) source=source.replace(/<\/body\s*>/i,bridge+"</body>");
-  else source+=bridge;
-  preview.srcdoc=source;
-  const elapsed=performance.now()-start;
-  $("runTime").textContent="Started · "+elapsed.toFixed(1)+" ms";
-  status("previewStatus","previewDot","Preview refreshed");
-  status("editorStatus","editorDot","Run complete");
- }
- function schedule(){
-  metrics();status("editorStatus","editorDot","Edits pending");
-  clearTimeout(timer);timer=setTimeout(run,550);
- }
- function setName(name){
-  filename=/\.html?$/i.test(name)?name:name+".html";$("fileName").textContent=filename;
- }
- function exportFile(){
-  const blob=new Blob([editor.value],{type:"text/html;charset=utf-8"});
-  const url=URL.createObjectURL(blob), a=document.createElement("a");
-  a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1200);
-  status("editorStatus","editorDot","Exported");toast("HTML file exported");
- }
- $("runBtn").addEventListener("click",run);$("refreshBtn").addEventListener("click",run);
- $("openTabBtn").addEventListener("click",openInNewTab);
-
- // Open a standalone copy of the current source. The anchor click stays inside
- // the user's click gesture, which avoids most popup blockers on desktop and iPad.
- const standaloneUrls = new Set();
- function openInNewTab(){
-  let url;
-  try{
-   const blob=new Blob([editor.value],{type:"text/html;charset=utf-8"});
-   url=URL.createObjectURL(blob);
-   standaloneUrls.add(url);
-   const link=document.createElement("a");
-   link.href=url;
-   link.target="_blank";
-   link.rel="noopener noreferrer";
-   link.style.display="none";
-   document.body.appendChild(link);
-   link.click();
-   link.remove();
-   status("editorStatus","editorDot","Opened standalone tab");
-   toast("Opened in a new tab");
-  }catch(error){
-   if(url){URL.revokeObjectURL(url);standaloneUrls.delete(url);}
-   status("editorStatus","editorDot","Could not open new tab","error");
-   toast("Could not open tab — check your browser's pop-up settings");
-  }
- }
- window.addEventListener("pagehide",()=>{
-  for(const url of standaloneUrls)URL.revokeObjectURL(url);
-  standaloneUrls.clear();
- });
- $("selectAll").addEventListener("click",()=>{editor.focus();editor.select();toast("All source selected");});
- $("importBtn").addEventListener("click",()=>$("fileInput").click());
- $("exportBtn").addEventListener("click",exportFile);
- $("clearBtn").addEventListener("click",()=>{
-  if(!editor.value)return;
-  editor.value="";metrics();run();editor.focus();toast("Editor cleared");
- });
- $("fileInput").addEventListener("change",async e=>{
-  const file=e.target.files&&e.target.files[0];if(!file)return;
-  try{
-   editor.value=await file.text();setName(file.name);metrics();run();toast("Imported "+file.name);
-  }catch{toast("Could not read this file");}
-  finally{e.target.value="";}
- });
- $("viewport").addEventListener("change",e=>{
-  frame.classList.remove("tablet","mobile");
-  if(e.target.value!=="desktop")frame.classList.add(e.target.value);
- });
- editor.addEventListener("input",schedule);
- editor.addEventListener("scroll",()=>{gutter.scrollTop=editor.scrollTop},{passive:true});
- editor.addEventListener("keydown",e=>{
-  if(e.key==="Tab"){
-   e.preventDefault();editor.setRangeText("  ",editor.selectionStart,editor.selectionEnd,"end");schedule();
-  }else if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){
-   e.preventDefault();run();
-  }else if((e.ctrlKey||e.metaKey)&&e.shiftKey&&e.key==="Enter"){
-   e.preventDefault();openInNewTab();
-  }else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="s"){
-   e.preventDefault();exportFile();
-  }
- });
- editor.addEventListener("dragover",e=>{e.preventDefault();status("editorStatus","editorDot","Drop an HTML file");});
- editor.addEventListener("drop",async e=>{
-  e.preventDefault();const file=e.dataTransfer&&e.dataTransfer.files[0];if(!file)return;
-  if(!/\.html?$/i.test(file.name)){toast("Choose an .html or .htm file");return;}
-  try{editor.value=await file.text();setName(file.name);metrics();run();toast("Imported "+file.name);}
-  catch{toast("Could not read this file");}
- });
- window.addEventListener("message",e=>{
-  if(e.source!==preview.contentWindow||!e.data||e.data.draftPreview!==1)return;
-  if(e.data.kind==="error"){
-   status("previewStatus","previewDot","Preview error: "+String(e.data.message).slice(0,100),"error");
-  }
- });
- editor.value=starter;metrics();run();
+initEditor("");
+const restored = restore();
+if (!restored) ed.setValue(WELCOME);
+buildTemplates();
+$("autorunBtn").classList.add("on");
+ed.onChange(() => { scheduleRun(); scheduleSave(); });
+ed.onCursor(() => {
+  let line = 1, ch = 1;
+  if (ed.cm) { const c = ed.cm.getCursor(); line = c.line + 1; ch = c.ch + 1; }
+  $("cursorPos").textContent = "Ln " + line + ", Col " + ch;
+});
+ed.focus();
+updateMetrics();
+run();
+setStatus(restored ? "Restored autosave — welcome back" : "Ready");
+if (restored) toast("Restored your last session");
 })();
 </script>
 </body>
