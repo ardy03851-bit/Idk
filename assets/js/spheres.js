@@ -19,10 +19,10 @@ var reduceMotion =
 var W = 0, H = 0, DPR = 1, T = 0;
 var pointer = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5 };
 
-/* accent hues (match Spectral) */
-var HUE_A = [141, 241, 255];  // ice cyan
-var HUE_B = [122, 162, 255];  // periwinkle
-var HUE_C = [196, 155, 255];  // orchid
+/* quiet steel hues — professional, not neon */
+var HUE_A = [150, 196, 228];  // steel ice
+var HUE_B = [124, 148, 200];  // slate blue
+var HUE_C = [152, 144, 196];  // muted violet
 
 function rgba(c, a) { return "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")"; }
 function lerp(a, b, t) { return a + (b - a) * t; }
@@ -79,7 +79,7 @@ var spheres = [
     kind: "dots", nx: 0.33, ny: 0.28, r: 0.075,
     rBase: 64, count: 150, segs: 48,
     speed: 0.00028, tilt: 0.35, bob: 12, bobSpeed: 0.00031, phase: 4.4,
-    alpha: 0.75, hueShift: 0.6, parallax: 3.4
+    alpha: 0.62, hueShift: 0.6, parallax: 3.4
   }
 ];
 // precompute geometry once
