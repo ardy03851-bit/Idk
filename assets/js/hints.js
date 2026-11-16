@@ -241,9 +241,15 @@ var JS_KEYWORDS = ["const","let","var","function","return","if","else","for","of
 var CSS_KEYWORDS = ["important","inherit","initial","unset","revert","auto","none","normal","currentColor","transparent","inherit","initial","unset"];
 
 /* ─────────────── document word index (cached) ─────────────── */
+function docVersion() {
+  try { return (typeof window !== "undefined" && window.DraftDocVersion) | 0; } catch (e) { return 0; }
+}
 var wordCache = { key: "", words: [] };
 function documentWords(text) {
-  var key = text.length + ":" + text.slice(0, 120) + ":" + text.slice(-120);
+  var v = docVersion();
+  var key = v
+    ? "v" + v + ":" + text.length
+    : text.length + ":" + text.slice(0, 120) + ":" + text.slice(-120);
   if (wordCache.key === key) return wordCache.words;
   var seen = Object.create(null), words = [];
   var re = /[A-Za-z_$][\w$-]{2,}/g, m;
@@ -256,7 +262,20 @@ function documentWords(text) {
 
 /* ─────────────── context detection ─────────────── */
 
+var ctxCache = { key: "", value: null };
+
 function contextOf(cm) {
+  var cur = cm.getCursor();
+  var v = docVersion();
+  // without a host-supplied version there is no safe invalidation — recompute every call
+  if (!v) return contextOfUncached(cm);
+  var key = v + ":" + cur.line + ":" + cur.ch;
+  if (ctxCache.key === key) return ctxCache.value;
+  var value = contextOfUncached(cm);
+  ctxCache = { key: key, value: value };
+  return value;
+}
+function contextOfUncached(cm) {
   var cur = cm.getCursor();
   var upto = cm.getRange({ line: 0, ch: 0 }, cur);
   var line = cm.getLine(cur.line);
@@ -310,7 +329,16 @@ function contextOf(cm) {
 }
 
 /** Open-tag stack for </ completion (best-effort, ignores script/style contents) */
+var stackCache = { key: "", value: null };
 function openTagStack(upto) {
+  var v = docVersion();
+  var key = v ? "v" + v + ":" + upto.length : "u" + upto.length + ":" + upto.slice(0, 80) + ":" + upto.slice(-80);
+  if (stackCache.key === key) return stackCache.value;
+  var stack = openTagStackUncached(upto);
+  stackCache = { key: key, value: stack };
+  return stack;
+}
+function openTagStackUncached(upto) {
   // strip script/style bodies so comparisons don't confuse the stack
   var cleaned = upto.replace(/<script[\s\S]*?(<\/script>|$)/gi, "").replace(/<style[\s\S]*?(<\/style>|$)/gi, "").replace(/<!--[\s\S]*?(-->|$)/g, "");
   var VOID = { area:1, base:1, br:1, col:1, embed:1, hr:1, img:1, input:1, link:1, meta:1, param:1, source:1, track:1, wbr:1 };

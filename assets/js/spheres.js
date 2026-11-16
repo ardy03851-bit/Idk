@@ -108,7 +108,7 @@ for (var i = 0; i < 110; i++) {
 
 /* ───────── resize ───────── */
 function resize() {
-  DPR = Math.min(window.devicePixelRatio || 1, 1.75);
+  DPR = Math.min(window.devicePixelRatio || 1, 1.5);
   W = window.innerWidth; H = window.innerHeight;
   canvas.width = Math.round(W * DPR);
   canvas.height = Math.round(H * DPR);
@@ -237,15 +237,16 @@ function drawOrbitRing(sp, t, par) {
     ctx.setLineDash([2, 7]);
     ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2); ctx.stroke();
     ctx.setLineDash([]);
-    // satellite
+    // satellite (radial-gradient glow — no shadowBlur)
     var ang = t * (0.00024 + k * 0.0001) * (k ? -1 : 1) + sp.phase + k * 2.4;
     var sx = Math.cos(ang) * rx, sy = Math.sin(ang) * ry;
-    ctx.globalAlpha = 0.9;
-    ctx.fillStyle = "rgba(235,244,255,0.95)";
-    ctx.shadowColor = "rgba(170,205,255,0.9)";
-    ctx.shadowBlur = 8;
-    ctx.beginPath(); ctx.arc(sx, sy, 1.7, 0, Math.PI * 2); ctx.fill();
-    ctx.shadowBlur = 0;
+    var sat = ctx.createRadialGradient(sx, sy, 0, sx, sy, 5.2);
+    sat.addColorStop(0, "rgba(240,247,255,0.98)");
+    sat.addColorStop(0.32, "rgba(200,224,255,0.85)");
+    sat.addColorStop(1, "rgba(170,205,255,0)");
+    ctx.globalAlpha = 0.95;
+    ctx.fillStyle = sat;
+    ctx.beginPath(); ctx.arc(sx, sy, 5.2, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
 }
@@ -276,11 +277,22 @@ function frame(t) {
   ctx.globalAlpha = 1;
 }
 
-function loop(t) { frame(t || 0); rafId = requestAnimationFrame(loop); }
 var rafId = 0;
-
+var lastFrame = 0;
+var FRAME_INTERVAL = 33; // ~30fps — the ambient canvas renders behind glass; half rate is indistinguishable
+function loop(t) {
+  rafId = requestAnimationFrame(loop);
+  t = t || 0;
+  if (t - lastFrame < FRAME_INTERVAL) return;
+  lastFrame = t;
+  frame(t);
+}
+var resizeTimer = 0;
 resize();
-window.addEventListener("resize", resize, { passive: true });
+window.addEventListener("resize", function () {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(resize, 160);
+}, { passive: true });
 window.addEventListener("pointermove", function (e) {
   pointer.tx = e.clientX / Math.max(1, W);
   pointer.ty = e.clientY / Math.max(1, H);
