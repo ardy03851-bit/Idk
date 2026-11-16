@@ -293,7 +293,7 @@ function initEditor(initial) {
       autocorrect: false,
       autocapitalize: false,
       historyEventDelay: 250,
-      viewportMargin: 40,
+      viewportMargin: 16,
       maxHighlightLength: 20000,
       extraKeys: {
         "Tab": smartTab,
@@ -315,11 +315,17 @@ function initEditor(initial) {
       }
     });
 
-    cm.on("cursorActivity", function () { hideGhost(); updateSelectionInfo(); updateCursorPos(); });
+    var cursorUiRaf = 0;
+    function scheduleCursorUi() {
+      if (cursorUiRaf) return;
+      cursorUiRaf = requestAnimationFrame(function () { cursorUiRaf = 0; updateSelectionInfo(); updateCursorPos(); });
+    }
+    cm.on("cursorActivity", function () { hideGhost(); scheduleCursorUi(); });
     cm.on("scroll", function () { hideGhost(); });
     cm.on("blur", function () { hideGhost(); });
     cm.on("change", function (instance, change) {
       hideGhost();
+      window.DraftDocVersion = (window.DraftDocVersion | 0) + 1;
       var added = 0, removed = 0, i;
       for (i = 0; i < change.text.length; i++) added += change.text[i].length;
       added += Math.max(0, change.text.length - 1);
@@ -336,16 +342,14 @@ function initEditor(initial) {
       if (change.origin !== "+input") return;
       var inserted = (change.text && change.text.join("")) || "";
       if (!/^[A-Za-z0-9!<":'-]$/.test(inserted)) return;
-      if (inserted === "-" || inserted === "'" || inserted === "0" || inserted === "1" || inserted === "2" || inserted === "3" || inserted === "4" || inserted === "5" || inserted === "6" || inserted === "7" || inserted === "8" || inserted === "9") {
-        // allow in css (values) and html (closing tags) but cheap-out elsewhere
-      }
       clearTimeout(cm._hintTimer);
       cm._hintTimer = setTimeout(function () {
         if (cm.state && cm.state.completionActive) return;
         var result;
         try { result = window.DraftHints.hint(cm); } catch (e) { return; }
         if (result && result.list && result.list.length) {
-          cm.showHint({ hint: window.DraftHints.hint, completeSingle: false, alignWithWord: true });
+          var cached = result; // reuse — avoids ranking the same lists twice per keystroke
+          cm.showHint({ hint: function () { return cached; }, completeSingle: false, alignWithWord: true });
         }
       }, 150);
     });
@@ -377,8 +381,8 @@ function initEditor(initial) {
     host.appendChild(ta);
     ed = {
       getValue: function () { return ta.value; },
-      setValue: function (v) { ta.value = v; docChars = v.length; },
-      replaceDocument: function (v) { ta.value = v; docChars = v.length; },
+      setValue: function (v) { ta.value = v; docChars = v.length; window.DraftDocVersion = (window.DraftDocVersion | 0) + 1; },
+      replaceDocument: function (v2) { ta.value = v2; docChars = v2.length; window.DraftDocVersion = (window.DraftDocVersion | 0) + 1; },
       getSize: function () { return ta.value.length; },
       clearHistory: function () {},
       focus: function () { ta.focus(); },
@@ -388,17 +392,21 @@ function initEditor(initial) {
       },
       setWrap: function (on) { ta.wrap = on ? "soft" : "off"; settings.wrap = on; saveSettings(); }
     };
-    ta.addEventListener("input", function () { docChars = ta.value.length; scheduleRun(); scheduleSave(); updateMetricsSoon(); });
+    ta.addEventListener("input", function () { docChars = ta.value.length; window.DraftDocVersion = (window.DraftDocVersion | 0) + 1; scheduleRun(); scheduleSave(); updateMetricsSoon(); });
     toast("CodeMirror failed to load — plain-text fallback active", "err");
   }
 }
 
 /* ═════════════════════════ console capture ═════════════════════════ */
-var MAX_LOGS = 800;
+var MAX_LOGS = 400;
 var logTotal = 0, logErr = 0, logWarn = 0;
 var consoleFilter = "all";
+var logQueue = [], logFlushRaf = 0;
 
-var BRIDGE = '<script>(function(){var P=function(m){try{parent.postMessage({draftBridge:1,payload:m},"*")}catch(e){}};var fmt=function(v){try{if(typeof v==="string")return v;if(v instanceof Error)return v.stack||String(v);if(typeof v==="function")return"[Function "+(v.name||"anonymous")+"]";var s=JSON.stringify(v);return s===undefined?String(v):s}catch(e){return String(v)}};["log","info","warn","error","debug"].forEach(function(m){var o=console[m];console[m]=function(){var a=[].slice.call(arguments).map(fmt).slice(0,20);P({type:m,args:a});try{o.apply(console,arguments)}catch(e){}}});addEventListener("error",function(e){P({type:"error",args:[String(e.message)],line:e.lineno||0})});addEventListener("unhandledrejection",function(e){var r=e.reason;var msg=r&&r.message?r.message:String(r);P({type:"error",args:["Unhandled promise rejection: "+msg],line:0})});P({type:"__ready"})})();<\/script>';
+var runToken = 0;
+function bridgeScript(token) {
+  return '<script>(function(){var T=' + JSON.stringify(String(token)) + ';var P=function(m){try{parent.postMessage({draftBridge:1,token:T,payload:m},"*")}catch(e){}};var fmt=function(v){try{if(typeof v==="string")return v;if(v instanceof Error)return v.stack||String(v);if(typeof v==="function")return"[Function "+(v.name||"anonymous")+"]";var s=JSON.stringify(v);return s===undefined?String(v):s}catch(e){return String(v)}};["log","info","warn","error","debug"].forEach(function(m){var o=console[m];console[m]=function(){var a=[].slice.call(arguments).map(fmt).slice(0,20);P({type:m,args:a});try{o.apply(console,arguments)}catch(e){}}});addEventListener("error",function(e){P({type:"error",args:[String(e.message)],line:e.lineno||0})});addEventListener("unhandledrejection",function(e){var r=e.reason;var msg=r&&r.message?r.message:String(r);P({type:"error",args:["Unhandled promise rejection: "+msg],line:0})});P({type:"__ready"})})();<\/script>';
+}
 
 function applyConsoleFilter() {
   var body = $("consoleBody");
@@ -421,28 +429,44 @@ function refreshConsoleCounts() {
   $("cntErr").textContent = logErr;
 }
 function addLog(type, args, line) {
+  logQueue.push({ type: type, args: args, line: line });
+  if (!logFlushRaf) logFlushRaf = requestAnimationFrame(flushLogs);
+}
+function flushLogs() {
+  logFlushRaf = 0;
+  if (!logQueue.length) return;
   var body = $("consoleBody");
+  var nearBottom = (body.scrollHeight - body.scrollTop - body.clientHeight) < 56;
   if (logTotal === 0) body.textContent = "";
-  logTotal++;
-  if (type === "error") logErr++;
-  if (type === "warn") logWarn++;
-  var div = document.createElement("div");
-  div.className = "log log-" + type + (line ? " jump" : "") + ((consoleFilter !== "all" && type !== consoleFilter) ? " filtered" : "");
-  div.setAttribute("data-level", type);
-  var parts = (args || []).map(function (a) { var s = String(a); return esc(s.length > 2000 ? s.slice(0, 2000) + " …" : s); }).join(" ");
-  div.innerHTML = '<span class="t">' + nowTime() + '</span><span class="msg">' + parts + "</span>" +
-    (line ? '<span class="where">line ' + esc(String(line)) + ' — jump</span>' : "");
-  if (line) div.addEventListener("click", function () { ed.gotoLine(line); toast("Jumped to line " + line); });
-  body.appendChild(div);
+  var frag = document.createDocumentFragment();
+  var sawError = false;
+  for (var q = 0; q < logQueue.length; q++) {
+    var item = logQueue[q];
+    logTotal++;
+    if (item.type === "error") { logErr++; sawError = true; }
+    if (item.type === "warn") logWarn++;
+    var div = document.createElement("div");
+    div.className = "log log-" + item.type + (item.line ? " jump" : "") + ((consoleFilter !== "all" && item.type !== consoleFilter) ? " filtered" : "");
+    div.setAttribute("data-level", item.type);
+    var parts = (item.args || []).map(function (a) { var s = String(a); return esc(s.length > 2000 ? s.slice(0, 2000) + " …" : s); }).join(" ");
+    div.innerHTML = '<span class="t">' + nowTime() + '</span><span class="msg">' + parts + "</span>" +
+      (item.line ? '<span class="where">line ' + esc(String(item.line)) + ' — jump</span>' : "");
+    if (item.line) (function (ln) { div.addEventListener("click", function () { ed.gotoLine(ln); toast("Jumped to line " + ln); }); })(item.line);
+    frag.appendChild(div);
+  }
+  logQueue.length = 0;
+  body.appendChild(frag);
   while (body.children.length > MAX_LOGS) body.removeChild(body.firstChild);
-  body.scrollTop = body.scrollHeight;
+  if (nearBottom) body.scrollTop = body.scrollHeight;
   refreshConsoleCounts();
-  if (type === "error") {
+  if (sawError) {
     setStatus("Preview error — see console", "error");
     if (!$("console").classList.contains("open")) $("consoleErrDot").hidden = false;
   }
 }
 function clearConsole() {
+  logQueue.length = 0;
+  if (logFlushRaf) { cancelAnimationFrame(logFlushRaf); logFlushRaf = 0; }
   $("consoleBody").innerHTML = '<div class="console-empty">Console output from your preview appears here — <code>console.log</code>, warnings and runtime errors are captured live.</div>';
   logTotal = 0; logErr = 0; logWarn = 0;
   refreshConsoleCounts();
@@ -480,6 +504,8 @@ window.addEventListener("message", function (e) {
   if (!preview || e.source !== preview.contentWindow) return;
   var data = e.data;
   if (!data || data.draftBridge !== 1) return;
+  // drop anything from a stale document — its console output no longer belongs here
+  if (typeof data.token !== "string" || Number(data.token) !== runToken) return;
   var p = data.payload || {};
   if (p.type === "__ready") return;
   if (!Array.isArray(p.args)) return;
@@ -497,6 +523,8 @@ function run() {
   var t0 = performance.now();
   setStatus("Rendering preview…", "busy");
   clearConsole();
+  runToken++;
+  var BRIDGE = bridgeScript(runToken);
   var source = ed.getValue();
   // inject the console bridge as early as possible — but never before the doctype,
   // which would flip the document into quirks mode and change how it renders
@@ -506,7 +534,8 @@ function run() {
   else if (/<script/i.test(source)) source = source.replace(/<script/i, BRIDGE + "<script");
   else source = BRIDGE + source;
 
-  if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
+  // defer revocation so the outgoing document can finish unloading without a race
+  if (previewUrl) { var stale = previewUrl; previewUrl = null; setTimeout(function () { URL.revokeObjectURL(stale); }, 2500); }
   if (source.length > HUGE_DOC_BYTES) {
     previewUrl = URL.createObjectURL(new Blob([source], { type: "text/html" }));
     preview.removeAttribute("srcdoc");
@@ -662,7 +691,7 @@ function updateMetrics() {
   var chars = ed.getSize ? ed.getSize() : ed.getValue().length;
   var lines;
   if (ed.cm) lines = ed.cm.lineCount();
-  else { var v = ed.getValue(); lines = 1; for (var i = 0; i < v.length; i = v.indexOf("\n", i) + 1) lines++; }
+  else { var v2 = ed.getValue(), n = 1; for (var j = 0; j < v2.length; j++) if (v2.charCodeAt(j) === 10) n++; lines = n; }
   $("lineCount").textContent = lines.toLocaleString() + (lines === 1 ? " line" : " lines");
   $("charCount").textContent = chars.toLocaleString() + " chars";
   $("docSize").textContent = fmtBytes(chars);
@@ -671,8 +700,10 @@ function updateMetricsSoon() { clearTimeout(metricsTimer); metricsTimer = setTim
 function scheduleSave() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(function () {
-    var ok = store.set("draft-studio.doc.v2", JSON.stringify({ name: filename, source: ed.getValue(), time: Date.now() }));
-    if (ok) $("savedAt").textContent = "saved " + nowTime();
+    var payload = JSON.stringify({ name: filename, source: ed.getValue(), time: Date.now() });
+    if (payload.length > 4200000) { $("savedAt").textContent = "too large to autosave"; return; }
+    var ok = store.set("draft-studio.doc.v2", payload);
+    $("savedAt").textContent = ok ? "saved " + nowTime() : "autosave unavailable";
   }, 750);
 }
 function restore() {
@@ -902,7 +933,7 @@ var COMMANDS = [
   { name: "Preview zoom: 100%", cat: "View", icon: ICONS.pane, fn: function () { zoomMode = "1"; applyZoom(); } },
   { name: "Preview zoom: 150%", cat: "View", icon: ICONS.pane, fn: function () { zoomMode = "1.5"; applyZoom(); } },
   { name: "Toggle reduce motion", cat: "View", icon: ICONS.motion, fn: function () { settings.reduceMotion = !settings.reduceMotion; saveSettings(); applyMotion(); toast("Reduce motion " + (settings.reduceMotion ? "on" : "off")); } },
-  { name: "Keyboard shortcuts", cat: "Help", icon: ICONS.keys, fn: openShortcuts },
+  { name: "Keyboard shortcuts", cat: "Help", keys: [MOD, "\u21e7", "?"], icon: ICONS.keys, fn: openShortcuts },
   { name: "Reset workspace to welcome page", cat: "File", icon: ICONS.reset, fn: resetWorkspace }
 ];
 
@@ -1027,7 +1058,7 @@ var SHORTCUT_SECTIONS = [
     ["Close autocomplete / dismiss", ["Esc"]]
   ]},
   { section: "Interface", rows: [
-    ["Keyboard shortcuts", ["(status bar button)"]],
+    ["Keyboard shortcuts", [MOD, "\u21e7", "?"]],
     ["Cycle layout split \u2192 stacked \u2192 panes", ["(layout button)"]],
     ["Preview full screen", ["(expand button)"]],
     ["Close dialogues", ["Esc"]]
@@ -1239,6 +1270,7 @@ window.addEventListener("keydown", function (e) {
     closeShortcuts();
     closeSettings();
     closeOverflow();
+    if ($("confirmBd").classList.contains("open")) closeConfirm(false);
     return;
   }
   if (!mod) return;
@@ -1249,12 +1281,13 @@ window.addEventListener("keydown", function (e) {
   else if (k === "k") { e.preventDefault(); e.stopPropagation(); if ($("paletteBd").classList.contains("open")) closePalette(); else openPalette(); }
   else if (k === "`") { e.preventDefault(); e.stopPropagation(); toggleConsole(); }
   else if (k === "f" && e.shiftKey) { e.preventDefault(); e.stopPropagation(); formatDoc(); }
+  else if (e.shiftKey && (k === "?" || k === "/")) { e.preventDefault(); e.stopPropagation(); openShortcuts(); }
 }, true);
 
 /* platform-specific kbd labels */
 (function () {
   var pk = $("paletteKbd"); if (pk) pk.textContent = MOD + " K";
-  var sk = $("shortcutsKbd"); if (sk) sk.textContent = MOD + " /";
+  var sk = $("shortcutsKbd"); if (sk) sk.textContent = MOD + " ⇧ ?";
 })();
 
 /* ═════════════════════════ welcome document ═════════════════════════ */
@@ -1311,8 +1344,11 @@ var WELCOME = `<!doctype html>
 </html>`;
 
 /* ═════════════════════════ boot ═════════════════════════ */
+var restored = false;
+try {
+
 initEditor("");
-var restored = restore();
+restored = restore();
 if (!restored) {
   ed.setValue(WELCOME);
 } else if (ed.clearHistory) {
@@ -1337,6 +1373,12 @@ run();
 setStatus(restored ? "Restored your last session" : "Ready — press Ctrl Enter to run");
 if (restored) toast("Restored your last session");
 ed.focus();
+
+} catch (bootError) {
+  try { if (window.console && console.error) console.error("Draft boot failed:", bootError); } catch (_) {}
+  var bootMsg = $("statusMsg"); if (bootMsg) bootMsg.textContent = "Draft failed to start — " + (bootError && bootError.message ? bootError.message : "unexpected error");
+  var bootDot = $("statusDot"); if (bootDot) bootDot.className = "dot error";
+}
 
 /* live preview of settings while interacting */
 window.Draft = { run: run, settings: settings };
