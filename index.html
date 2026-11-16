@@ -172,6 +172,35 @@
           <button role="menuitem" data-act="clear" type="button" class="danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/></svg>Clear editor</button>
         </div>
       </div>
+      <!-- ══════════ AI edit bar ══════════ -->
+      <div class="ai-bar" id="aiBar">
+        <span class="ai-spark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.7 5.7 1.9-5.7 1.9L12 18.2l-1.9-5.7-5.7-1.9 5.7-1.9L12 3z"/><path d="M19 4v3M20.5 5.5h-3"/></svg>
+        </span>
+        <input class="ai-input" id="aiInput" type="text" autocomplete="off" spellcheck="false" maxlength="400"
+               placeholder="Describe a small edit… e.g. “make the hero heading bigger and the nav sticky”"
+               aria-label="Describe an edit for the AI to apply">
+        <span class="ai-disclosure" title="The AI provider receives the instruction and a document excerpt.">Prompt + excerpt sent to Pollinations</span>
+        <button class="ai-chip" id="aiModelChip" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="aiModelMenu"
+                title="AI models — free, no key required. Draft tries them in order and switches automatically until one works.">
+          <span class="ai-chip-dot" aria-hidden="true"></span>
+          <span class="ai-chip-text" id="aiModelChipText">Auto · chain</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <button class="btn ai-apply" id="aiApplyBtn" type="button" title="Apply AI edit · Enter">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.7 5.7 1.9-5.7 1.9L12 18.2l-1.9-5.7-5.7-1.9 5.7-1.9L12 3z"/></svg>
+          <span class="lbl" id="aiApplyLbl">Apply</span>
+        </button>
+        <button class="btn ghost ai-stop" id="aiStopBtn" type="button" hidden title="Stop this AI edit">Stop</button>
+        <div class="ai-menu overflow-menu glass" id="aiModelMenu" role="menu" hidden
+             aria-label="Choose AI model (free, no key)"></div>
+      </div>
+      <div class="ai-status" id="aiStatus" role="status" aria-live="polite" hidden>
+        <span class="ai-status-dot" id="aiStatusDot" aria-hidden="true"></span>
+        <span class="ai-status-text" id="aiStatusText"></span>
+        <span class="grow"></span>
+        <span class="ai-status-note">10 free models · no key · auto-switch</span>
+      </div>
       <div class="editor-host" id="editorHost">
         <div class="drop-veil" id="dropVeil"><div class="drop-card">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 15v3a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-3"/></svg>
@@ -365,5 +394,6 @@
 <script src="assets/js/hints.js"></script>
 <script src="assets/js/spheres.js"></script>
 <script src="assets/js/app.js"></script>
+<script src="assets/js/ai-edit.js"></script>
 </body>
 </html>

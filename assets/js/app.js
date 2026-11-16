@@ -366,6 +366,19 @@ function initEditor(initial) {
         cm.replaceRange(v, { line: 0, ch: 0 }, { line: lastLine, ch: cm.getLine(lastLine).length }, "+doc");
         docChars = v.length;
       },
+      applyRanges: function (ranges) {
+        var ordered = ranges.slice().sort(function (a, b) { return b.start - a.start; });
+        cm.operation(function () {
+          ordered.forEach(function (r) {
+            cm.replaceRange(r.replace, cm.posFromIndex(r.start), cm.posFromIndex(r.end), "+ai");
+          });
+        });
+        docChars = cm.getValue().length;
+      },
+      getSelectionInfo: function () {
+        var from = cm.getCursor("from"), to = cm.getCursor("to");
+        return { text: cm.getSelection() || "", from: cm.indexFromPos(from), to: cm.indexFromPos(to), cursor: cm.indexFromPos(cm.getCursor()) };
+      },
       getSize: function () { return docChars; },
       clearHistory: function () { cm.clearHistory(); },
       focus: function () { cm.focus(); },
@@ -383,6 +396,18 @@ function initEditor(initial) {
       getValue: function () { return ta.value; },
       setValue: function (v) { ta.value = v; docChars = v.length; window.DraftDocVersion = (window.DraftDocVersion | 0) + 1; },
       replaceDocument: function (v2) { ta.value = v2; docChars = v2.length; window.DraftDocVersion = (window.DraftDocVersion | 0) + 1; },
+      applyRanges: function (ranges) {
+        var value = ta.value;
+        ranges.slice().sort(function (a, b) { return b.start - a.start; }).forEach(function (r) {
+          value = value.slice(0, r.start) + r.replace + value.slice(r.end);
+        });
+        ta.value = value;
+        ta.setSelectionRange(0, 0);
+        ta.dispatchEvent(new Event("input", { bubbles: true }));
+      },
+      getSelectionInfo: function () {
+        return { text: ta.value.slice(ta.selectionStart, ta.selectionEnd), from: ta.selectionStart, to: ta.selectionEnd, cursor: ta.selectionStart };
+      },
       getSize: function () { return ta.value.length; },
       clearHistory: function () {},
       focus: function () { ta.focus(); },
@@ -915,6 +940,7 @@ var COMMANDS = [
   { name: "Clear editor", cat: "Editor", icon: ICONS.trash, fn: function () { clearEditor(); } },
   { name: "Toggle word wrap", cat: "Editor", icon: ICONS.wrap, fn: toggleWrap },
   { name: "Toggle coding assist (ghost text & Emmet)", cat: "Assist", icon: ICONS.wand, fn: toggleAssist },
+  { name: "AI edit — describe a small change…", cat: "AI", keys: [MOD, "I"], icon: ICONS.spark, fn: function () { var el = document.getElementById("aiInput"); if (el) el.focus(); } },
   { name: "Toggle auto-run preview", cat: "Run", keys: [], icon: ICONS.bolt, fn: toggleAutorun },
   { name: "Import HTML file…", cat: "File", icon: ICONS.import, fn: function () { $("fileInput").click(); } },
   { name: "Export HTML file", cat: "File", keys: [MOD, "S"], icon: ICONS.export, fn: exportFile },
@@ -1057,6 +1083,11 @@ var SHORTCUT_SECTIONS = [
     ["Jump to matching bracket / tag", [MOD, "J"]],
     ["Close autocomplete / dismiss", ["Esc"]]
   ]},
+  { section: "AI edit", rows: [
+    ["Focus the AI edit prompt", [MOD, "I"]],
+    ["Apply AI edit", ["Enter"]],
+    ["AI edits are targeted search/replace patches — the whole document is never rewritten", ["(AI bar)"], "note"]
+  ]},
   { section: "Interface", rows: [
     ["Keyboard shortcuts", [MOD, "\u21e7", "?"]],
     ["Cycle layout split \u2192 stacked \u2192 panes", ["(layout button)"]],
@@ -1074,6 +1105,12 @@ function buildShortcuts() {
     grid.appendChild(h);
     group.rows.forEach(function (row) {
       var div = document.createElement("div");
+      if (row[2] === "note") {
+        div.className = "key-note";
+        div.textContent = row[0];
+        grid.appendChild(div);
+        return;
+      }
       div.className = "key-row";
       div.innerHTML = '<span class="what">' + esc(row[0]) + '</span><span class="keys">' + row[1].map(function (k) { return '<span class="kbd">' + esc(k) + "</span>"; }).join("") + "</span>";
       grid.appendChild(div);
@@ -1279,6 +1316,7 @@ window.addEventListener("keydown", function (e) {
   else if (k === "enter") { e.preventDefault(); e.stopPropagation(); run(); }
   else if (k === "s") { e.preventDefault(); e.stopPropagation(); exportFile(); }
   else if (k === "k") { e.preventDefault(); e.stopPropagation(); if ($("paletteBd").classList.contains("open")) closePalette(); else openPalette(); }
+  else if (k === "i") { e.preventDefault(); e.stopPropagation(); var aiEl = document.getElementById("aiInput"); if (aiEl) aiEl.focus(); }
   else if (k === "`") { e.preventDefault(); e.stopPropagation(); toggleConsole(); }
   else if (k === "f" && e.shiftKey) { e.preventDefault(); e.stopPropagation(); formatDoc(); }
   else if (e.shiftKey && (k === "?" || k === "/")) { e.preventDefault(); e.stopPropagation(); openShortcuts(); }
@@ -1337,6 +1375,7 @@ var WELCOME = `<!doctype html>
       <span class="hint"><b>Ctrl Space</b> autocomplete</span>
       <span class="hint"><b>Ctrl K</b> commands</span>
       <span class="hint"><b>Ctrl Enter</b> run</span>
+      <span class="hint"><b>Ctrl I</b> AI edit</span>
     </div>
     <footer>Autosaves as you work · Sandboxed preview</footer>
   </main>
@@ -1381,6 +1420,18 @@ ed.focus();
 }
 
 /* live preview of settings while interacting */
-window.Draft = { run: run, settings: settings };
+window.Draft = {
+  run: run,
+  settings: settings,
+  editor: ed,
+  toast: toast,
+  setStatus: setStatus,
+  addLog: function (type, args) { addLog(type, args); },
+  focusEditor: function () { try { if (ed && ed.focus) ed.focus(); } catch (e) {} },
+  getSelectionInfo: function () {
+    try { if (ed && ed.getSelectionInfo) return ed.getSelectionInfo(); } catch (e) { /* fall through */ }
+    return null;
+  }
+};
 
 })();
