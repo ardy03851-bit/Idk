@@ -70,9 +70,9 @@ applyAllSettings();
 
 /* ───────────────────────── toast ───────────────────────── */
 var TOAST_ICONS = {
-  ok: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
-  err: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5V13M12 16.5h.01"/></svg>',
-  info: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v5M12 7.5h.01"/></svg>'
+  ok: '<svg viewBox="0 0 24 24"><use href="#i-check"/></svg>',
+  err: '<svg viewBox="0 0 24 24"><use href="#i-alert"/></svg>',
+  info: '<svg viewBox="0 0 24 24"><use href="#i-info"/></svg>'
 };
 function toast(message, kind) {
   var host = $("toasts");
@@ -318,7 +318,7 @@ function initEditor(initial) {
     var cursorUiRaf = 0;
     function scheduleCursorUi() {
       if (cursorUiRaf) return;
-      cursorUiRaf = requestAnimationFrame(function () { cursorUiRaf = 0; updateSelectionInfo(); updateCursorPos(); });
+      cursorUiRaf = requestAnimationFrame(function () { cursorUiRaf = 0; updateSelectionInfo(); updateCursorPos(); updateUndoRedo(); });
     }
     cm.on("cursorActivity", function () { hideGhost(); scheduleCursorUi(); });
     cm.on("scroll", function () { hideGhost(); });
@@ -543,14 +543,47 @@ var runTimer = 0, previewUrl = null;
 var LARGE_DOC_BYTES = 1500000, HUGE_DOC_BYTES = 2500000;
 var largeDocNotified = false;
 
-function run() {
+/* render optimisation: skip identical documents, defer while the
+   preview pane or the whole tab is not visible, flush on return */
+var lastRunHash = null, pendingRun = false;
+function sourceHash(s) {
+  var h = 5381;
+  for (var i = 0; i < s.length; i++) h = (((h << 5) + h) + s.charCodeAt(i)) | 0;
+  return h;
+}
+function previewVisible() {
+  if (document.hidden) return false;
+  var layout = workspace.dataset.layout;
+  if (layout === "editor") return false;
+  if (window.matchMedia("(max-width:900px)").matches && workspace.dataset.mtab === "editor") return false;
+  return true;
+}
+function flushPendingRun() {
+  if (pendingRun && previewVisible()) { pendingRun = false; run(false); }
+}
+document.addEventListener("visibilitychange", function () {
+  if (!document.hidden) flushPendingRun();
+});
+
+function run(force) {
   clearTimeout(runTimer);
+  var source = ed.getValue();
+  var hash = sourceHash(source);
+  if (!force && hash === lastRunHash) {
+    pendingRun = false;
+    setStatus("Preview up to date");
+    return;
+  }
+  if (!previewVisible()) {
+    pendingRun = true;
+    setStatus("Preview will update when it becomes visible", "busy");
+    return;
+  }
   var t0 = performance.now();
   setStatus("Rendering preview…", "busy");
   clearConsole();
   runToken++;
   var BRIDGE = bridgeScript(runToken);
-  var source = ed.getValue();
   // inject the console bridge as early as possible — but never before the doctype,
   // which would flip the document into quirks mode and change how it renders
   if (/<head(?:\s[^>]*)?>/i.test(source)) source = source.replace(/<head(?:\s[^>]*)?>/i, function (m) { return m + BRIDGE; });
@@ -570,6 +603,8 @@ function run() {
     preview.removeAttribute("src");
     preview.srcdoc = source;
   }
+  lastRunHash = hash;
+  pendingRun = false;
   var ms = performance.now() - t0;
   setStatus("Preview updated · " + ms.toFixed(1) + " ms");
 }
@@ -622,8 +657,30 @@ function applyViewport() {
   $("rotateBtn").hidden = viewport === "desktop";
   $("zoomSelect").disabled = viewport === "desktop";
   $("zoomSelect").title = viewport === "desktop" ? "Zoom applies to device viewports" : "Preview zoom";
+  // custom device width field
+  var vww = $("vpWidthWrap"), vwi = $("vpWidthInput");
+  if (vww) vww.hidden = viewport === "desktop";
+  if (vwi && viewport !== "desktop") vwi.value = VIEWPORTS[viewport].w;
   applyZoom();
 }
+/* custom viewport width — type any width between 240 and 6000 px */
+(function () {
+  var vwi = $("vpWidthInput");
+  if (!vwi) return;
+  function applyWidth() {
+    if (viewport === "desktop") return;
+    var w = parseInt(vwi.value, 10);
+    if (!isFinite(w)) return;
+    w = Math.min(6000, Math.max(240, w));
+    vwi.value = w;
+    VIEWPORTS[viewport].w = w;
+    applyZoom();
+    setStatus("Viewport width · " + w + " px");
+  }
+  vwi.addEventListener("change", applyWidth);
+  vwi.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); vwi.blur(); } });
+  vwi.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
+})();
 function applyZoom() {
   var stage = $("previewStage");
   if (viewport === "desktop") {
@@ -685,7 +742,7 @@ $("fullscreenBtn").addEventListener("click", function () {
     else { if (doc.exitFullscreen) doc.exitFullscreen(); else if (doc.webkitExitFullscreen) doc.webkitExitFullscreen(); }
   } catch (err) { toast("Full screen not available here", "err"); }
 });
-$("refreshBtn").addEventListener("click", function () { run(); });
+$("refreshBtn").addEventListener("click", function () { run(true); });
 
 /* re-fit on container resize */
 (function () {
@@ -881,6 +938,7 @@ function setLayout(l) {
   var sp = $("splitter");
   sp.setAttribute("aria-orientation", l === "split-v" ? "horizontal" : "vertical");
   if (ed && ed.cm) ed.cm.refresh();
+  requestAnimationFrame(function () { flushPendingRun(); if (l !== "editor") applyZoom(); });
 }
 var LAYOUTS = ["split-h", "split-v", "editor", "preview"];
 var LAYOUT_LABEL = { "split-h": "Split side-by-side", "split-v": "Split stacked", "editor": "Editor only", "preview": "Preview only" };
@@ -914,34 +972,72 @@ function toggleAssist() {
 }
 
 var ICONS = {
-  run: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v13.72c0 .8.87 1.3 1.56.86l10.5-6.86a1 1 0 0 0 0-1.72L9.56 4.28A1 1 0 0 0 8 5.14z"/></svg>',
-  tab: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
-  console: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 17 6-6-6-6"/><line x1="12" y1="19" x2="20" y2="19"/></svg>',
-  format: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h6"/><path d="m17 15 4 3-4 3"/></svg>',
-  import: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
-  export: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
-  copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
-  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/></svg>',
-  layout: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M12 3v18"/></svg>',
-  rows: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M3 12h18"/></svg>',
-  pane: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/></svg>',
-  monitor: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
-  tablet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2.5"/><path d="M12 18h.01"/></svg>',
-  phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M12 18h.01"/></svg>',
-  wrap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h15a3 3 0 1 1 0 6h-4"/><path d="m16 15-3 3 3 3"/></svg>',
-  wand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l1.9 5.7 5.7 1.9-5.7 1.9L12 18.2l-1.9-5.7-5.7-1.9 5.7-1.9L12 3z"/></svg>',
-  bolt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>',
-  keys: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2.5"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M9 14h6"/></svg>',
-  grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
-  reset: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>',
-  motion: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="2.4"/><path d="M12 2a10 10 0 0 1 10 10" opacity=".6"/></svg>',
-  spark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.7 5.7 1.9-5.7 1.9L12 18.2l-1.9-5.7-5.7-1.9 5.7-1.9L12 3z"/><path d="M19 4v3M20.5 5.5h-3"/></svg>'
+  run: '<svg viewBox="0 0 24 24"><use href="#i-play"/></svg>',
+  tab: '<svg viewBox="0 0 24 24"><use href="#i-external"/></svg>',
+  console: '<svg viewBox="0 0 24 24"><use href="#i-console"/></svg>',
+  format: '<svg viewBox="0 0 24 24"><use href="#i-format"/></svg>',
+  import: '<svg viewBox="0 0 24 24"><use href="#i-import"/></svg>',
+  export: '<svg viewBox="0 0 24 24"><use href="#i-export"/></svg>',
+  copy: '<svg viewBox="0 0 24 24"><use href="#i-copy"/></svg>',
+  paste: '<svg viewBox="0 0 24 24"><use href="#i-paste"/></svg>',
+  select: '<svg viewBox="0 0 24 24"><use href="#i-select"/></svg>',
+  undo: '<svg viewBox="0 0 24 24"><use href="#i-undo"/></svg>',
+  redo: '<svg viewBox="0 0 24 24"><use href="#i-redo"/></svg>',
+  pencil: '<svg viewBox="0 0 24 24"><use href="#i-pencil"/></svg>',
+  file: '<svg viewBox="0 0 24 24"><use href="#i-file"/></svg>',
+  trash: '<svg viewBox="0 0 24 24"><use href="#i-trash"/></svg>',
+  layout: '<svg viewBox="0 0 24 24"><use href="#i-layout"/></svg>',
+  rows: '<svg viewBox="0 0 24 24"><use href="#i-rows"/></svg>',
+  pane: '<svg viewBox="0 0 24 24"><use href="#i-pane"/></svg>',
+  monitor: '<svg viewBox="0 0 24 24"><use href="#i-desktop"/></svg>',
+  tablet: '<svg viewBox="0 0 24 24"><use href="#i-tablet"/></svg>',
+  phone: '<svg viewBox="0 0 24 24"><use href="#i-phone"/></svg>',
+  wrap: '<svg viewBox="0 0 24 24"><use href="#i-wrap"/></svg>',
+  wand: '<svg viewBox="0 0 24 24"><use href="#i-spark"/></svg>',
+  bolt: '<svg viewBox="0 0 24 24"><use href="#i-bolt"/></svg>',
+  keys: '<svg viewBox="0 0 24 24"><use href="#i-keyboard"/></svg>',
+  grid: '<svg viewBox="0 0 24 24"><use href="#i-grid"/></svg>',
+  reset: '<svg viewBox="0 0 24 24"><use href="#i-reset"/></svg>',
+  motion: '<svg viewBox="0 0 24 24"><use href="#i-motion"/></svg>',
+  spark: '<svg viewBox="0 0 24 24"><use href="#i-spark"/></svg>',
+  ruler: '<svg viewBox="0 0 24 24"><use href="#i-ruler"/></svg>'
 };
 
 function selectAllSource() {
   if (ed.cm) { ed.cm.execCommand("selectAll"); ed.cm.focus(); }
   else { var input = document.querySelector(".fallback-editor"); if (input) { input.focus(); input.select(); } }
 }
+
+/* ── undo / redo (top-bar cluster + palette) ── */
+function updateUndoRedo() {
+  var u = $("undoBtn"), r = $("redoBtn");
+  if (!u || !r) return;
+  if (ed && ed.cm) {
+    var hs = ed.cm.historySize();
+    u.hidden = false; r.hidden = false;
+    u.disabled = !hs.undo;
+    r.disabled = !hs.redo;
+  } else {
+    u.hidden = true; r.hidden = true;
+  }
+}
+function undoDoc() { if (ed && ed.cm) { ed.cm.undo(); ed.cm.focus(); } }
+function redoDoc() { if (ed && ed.cm) { ed.cm.redo(); ed.cm.focus(); } }
+$("undoBtn").addEventListener("click", undoDoc);
+$("redoBtn").addEventListener("click", redoDoc);
+
+/* ── rename file from the top-bar chip ── */
+function renameFile() {
+  var next = window.prompt("File name", filename);
+  if (next === null) return;
+  next = next.trim();
+  if (!next) { toast("Name can't be empty", "err"); return; }
+  setName(next);
+  scheduleSave();
+  toast("Renamed to " + filename);
+}
+var fileChip = $("fileChip");
+if (fileChip) fileChip.addEventListener("click", renameFile);
 function pasteReplaceSource() {
   if (!navigator.clipboard || !navigator.clipboard.readText) {
     selectAllSource();
@@ -966,13 +1062,16 @@ $("copySourceBtn").addEventListener("click", copySource);
 $("pasteReplaceBtn").addEventListener("click", pasteReplaceSource);
 
 var COMMANDS = [
-  { name: "Select all source", cat: "Editor", icon: ICONS.copy, fn: selectAllSource },
-  { name: "Paste and replace source", cat: "Editor", icon: ICONS.copy, fn: pasteReplaceSource },
-  { name: "Run preview", cat: "Run", keys: [MOD, "↵"], icon: ICONS.run, fn: function () { run(); } },
+  { name: "Select all source", cat: "Editor", keys: [MOD, "A"], icon: ICONS.select, fn: selectAllSource },
+  { name: "Replace source with clipboard", cat: "Editor", keys: [MOD, "⇧", "V"], icon: ICONS.paste, fn: pasteReplaceSource },
+  { name: "Copy source to clipboard", cat: "Editor", keys: [MOD, "C"], icon: ICONS.copy, fn: copySource },
+  { name: "Undo", cat: "Editor", keys: [MOD, "Z"], icon: ICONS.undo, fn: undoDoc },
+  { name: "Redo", cat: "Editor", keys: [MOD, "⇧", "Z"], icon: ICONS.redo, fn: redoDoc },
+  { name: "Rename file…", cat: "File", icon: ICONS.pencil, fn: renameFile },
+  { name: "Run preview", cat: "Run", keys: [MOD, "↵"], icon: ICONS.run, fn: function () { run(true); } },
   { name: "Run in new tab", cat: "Run", keys: [MOD, "⇧", "↵"], icon: ICONS.tab, fn: openInNewTab },
   { name: "Toggle console", cat: "Run", keys: [MOD, "`"], icon: ICONS.console, fn: function () { toggleConsole(); } },
   { name: "Format document", cat: "Editor", keys: [MOD, "⇧", "F"], icon: ICONS.format, fn: formatDoc },
-  { name: "Copy source to clipboard", cat: "Editor", icon: ICONS.copy, fn: copySource },
   { name: "Clear editor", cat: "Editor", icon: ICONS.trash, fn: function () { clearEditor(); } },
   { name: "Toggle word wrap", cat: "Editor", icon: ICONS.wrap, fn: toggleWrap },
   { name: "Toggle coding assist (ghost text & Emmet)", cat: "Assist", icon: ICONS.wand, fn: toggleAssist },
@@ -1102,9 +1201,13 @@ var SHORTCUT_SECTIONS = [
     ["Import HTML file", ["(drop a file anywhere)"]]
   ]},
   { section: "Editing", rows: [
+    ["Select all source", [MOD, "A"]],
+    ["Copy source", [MOD, "C"]],
+    ["Replace source with clipboard", [MOD, "\u21e7", "V"]],
+    ["Undo / redo", [MOD, "Z / \u21e7 Z"]],
     ["Find in document", [MOD, "F"]],
     ["Find next / previous", [MOD, "G"]],
-    isMac ? ["Replace all", ["\u21e7", "\u2318", "\u2325", "F"]] : ["Replace all", ["Ctrl", "\u21e7", "R"]],
+    isMac ? ["Replace in find bar", ["\u21e7", "\u2318", "\u2325", "F"]] : ["Replace in find bar", ["Ctrl", "\u21e7", "R"]],
     ["Go to line", ["Alt", "G"]],
     ["Format document", [MOD, "\u21e7", "F"]],
     ["Toggle comment", [MOD, "/"]],
@@ -1127,6 +1230,8 @@ var SHORTCUT_SECTIONS = [
   { section: "Interface", rows: [
     ["Keyboard shortcuts", [MOD, "\u21e7", "?"]],
     ["Cycle layout split \u2192 stacked \u2192 panes", ["(layout button)"]],
+    ["Switch Source \u21c4 Preview on touch", ["(swipe or tabs)"]],
+    ["Rename the current file", ["(click file name)"]],
     ["Preview full screen", ["(expand button)"]],
     ["Close dialogues", ["Esc"]]
   ]}
@@ -1304,11 +1409,55 @@ function setMobileTab(t) {
   $("tabPreview").classList.toggle("on", t === "preview");
   $("tabEditor").setAttribute("aria-selected", String(t === "editor"));
   $("tabPreview").setAttribute("aria-selected", String(t === "preview"));
-  requestAnimationFrame(function () { if (t === "editor" && ed && ed.cm) ed.cm.refresh(); if (t === "preview") applyZoom(); });
+  requestAnimationFrame(function () {
+    if (t === "editor" && ed && ed.cm) ed.cm.refresh();
+    if (t === "preview") { applyZoom(); flushPendingRun(); }
+  });
 }
 
+/* ═══════════ touch: swipe between Source ⇄ Preview ═══════════
+   Horizontal swipes that begin outside the code editor switch panels —
+   the editor keeps its own panning so text selection is never hijacked. */
+(function initSwipe() {
+  var sx = 0, sy = 0, tracking = false, fromTouch = false;
+  var ws = workspace;
+  ws.addEventListener("pointerdown", function (e) {
+    if (e.pointerType !== "touch") { fromTouch = false; return; }
+    var t = e.target;
+    if (t && t.closest && t.closest(".editor-host")) { tracking = false; return; }
+    fromTouch = true; tracking = true; sx = e.clientX; sy = e.clientY;
+  }, { passive: true });
+  ws.addEventListener("pointerup", function (e) {
+    if (!tracking || !fromTouch) return;
+    tracking = false;
+    var dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.abs(dx) < 80 || Math.abs(dy) > 56) return;
+    if (!window.matchMedia("(max-width:900px)").matches) return;
+    if (dx < 0) setMobileTab("preview");
+    else setMobileTab("editor");
+  }, { passive: true });
+  ws.addEventListener("pointercancel", function () { tracking = false; }, { passive: true });
+})();
+
+/* ═══════════ keyboard-aware layout (iPad software keyboard) ═══════════ */
+(function initVisualViewport() {
+  var vv = window.visualViewport;
+  if (!vv) return;
+  function sync() {
+    var h = Math.round(vv.height);
+    if (h > 240) document.documentElement.style.setProperty("--app-h", h + "px");
+    var ae = document.activeElement;
+    if (ae && (ae.tagName === "INPUT" || ae.tagName === "TEXTAREA") && ae.scrollIntoView) {
+      try { ae.scrollIntoView({ block: "nearest" }); } catch (e) {}
+    }
+  }
+  vv.addEventListener("resize", sync);
+  vv.addEventListener("scroll", sync);
+  sync();
+})();
+
 /* ═════════════════════════ wire up global actions ═════════════════════════ */
-$("runBtn").addEventListener("click", run);
+$("runBtn").addEventListener("click", function () { run(true); });
 $("openTabBtn").addEventListener("click", openInNewTab);
 $("exportBtn").addEventListener("click", exportFile);
 $("importBtn").addEventListener("click", function () { $("fileInput").click(); });
@@ -1336,6 +1485,14 @@ window.addEventListener("drop", async function (e) {
 });
 
 /* global shortcuts (capture before the editor sees them) */
+function inPlainField() {
+  var ae = document.activeElement;
+  if (!ae) return false;
+  var t = ae.tagName;
+  var editable = t === "INPUT" || t === "TEXTAREA" || t === "SELECT" || ae.isContentEditable;
+  if (!editable) return false;
+  return !(ae.closest && ae.closest(".CodeMirror"));
+}
 window.addEventListener("keydown", function (e) {
   var mod = e.ctrlKey || e.metaKey;
   if (e.key === "Escape") {
@@ -1356,6 +1513,9 @@ window.addEventListener("keydown", function (e) {
   else if (k === "i") { e.preventDefault(); e.stopPropagation(); var aiEl = document.getElementById("aiInput"); if (aiEl) aiEl.focus(); }
   else if (k === "`") { e.preventDefault(); e.stopPropagation(); toggleConsole(); }
   else if (k === "f" && e.shiftKey) { e.preventDefault(); e.stopPropagation(); formatDoc(); }
+  else if (k === "v" && e.shiftKey && !inPlainField()) { e.preventDefault(); e.stopPropagation(); pasteReplaceSource(); }
+  else if (k === "z" && !e.shiftKey && !inPlainField()) { e.preventDefault(); e.stopPropagation(); undoDoc(); }
+  else if ((k === "z" && e.shiftKey) || k === "y") { if (!inPlainField()) { e.preventDefault(); e.stopPropagation(); redoDoc(); } }
   else if (e.shiftKey && (k === "?" || k === "/")) { e.preventDefault(); e.stopPropagation(); openShortcuts(); }
 }, true);
 
@@ -1427,6 +1587,7 @@ initEditor("");
 restored = restore();
 if (!restored) {
   ed.setValue(WELCOME);
+  setName("welcome.html");
 } else if (ed.clearHistory) {
   ed.clearHistory();
 }
@@ -1444,8 +1605,9 @@ applyFontSize();
 updateCursorPos();
 updateSelectionInfo();
 updateMetrics();
+updateUndoRedo();
 applyViewport();
-run();
+run(true);
 setStatus(restored ? "Restored your last session" : "Ready — press Ctrl Enter to run");
 if (restored) toast("Restored your last session");
 ed.focus();
