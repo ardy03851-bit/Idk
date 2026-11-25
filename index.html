@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark">
-<meta name="description" content="Draft — a fast, beautifully engineered HTML studio: write, run and debug large HTML documents with a live sandboxed preview, Emmet-style expansion, ghost-text predictions, context-aware autocomplete, console capture, templates and a command palette.">
+<meta name="description" content="Draft — a fast, beautifully engineered HTML studio: write, run and debug large HTML documents with a live sandboxed preview, clipboard select-all/replace tools, Emmet-style expansion, ghost-text predictions, context-aware autocomplete, console capture, templates, device viewports and a command palette. Tuned for desktop and iPad.">
 <title>Draft — HTML Studio</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%238df1ff'/%3E%3Cstop offset='.5' stop-color='%237aa2ff'/%3E%3Cstop offset='1' stop-color='%23c49bff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='%23070910'/%3E%3Crect x='1.2' y='1.2' width='29.6' height='29.6' rx='7' fill='none' stroke='url(%23g)' stroke-width='2'/%3E%3Cpath d='M12 11l-5 5 5 5M20 11l5 5-5 5' stroke='url(%23g)' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://api.fontshare.com">
@@ -22,49 +22,102 @@
 </head>
 <body>
 
-<!-- ambient background: wireframe spheres render onto this canvas -->
-<canvas id="bgCanvas" aria-hidden="true"></canvas>
-<div class="bloom bloom-a" aria-hidden="true"></div>
-<div class="bloom bloom-b" aria-hidden="true"></div>
-<div class="bloom bloom-c" aria-hidden="true"></div>
-<div class="grain" aria-hidden="true"></div>
-<div class="vignette" aria-hidden="true"></div>
+<!-- ══════════ icon sprite — one consistent, rounded stroke set ══════════ -->
+<svg class="sprite" aria-hidden="true" focusable="false" width="0" height="0">
+  <defs>
+    <symbol id="i-brand" viewBox="0 0 24 24"><path d="m9 7-5 5 5 5M15 7l5 5-5 5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></symbol>
+    <symbol id="i-import" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
+    <symbol id="i-export" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.1"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.01a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.14v13.72c0 .8.87 1.3 1.56.86l10.5-6.86a1 1 0 0 0 0-1.72L9.56 4.28A1 1 0 0 0 8 5.14z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></symbol>
+    <symbol id="i-format" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h6"/><path d="m17 14.5 4 3.5-4 3.5"/></symbol>
+    <symbol id="i-wrap" viewBox="0 0 24 24"><path d="M3 6h18M3 12h15a3 3 0 1 1 0 6h-4"/><path d="m16 15-3 3 3 3"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.7 5.7 1.9-5.7 1.9L12 18.2l-1.9-5.7-5.7-1.9 5.7-1.9L12 3z"/><path d="M19 3.5v3M20.5 5h-3"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.7" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-desktop" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2.5"/><path d="M8 21h8M12 17v4"/></symbol>
+    <symbol id="i-tablet" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="3"/><path d="M12 18h.01"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M12 18h.01"/></symbol>
+    <symbol id="i-rotate" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 0 1 14.6-5.9L21 9"/><path d="M21 3.5V9h-5.5"/><path d="M20.5 12a8.5 8.5 0 0 1-14.6 5.9L3 15"/><path d="M3 20.5V15h5.5"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></symbol>
+    <symbol id="i-paste" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4.5" rx="1.5"/><path d="M16 4.5h2A2 2 0 0 1 20 6.5v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-14a2 2 0 0 1 2-2h2"/><path d="M9 13h6M9 17h4"/></symbol>
+    <symbol id="i-select" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3.5" stroke-dasharray="4.5 3.6"/><path d="m8.5 12.5 2.6 2.6 4.6-5.4"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6.4 2.7L3 13"/></symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6.4 2.7L21 13"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="m9 7-5 5 5 5M15 7l5 5-5 5"/></symbol>
+    <symbol id="i-console" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="m7.5 10 2.5 2.5-2.5 2.5M12.5 15.5h4"/></symbol>
+    <symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2.5"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M9 14h6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5V13M12 16.5h.01"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v5M12 7.5h.01"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></symbol>
+    <symbol id="i-layout" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 3v18"/></symbol>
+    <symbol id="i-rows" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 12h18"/></symbol>
+    <symbol id="i-pane" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></symbol>
+    <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 15v3a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-3"/></symbol>
+    <symbol id="i-motion" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.4"/><path d="M12 2a10 10 0 0 1 10 10" opacity=".6"/><path d="M12 22A10 10 0 0 1 2 12" opacity=".6"/></symbol>
+    <symbol id="i-reset" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></symbol>
+    <symbol id="i-wand" viewBox="0 0 24 24"><path d="m3 21 12-12"/><path d="M16 3v4M18 5h-4M20.5 9v3M22 10.5h-3"/><path d="M9.5 5.5v3M11 7H8"/></symbol>
+    <symbol id="i-ruler" viewBox="0 0 24 24"><rect x="2" y="8" width="20" height="8" rx="2"/><path d="M6.5 8v3M10 8v4.5M13.5 8v3M17 8v4.5"/></symbol>
+  </defs>
+</svg>
 
 <div class="app">
 
-  <!-- ══════════ top bar ══════════ -->
-  <header class="topbar glass fade-hairline">
-    <div class="identity">
-      <div class="brand-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 7-5 5 5 5M15 7l5 5-5 5"/></svg></div><div class="wordmark">Draft<span class="wordmark-rule" aria-hidden="true"></span><span class="wordmark-sub">HTML&nbsp;Studio</span></div>
+  <!-- ══════════ activity rail ══════════ -->
+  <nav class="rail" aria-label="Studio actions">
+    <div class="rail-brand" title="Draft — HTML Studio" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><use href="#i-brand"/></svg>
     </div>
-    <div class="top-actions">
-      <button class="btn ghost" id="paletteBtn" type="button" title="Command palette · Ctrl K">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0 3-3"/></svg>
-        <span class="lbl">Commands</span><span class="kbd" id="paletteKbd">Ctrl K</span>
+    <div class="rail-sep" aria-hidden="true"></div>
+
+    <div class="rail-group">
+      <button class="rail-btn" id="paletteBtn" type="button" title="Command palette" aria-label="Command palette">
+        <svg viewBox="0 0 24 24"><use href="#i-search"/></svg>
+        <span class="rail-tip">Commands <i id="paletteKbd">Ctrl K</i></span>
       </button>
-      <div class="sep" aria-hidden="true"></div>
-      <button class="btn" id="importBtn" type="button" title="Import an HTML file">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span class="lbl">Import</span>
+      <button class="rail-btn" id="importBtn" type="button" title="Import an HTML file" aria-label="Import HTML file">
+        <svg viewBox="0 0 24 24"><use href="#i-import"/></svg>
+        <span class="rail-tip">Import file</span>
       </button>
-      <button class="btn" id="exportBtn" type="button" title="Export HTML file · Ctrl S">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <span class="lbl">Export</span>
+      <button class="rail-btn" id="exportBtn" type="button" title="Export HTML file" aria-label="Export HTML file">
+        <svg viewBox="0 0 24 24"><use href="#i-export"/></svg>
+        <span class="rail-tip">Export file <i>Ctrl S</i></span>
       </button>
-      <button class="btn icon" id="openTabBtn" type="button" title="Open standalone tab · Ctrl Shift Enter" aria-label="Open in new tab">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      <button class="rail-btn" id="openTabBtn" type="button" title="Open standalone tab" aria-label="Open in new tab">
+        <svg viewBox="0 0 24 24"><use href="#i-external"/></svg>
+        <span class="rail-tip">Open in new tab <i>Ctrl ⇧ ↵</i></span>
       </button>
-      <button class="btn icon" id="settingsBtn" type="button" title="Preferences" aria-label="Preferences" aria-expanded="false" aria-controls="settingsPop">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.01a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1z"/></svg>
-      </button>
-      <button class="btn run" id="runBtn" type="button" title="Run preview · Ctrl Enter">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v13.72c0 .8.87 1.3 1.56.86l10.5-6.86a1 1 0 0 0 0-1.72L9.56 4.28A1 1 0 0 0 8 5.14z"/></svg>
-        <span class="lbl">Run</span>
+      <button class="rail-btn" id="tplBtn" type="button" title="Starter templates" aria-label="Starter templates">
+        <svg viewBox="0 0 24 24"><use href="#i-grid"/></svg>
+        <span class="rail-tip">Templates</span>
       </button>
     </div>
 
-    <!-- settings popover -->
-    <div class="settings-pop glass" id="settingsPop" role="dialog" aria-label="Preferences" hidden>
+    <div class="rail-spacer" aria-hidden="true"></div>
+
+    <div class="rail-group rail-foot">
+      <button class="rail-btn" id="settingsBtn" type="button" title="Preferences" aria-label="Preferences" aria-expanded="false" aria-controls="settingsPop">
+        <svg viewBox="0 0 24 24"><use href="#i-settings"/></svg>
+        <span class="rail-tip">Preferences</span>
+      </button>
+      <button class="rail-run" id="runBtn" type="button" title="Run preview" aria-label="Run preview">
+        <svg viewBox="0 0 24 24"><use href="#i-play"/></svg>
+        <span class="rail-tip">Run <i>Ctrl ↵</i></span>
+      </button>
+    </div>
+
+    <!-- preferences popover -->
+    <div class="settings-pop" id="settingsPop" role="dialog" aria-label="Preferences" hidden>
       <div class="sp-head">
         <span class="sp-title">Preferences</span>
         <span class="sp-sub">Stored on this device</span>
@@ -109,221 +162,252 @@
         </label>
       </div>
       <div class="sp-foot">
-        <button class="sp-link" id="shortcutsBtn2" type="button">Keyboard shortcuts<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>
+        <button class="sp-link" id="shortcutsBtn2" type="button">Keyboard shortcuts<svg viewBox="0 0 24 24"><use href="#i-chevron"/></svg></button>
         <button class="sp-link danger" id="resetWorkspace" type="button">Reset workspace</button>
       </div>
     </div>
-  </header>
+  </nav>
 
-  <!-- mobile tab switch (iPad portrait / phones) -->
-  <div class="ws-tabs" id="wsTabs" role="tablist" aria-label="Workspace panel">
-    <button class="ws-tab on" id="tabEditor" role="tab" aria-selected="true" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-      Source
-    </button>
-    <button class="ws-tab" id="tabPreview" role="tab" aria-selected="false" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-      Preview
-    </button>
-  </div>
+  <div class="main">
 
-  <!-- ══════════ workspace ══════════ -->
-  <main class="workspace" id="workspace" data-layout="split-h" data-mtab="editor">
+    <!-- ══════════ top bar ══════════ -->
+    <header class="topbar">
+      <div class="wordmark" aria-hidden="true">Draft<span class="wordmark-rule"></span><span class="wordmark-sub">HTML&nbsp;Studio</span></div>
 
-    <!-- editor pane -->
-    <section class="pane pane-editor fade-hairline" aria-label="Source editor">
-      <div class="pane-head">
-        <span class="eyebrow"><span class="eyebrow-tick"></span>Source</span>
-        <span class="file-name" id="fileName" title="untitled.html">untitled.html</span>
-        <span class="grow"></span>
-        <div class="pane-tools" id="editorTools">
-          <button class="tool" id="tplBtn" type="button" title="Starter templates">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-            <span class="tool-lbl">Templates</span>
-          </button>
-          <button class="tool" id="formatBtn" type="button" title="Format document · Ctrl Shift F">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h6"/><path d="m17 15 4 3-4 3"/></svg>
-            <span class="tool-lbl">Format</span>
-          </button>
-          <button class="tool" id="wrapBtn" type="button" title="Toggle word wrap" aria-pressed="false">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h15a3 3 0 1 1 0 6h-4"/><path d="m16 15-3 3 3 3"/></svg>
-            <span class="tool-lbl">Wrap</span>
-          </button>
-          <button class="tool on" id="assistBtn" type="button" title="Coding assist — ghost text &amp; Emmet expansion (Tab)" aria-pressed="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.7 5.7 1.9-5.7 1.9L12 18.2l-1.9-5.7-5.7-1.9 5.7-1.9L12 3z"/><path d="M19 3.5v3M20.5 5h-3"/></svg>
-            <span class="tool-lbl">Assist</span>
-          </button>
-          <button class="tool on" id="autorunBtn" type="button" title="Toggle auto-run on change" aria-pressed="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
-            <span class="tool-lbl">Auto</span>
-          </button>
-          <button class="tool icon" id="clearBtn" type="button" title="Clear editor" aria-label="Clear editor">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
-          </button>
-          <button class="tool icon overflow-btn" id="editorOverflowBtn" type="button" title="More actions" aria-label="More actions" aria-expanded="false" aria-controls="editorOverflowMenu">
-            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
-          </button>
-        </div>
-        <div class="overflow-menu glass" id="editorOverflowMenu" role="menu" hidden>
-          <button role="menuitem" data-act="templates" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Templates</button>
-          <button role="menuitem" data-act="format" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h6"/></svg>Format document</button>
-          <button role="menuitem" data-act="wrap" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h15a3 3 0 1 1 0 6h-4"/></svg>Toggle word wrap</button>
-          <button role="menuitem" data-act="assist" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l1.9 5.7 5.7 1.9-5.7 1.9L12 18.2l-1.9-5.7-5.7-1.9 5.7-1.9L12 3z"/></svg>Toggle coding assist</button>
-          <button role="menuitem" data-act="autorun" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>Toggle auto-run</button>
-          <button role="menuitem" data-act="clear" type="button" class="danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/></svg>Clear editor</button>
-        </div>
-      </div>
-      <!-- ══════════ AI edit bar ══════════ -->
-      <div class="ai-bar" id="aiBar">
-        <span class="ai-spark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.7 5.7 1.9-5.7 1.9L12 18.2l-1.9-5.7-5.7-1.9 5.7-1.9L12 3z"/><path d="M19 4v3M20.5 5.5h-3"/></svg>
-        </span>
-        <input class="ai-input" id="aiInput" type="text" autocomplete="off" spellcheck="false" maxlength="400"
-               placeholder="Describe a small edit… e.g. “make the hero heading bigger and the nav sticky”"
-               aria-label="Describe an edit for the AI to apply">
-        <span class="ai-disclosure" title="The AI provider receives the instruction and a document excerpt.">Prompt + excerpt sent to Pollinations</span>
-        <button class="ai-chip" id="aiModelChip" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="aiModelMenu"
-                title="AI models — free, no key required. Draft tries them in order and switches automatically until one works.">
-          <span class="ai-chip-dot" aria-hidden="true"></span>
-          <span class="ai-chip-text" id="aiModelChipText">Auto · chain</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      <button class="file-chip" id="fileChip" type="button" title="Rename this file">
+        <svg viewBox="0 0 24 24" class="file-ic"><use href="#i-file"/></svg>
+        <span class="file-name" id="fileName">untitled.html</span>
+        <svg viewBox="0 0 24 24" class="file-rename"><use href="#i-pencil"/></svg>
+      </button>
+
+      <span class="grow"></span>
+
+      <!-- clipboard & history cluster -->
+      <div class="top-cluster" role="toolbar" aria-label="Source clipboard controls">
+        <button class="ctool" id="undoBtn" type="button" title="Undo · Ctrl Z" aria-label="Undo">
+          <svg viewBox="0 0 24 24"><use href="#i-undo"/></svg><span class="ctool-lbl">Undo</span>
         </button>
-        <button class="btn ai-apply" id="aiApplyBtn" type="button" title="Apply AI edit · Enter">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.7 5.7 1.9-5.7 1.9L12 18.2l-1.9-5.7-5.7-1.9 5.7-1.9L12 3z"/></svg>
-          <span class="lbl" id="aiApplyLbl">Apply</span>
+        <button class="ctool" id="redoBtn" type="button" title="Redo · Ctrl ⇧ Z" aria-label="Redo">
+          <svg viewBox="0 0 24 24"><use href="#i-redo"/></svg><span class="ctool-lbl">Redo</span>
         </button>
-        <button class="btn ghost ai-stop" id="aiStopBtn" type="button" hidden title="Stop this AI edit">Stop</button>
-        <div class="ai-menu overflow-menu glass" id="aiModelMenu" role="menu" hidden
-             aria-label="Choose AI model (free, no key)"></div>
+        <span class="cluster-sep" aria-hidden="true"></span>
+        <button class="ctool" id="selectAllBtn" type="button" title="Select all source · Ctrl A">
+          <svg viewBox="0 0 24 24"><use href="#i-select"/></svg><span class="ctool-lbl">Select all</span>
+        </button>
+        <button class="ctool" id="copySourceBtn" type="button" title="Copy all source · Ctrl C">
+          <svg viewBox="0 0 24 24"><use href="#i-copy"/></svg><span class="ctool-lbl">Copy</span>
+        </button>
+        <button class="ctool accent" id="pasteReplaceBtn" type="button" title="Replace the whole document with the clipboard · Ctrl ⇧ V">
+          <svg viewBox="0 0 24 24"><use href="#i-paste"/></svg><span class="ctool-lbl">Replace with clipboard</span>
+        </button>
       </div>
-      <div class="ai-status" id="aiStatus" role="status" aria-live="polite" hidden>
-        <span class="ai-status-dot" id="aiStatusDot" aria-hidden="true"></span>
-        <span class="ai-status-text" id="aiStatusText"></span>
-        <span class="grow"></span>
-        <span class="ai-status-note">10 free models · no key · auto-switch</span>
-      </div>
-      <div class="source-actions" aria-label="Source actions">
-        <div class="source-label"><span class="source-file-icon">&lt;/&gt;</span><span>HTML document</span><span class="source-hint">Your changes are saved locally</span></div>
-        <div class="source-buttons">
-          <button type="button" id="selectAllBtn" title="Select all source code">Select all</button>
-          <button type="button" id="copySourceBtn" title="Copy all source code">Copy</button>
-          <button type="button" id="pasteReplaceBtn" title="Replace all source with clipboard text">Paste &amp; replace</button>
-        </div>
-      </div>
-      <div class="editor-host" id="editorHost">
-        <div class="drop-veil" id="dropVeil"><div class="drop-card">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 15v3a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-3"/></svg>
-          <strong>Drop to open</strong><small>HTML files open straight into the editor</small>
-        </div></div>
-      </div>
-    </section>
+    </header>
 
-    <div class="splitter" id="splitter" role="separator" aria-orientation="vertical" aria-label="Resize panels" tabindex="0" title="Drag to resize · arrow keys work too"><span class="splitter-grip"></span></div>
+    <!-- mobile / iPad-portrait panel switch -->
+    <div class="ws-tabs" id="wsTabs" role="tablist" aria-label="Workspace panel">
+      <button class="ws-tab on" id="tabEditor" role="tab" aria-selected="true" type="button">
+        <svg viewBox="0 0 24 24"><use href="#i-code"/></svg>
+        Source
+      </button>
+      <button class="ws-tab" id="tabPreview" role="tab" aria-selected="false" type="button">
+        <svg viewBox="0 0 24 24"><use href="#i-desktop"/></svg>
+        Preview
+      </button>
+      <span class="ws-hint" aria-hidden="true">swipe ⇄</span>
+    </div>
 
-    <!-- preview pane -->
-    <section class="pane pane-preview fade-hairline" aria-label="Live preview" id="previewPane">
-      <div class="pane-head">
-        <span class="eyebrow"><span class="eyebrow-live"></span>Preview</span>
-        <span class="vp-readout" id="vpReadout">—</span>
-        <span class="grow"></span>
-        <div class="pane-tools">
-          <div class="seg" role="radiogroup" aria-label="Preview viewport" id="viewportSeg">
-            <button class="on" data-vp="desktop" role="radio" aria-checked="true" type="button" title="Desktop viewport">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+    <!-- ══════════ workspace ══════════ -->
+    <main class="workspace" id="workspace" data-layout="split-h" data-mtab="editor">
+
+      <!-- editor pane -->
+      <section class="pane pane-editor" aria-label="Source editor">
+        <div class="pane-head">
+          <span class="eyebrow"><span class="eyebrow-tick"></span>Source</span>
+          <span class="grow"></span>
+          <div class="pane-tools" id="editorTools">
+            <button class="tool" id="formatBtn" type="button" title="Format document · Ctrl ⇧ F">
+              <svg viewBox="0 0 24 24"><use href="#i-format"/></svg>
+              <span class="tool-lbl">Format</span>
             </button>
-            <button data-vp="tablet" role="radio" aria-checked="false" type="button" title="Tablet viewport · 834 px">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2.5"/><path d="M12 18h.01"/></svg>
+            <button class="tool" id="wrapBtn" type="button" title="Toggle word wrap" aria-pressed="false">
+              <svg viewBox="0 0 24 24"><use href="#i-wrap"/></svg>
+              <span class="tool-lbl">Wrap</span>
             </button>
-            <button data-vp="phone" role="radio" aria-checked="false" type="button" title="Phone viewport · 390 px">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M12 18h.01"/></svg>
+            <button class="tool on" id="assistBtn" type="button" title="Coding assist — ghost text &amp; Emmet expansion (Tab)" aria-pressed="true">
+              <svg viewBox="0 0 24 24"><use href="#i-spark"/></svg>
+              <span class="tool-lbl">Assist</span>
+            </button>
+            <button class="tool on" id="autorunBtn" type="button" title="Toggle auto-run on change" aria-pressed="true">
+              <svg viewBox="0 0 24 24"><use href="#i-bolt"/></svg>
+              <span class="tool-lbl">Auto</span>
+            </button>
+            <button class="tool icon" id="clearBtn" type="button" title="Clear editor" aria-label="Clear editor">
+              <svg viewBox="0 0 24 24"><use href="#i-trash"/></svg>
+            </button>
+            <button class="tool icon overflow-btn" id="editorOverflowBtn" type="button" title="More actions" aria-label="More actions" aria-expanded="false" aria-controls="editorOverflowMenu">
+              <svg viewBox="0 0 24 24"><use href="#i-more"/></svg>
             </button>
           </div>
-          <button class="tool icon device-only" id="rotateBtn" type="button" title="Rotate device orientation" aria-label="Rotate device orientation" hidden>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>
-          </button>
-          <select class="zoom-select" id="zoomSelect" aria-label="Preview zoom">
-            <option value="fit" selected>Fit</option>
-            <option value="0.5">50%</option>
-            <option value="0.75">75%</option>
-            <option value="1">100%</option>
-            <option value="1.25">125%</option>
-            <option value="1.5">150%</option>
-          </select>
-          <button class="tool icon" id="fullscreenBtn" type="button" title="Preview full screen" aria-label="Preview full screen">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg>
-          </button>
-          <button class="tool icon" id="refreshBtn" type="button" title="Refresh preview · Ctrl Enter" aria-label="Refresh preview">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>
-          </button>
-          <button class="tool icon" id="layoutBtn" type="button" title="Cycle layout: split / stacked / editor / preview" aria-label="Cycle layout">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M12 3v18"/></svg>
-          </button>
+          <div class="overflow-menu" id="editorOverflowMenu" role="menu" hidden>
+            <button role="menuitem" data-act="templates" type="button"><svg viewBox="0 0 24 24"><use href="#i-grid"/></svg>Templates</button>
+            <button role="menuitem" data-act="format" type="button"><svg viewBox="0 0 24 24"><use href="#i-format"/></svg>Format document</button>
+            <button role="menuitem" data-act="wrap" type="button"><svg viewBox="0 0 24 24"><use href="#i-wrap"/></svg>Toggle word wrap</button>
+            <button role="menuitem" data-act="assist" type="button"><svg viewBox="0 0 24 24"><use href="#i-spark"/></svg>Toggle coding assist</button>
+            <button role="menuitem" data-act="autorun" type="button"><svg viewBox="0 0 24 24"><use href="#i-bolt"/></svg>Toggle auto-run</button>
+            <button role="menuitem" data-act="clear" type="button" class="danger"><svg viewBox="0 0 24 24"><use href="#i-trash"/></svg>Clear editor</button>
+          </div>
         </div>
-      </div>
-      <div class="preview-stage" id="previewStage">
-        <div class="device-frame viewport-desktop" id="previewFrame">
-          <div class="device-camera" aria-hidden="true"></div>
-          <iframe id="preview" title="Rendered HTML preview" sandbox="allow-scripts allow-forms allow-modals allow-downloads allow-popups" referrerpolicy="no-referrer"></iframe>
+
+        <!-- ══════════ AI edit bar ══════════ -->
+        <div class="ai-bar" id="aiBar">
+          <span class="ai-spark" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><use href="#i-spark"/></svg>
+          </span>
+          <input class="ai-input" id="aiInput" type="text" autocomplete="off" spellcheck="false" maxlength="400"
+                 placeholder="Describe a small edit… e.g. “make the hero heading bigger and the nav sticky”"
+                 aria-label="Describe an edit for the AI to apply">
+          <span class="ai-disclosure" title="The AI provider receives the instruction and a document excerpt.">Prompt + excerpt sent to Pollinations</span>
+          <button class="ai-chip" id="aiModelChip" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="aiModelMenu"
+                  title="AI models — free, no key required. Draft tries them in order and switches automatically until one works.">
+            <span class="ai-chip-dot" aria-hidden="true"></span>
+            <span class="ai-chip-text" id="aiModelChipText">Auto · chain</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chevron"/></svg>
+          </button>
+          <button class="btn ai-apply" id="aiApplyBtn" type="button" title="Apply AI edit · Enter">
+            <svg viewBox="0 0 24 24"><use href="#i-spark"/></svg>
+            <span class="lbl" id="aiApplyLbl">Apply</span>
+          </button>
+          <button class="btn ghost ai-stop" id="aiStopBtn" type="button" hidden title="Stop this AI edit">Stop</button>
+          <div class="ai-menu overflow-menu" id="aiModelMenu" role="menu" hidden
+               aria-label="Choose AI model (free, no key)"></div>
         </div>
+        <div class="ai-status" id="aiStatus" role="status" aria-live="polite" hidden>
+          <span class="ai-status-dot" id="aiStatusDot" aria-hidden="true"></span>
+          <span class="ai-status-text" id="aiStatusText"></span>
+          <span class="grow"></span>
+          <span class="ai-status-note">10 free models · no key · auto-switch</span>
+        </div>
+
+        <div class="editor-host" id="editorHost">
+          <div class="drop-veil" id="dropVeil"><div class="drop-card">
+            <svg viewBox="0 0 24 24"><use href="#i-upload"/></svg>
+            <strong>Drop to open</strong><small>HTML files open straight into the editor</small>
+          </div></div>
+        </div>
+      </section>
+
+      <div class="splitter" id="splitter" role="separator" aria-orientation="vertical" aria-label="Resize panels" tabindex="0" title="Drag to resize · arrow keys work too"><span class="splitter-grip"></span></div>
+
+      <!-- preview pane -->
+      <section class="pane pane-preview" aria-label="Live preview" id="previewPane">
+        <div class="pane-head">
+          <span class="eyebrow"><span class="eyebrow-live"></span>Preview</span>
+          <span class="vp-readout" id="vpReadout">—</span>
+          <span class="grow"></span>
+          <div class="pane-tools">
+            <div class="seg" role="radiogroup" aria-label="Preview viewport" id="viewportSeg">
+              <button class="on" data-vp="desktop" role="radio" aria-checked="true" type="button" title="Desktop viewport">
+                <svg viewBox="0 0 24 24"><use href="#i-desktop"/></svg>
+              </button>
+              <button data-vp="tablet" role="radio" aria-checked="false" type="button" title="Tablet viewport · 834 px">
+                <svg viewBox="0 0 24 24"><use href="#i-tablet"/></svg>
+              </button>
+              <button data-vp="phone" role="radio" aria-checked="false" type="button" title="Phone viewport · 390 px">
+                <svg viewBox="0 0 24 24"><use href="#i-phone"/></svg>
+              </button>
+            </div>
+            <label class="vp-width" id="vpWidthWrap" hidden title="Custom device width in pixels">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ruler"/></svg>
+              <input id="vpWidthInput" type="number" min="240" max="6000" step="10" inputmode="numeric" placeholder="834" aria-label="Custom viewport width in pixels">
+              <span>px</span>
+            </label>
+            <button class="tool icon device-only" id="rotateBtn" type="button" title="Rotate device orientation" aria-label="Rotate device orientation" hidden>
+              <svg viewBox="0 0 24 24"><use href="#i-rotate"/></svg>
+            </button>
+            <select class="zoom-select" id="zoomSelect" aria-label="Preview zoom">
+              <option value="fit" selected>Fit</option>
+              <option value="0.5">50%</option>
+              <option value="0.75">75%</option>
+              <option value="1">100%</option>
+              <option value="1.25">125%</option>
+              <option value="1.5">150%</option>
+            </select>
+            <button class="tool icon" id="fullscreenBtn" type="button" title="Preview full screen" aria-label="Preview full screen">
+              <svg viewBox="0 0 24 24"><use href="#i-expand"/></svg>
+            </button>
+            <button class="tool icon" id="refreshBtn" type="button" title="Refresh preview · Ctrl Enter" aria-label="Refresh preview">
+              <svg viewBox="0 0 24 24"><use href="#i-refresh"/></svg>
+            </button>
+            <button class="tool icon" id="layoutBtn" type="button" title="Cycle layout: split / stacked / editor / preview" aria-label="Cycle layout">
+              <svg viewBox="0 0 24 24"><use href="#i-layout"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="preview-stage" id="previewStage">
+          <div class="device-frame viewport-desktop" id="previewFrame">
+            <div class="device-camera" aria-hidden="true"></div>
+            <iframe id="preview" title="Rendered HTML preview" sandbox="allow-scripts allow-forms allow-modals allow-downloads allow-popups" referrerpolicy="no-referrer"></iframe>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ══════════ console ══════════ -->
+    <section class="console" id="console" aria-label="Preview console">
+      <div class="console-head">
+        <span class="console-title">
+          <svg viewBox="0 0 24 24"><use href="#i-console"/></svg>
+          Console
+        </span>
+        <div class="seg seg-sm" role="radiogroup" aria-label="Filter console output" id="consoleFilter">
+          <button class="on" data-filter="all" role="radio" aria-checked="true" type="button">All <span class="seg-count" id="cntAll">0</span></button>
+          <button data-filter="warn" role="radio" aria-checked="false" type="button">Warnings <span class="seg-count" id="cntWarn">0</span></button>
+          <button data-filter="error" role="radio" aria-checked="false" type="button">Errors <span class="seg-count" id="cntErr">0</span></button>
+        </div>
+        <span class="grow"></span>
+        <button class="tool" id="consoleCopy" type="button" title="Copy visible console output">
+          <svg viewBox="0 0 24 24"><use href="#i-copy"/></svg>
+          <span class="tool-lbl">Copy</span>
+        </button>
+        <button class="tool" id="consoleClear" type="button" title="Clear console">Clear</button>
+        <button class="tool icon" id="consoleClose" type="button" title="Close console · Ctrl `" aria-label="Close console">
+          <svg viewBox="0 0 24 24"><use href="#i-close"/></svg>
+        </button>
       </div>
+      <div class="console-body" id="consoleBody"><div class="console-empty">Console output from your preview appears here — <code>console.log</code>, warnings and runtime errors are captured live.</div></div>
     </section>
-  </main>
 
-  <!-- ══════════ console ══════════ -->
-  <section class="console glass fade-hairline" id="console" aria-label="Preview console">
-    <div class="console-head">
-      <span class="console-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 17 6-6-6-6"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-        Console
-      </span>
-      <div class="seg seg-sm" role="radiogroup" aria-label="Filter console output" id="consoleFilter">
-        <button class="on" data-filter="all" role="radio" aria-checked="true" type="button">All <span class="seg-count" id="cntAll">0</span></button>
-        <button data-filter="warn" role="radio" aria-checked="false" type="button">Warnings <span class="seg-count" id="cntWarn">0</span></button>
-        <button data-filter="error" role="radio" aria-checked="false" type="button">Errors <span class="seg-count" id="cntErr">0</span></button>
+    <!-- ══════════ status bar ══════════ -->
+    <footer class="statusbar">
+      <div class="status-left">
+        <i class="dot" id="statusDot"></i>
+        <span class="msg" id="statusMsg">Starting up…</span>
       </div>
-      <span class="grow"></span>
-      <button class="tool" id="consoleCopy" type="button" title="Copy visible console output">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
-        <span class="tool-lbl">Copy</span>
-      </button>
-      <button class="tool" id="consoleClear" type="button" title="Clear console">Clear</button>
-      <button class="tool icon" id="consoleClose" type="button" title="Close console · Ctrl `" aria-label="Close console">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-      </button>
-    </div>
-    <div class="console-body" id="consoleBody"><div class="console-empty">Console output from your preview appears here — <code>console.log</code>, warnings and runtime errors are captured live.</div></div>
-  </section>
-
-  <!-- ══════════ status bar ══════════ -->
-  <footer class="statusbar glass fade-hairline">
-    <div class="status-left">
-      <i class="dot" id="statusDot"></i>
-      <span class="msg" id="statusMsg">Starting up…</span>
-    </div>
-    <div class="status-right">
-      <span id="selInfo" class="sel-info" hidden></span>
-      <span id="cursorPos">Ln 1, Col 1</span>
-      <span class="sb-sep" aria-hidden="true"></span>
-      <span id="lineCount">1 line</span>
-      <span id="charCount" class="opt">0 chars</span>
-      <span id="docSize" class="opt">0 B</span>
-      <span id="savedAt" class="opt"></span>
-      <span class="opt subtle">HTML · UTF-8</span>
-      <span class="sb-sep" aria-hidden="true"></span>
-      <button class="sb-btn on" id="autorunSb" type="button" title="Toggle auto-run">auto-run</button>
-      <button class="sb-btn" id="consoleSb" type="button" title="Toggle console · Ctrl `">console<span class="err-dot" id="consoleErrDot" hidden></span></button>
-      <button class="sb-btn kbd-btn" id="shortcutsBtn" type="button" title="Keyboard shortcuts · Ctrl ⇧ ?"><span class="kbd" id="shortcutsKbd">Ctrl ⇧ ?</span></button>
-    </div>
-  </footer>
+      <div class="status-right">
+        <span id="selInfo" class="sel-info" hidden></span>
+        <span id="cursorPos">Ln 1, Col 1</span>
+        <span class="sb-sep" aria-hidden="true"></span>
+        <span id="lineCount">1 line</span>
+        <span id="charCount" class="opt">0 chars</span>
+        <span id="docSize" class="opt">0 B</span>
+        <span id="savedAt" class="opt"></span>
+        <span class="opt subtle">HTML · UTF-8</span>
+        <span class="sb-sep" aria-hidden="true"></span>
+        <button class="sb-btn on" id="autorunSb" type="button" title="Toggle auto-run">auto-run</button>
+        <button class="sb-btn" id="consoleSb" type="button" title="Toggle console · Ctrl `">console<span class="err-dot" id="consoleErrDot" hidden></span></button>
+        <button class="sb-btn kbd-btn" id="shortcutsBtn" type="button" title="Keyboard shortcuts"><span class="kbd" id="shortcutsKbd">Ctrl ⇧ ?</span></button>
+      </div>
+    </footer>
+  </div>
 </div>
 
 <!-- ══════════ modals ══════════ -->
 
 <!-- command palette -->
 <div class="backdrop" id="paletteBd">
-  <div class="modal palette glass-strong" role="dialog" aria-label="Command palette">
+  <div class="modal palette" role="dialog" aria-label="Command palette">
     <div class="palette-field">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+      <svg viewBox="0 0 24 24"><use href="#i-search"/></svg>
       <input class="palette-input" id="paletteInput" type="text" placeholder="Search commands, actions and views…" autocomplete="off" spellcheck="false" aria-label="Search commands">
       <span class="esc-chip">esc</span>
     </div>
@@ -340,9 +424,9 @@
 
 <!-- templates -->
 <div class="backdrop" id="tplBd">
-  <div class="modal templates glass-strong" role="dialog" aria-label="Starter templates">
+  <div class="modal templates" role="dialog" aria-label="Starter templates">
     <div class="modal-head"><span class="modal-title">Starter templates</span><span class="modal-sub">One click, zero setup</span>
-      <button class="modal-x" id="tplClose" type="button" aria-label="Close templates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      <button class="modal-x" id="tplClose" type="button" aria-label="Close templates"><svg viewBox="0 0 24 24"><use href="#i-close"/></svg></button>
     </div>
     <div class="tpl-grid" id="tplGrid"></div>
   </div>
@@ -350,7 +434,7 @@
 
 <!-- confirm -->
 <div class="backdrop" id="confirmBd">
-  <div class="modal confirm glass-strong" role="dialog" aria-label="Confirm" style="max-width:400px">
+  <div class="modal confirm" role="dialog" aria-label="Confirm" style="max-width:400px">
     <div class="modal-head"><span class="modal-title" id="confirmTitle">Are you sure?</span></div>
     <div class="confirm-body" id="confirmBody"></div>
     <div class="confirm-actions">
@@ -362,9 +446,9 @@
 
 <!-- keyboard shortcuts -->
 <div class="backdrop" id="keysBd">
-  <div class="modal keys glass-strong" role="dialog" aria-label="Keyboard shortcuts">
-    <div class="modal-head"><span class="modal-title">Keyboard shortcuts</span><span class="modal-sub">Works on macOS &amp; Windows/Linux</span>
-      <button class="modal-x" id="keysClose" type="button" aria-label="Close shortcuts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  <div class="modal keys" role="dialog" aria-label="Keyboard shortcuts">
+    <div class="modal-head"><span class="modal-title">Keyboard shortcuts</span><span class="modal-sub">Works on macOS, Windows/Linux &amp; iPad keyboards</span>
+      <button class="modal-x" id="keysClose" type="button" aria-label="Close shortcuts"><svg viewBox="0 0 24 24"><use href="#i-close"/></svg></button>
     </div>
     <div class="keys-grid" id="keysGrid"></div>
   </div>
