@@ -395,7 +395,7 @@ function initEditor(initial) {
     ed = {
       getValue: function () { return ta.value; },
       setValue: function (v) { ta.value = v; docChars = v.length; window.DraftDocVersion = (window.DraftDocVersion | 0) + 1; },
-      replaceDocument: function (v2) { ta.value = v2; docChars = v2.length; window.DraftDocVersion = (window.DraftDocVersion | 0) + 1; },
+      replaceDocument: function (v2) { ta.setRangeText(v2, 0, ta.value.length, "end"); ta.dispatchEvent(new Event("input", { bubbles: true })); },
       applyRanges: function (ranges) {
         var value = ta.value;
         ranges.slice().sort(function (a, b) { return b.start - a.start; }).forEach(function (r) {
@@ -553,10 +553,11 @@ function run() {
   var source = ed.getValue();
   // inject the console bridge as early as possible — but never before the doctype,
   // which would flip the document into quirks mode and change how it renders
-  if (/<\/head\s*[^>]*>/i.test(source)) source = source.replace(/<\/head\s*[^>]*>/i, BRIDGE + "</head>");
+  if (/<head(?:\s[^>]*)?>/i.test(source)) source = source.replace(/<head(?:\s[^>]*)?>/i, function (m) { return m + BRIDGE; });
   else if (/<body[^>]*>/i.test(source)) source = source.replace(/<body[^>]*>/i, function (m) { return m + BRIDGE; });
   else if (/<html[^>]*>/i.test(source)) source = source.replace(/<html[^>]*>/i, function (m) { return m + BRIDGE; });
   else if (/<script/i.test(source)) source = source.replace(/<script/i, BRIDGE + "<script");
+  else if (/^\s*<!doctype[^>]*>/i.test(source)) source = source.replace(/^(\s*<!doctype[^>]*>)/i, "$1" + BRIDGE);
   else source = BRIDGE + source;
 
   // defer revocation so the outgoing document can finish unloading without a race
@@ -573,6 +574,7 @@ function run() {
   setStatus("Preview updated · " + ms.toFixed(1) + " ms");
 }
 function scheduleRun() {
+  clearTimeout(runTimer);
   updateMetricsSoon();
   var size = ed && ed.getSize ? ed.getSize() : (ed ? ed.getValue().length : 0);
   var manual = settings.autorunDelay <= 0;
@@ -637,7 +639,10 @@ function applyZoom() {
   var size = viewportSize();
   var scale;
   if (zoomMode === "fit") {
-    scale = Math.min(1, (stage.clientWidth - 28) / size.w, (stage.clientHeight - 12) / size.h);
+    var stageStyle = getComputedStyle(stage);
+    var availableWidth = stage.clientWidth - parseFloat(stageStyle.paddingLeft) - parseFloat(stageStyle.paddingRight);
+    var availableHeight = stage.clientHeight - parseFloat(stageStyle.paddingTop) - parseFloat(stageStyle.paddingBottom);
+    scale = Math.min(1, availableWidth / size.w, availableHeight / size.h);
     if (!isFinite(scale) || scale <= 0) scale = 1;
   } else {
     scale = parseFloat(zoomMode) || 1;
@@ -657,7 +662,7 @@ function applyZoom() {
 function updateReadout(scale) {
   var el = $("vpReadout");
   var stage = $("previewStage");
-  if (viewport === "desktop") { el.textContent = Math.round(stage.clientWidth) + " px canvas"; return; }
+  if (viewport === "desktop") { el.textContent = Math.round(frame.clientWidth) + " px canvas"; return; }
   var size = viewportSize();
   el.textContent = size.w + " × " + size.h + (typeof scale === "number" && scale !== 1 ? "  ·  " + Math.round(scale * 100) + "%" : "");
 }
@@ -896,6 +901,8 @@ function toggleAutorun() {
   else settings.autorunDelay = lastAutorunDelay || 800;
   saveSettings();
   applyAutorunUI();
+  if (settings.autorunDelay === 0) clearTimeout(runTimer);
+  else scheduleRun();
   toast(settings.autorunDelay > 0 ? "Auto-run on — renders " + settings.autorunDelay + " ms after you stop typing" : "Auto-run off — press " + MOD + " ↵ to render");
 }
 function toggleAssist() {
@@ -931,7 +938,36 @@ var ICONS = {
   spark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.7 5.7 1.9-5.7 1.9L12 18.2l-1.9-5.7-5.7-1.9 5.7-1.9L12 3z"/><path d="M19 4v3M20.5 5.5h-3"/></svg>'
 };
 
+function selectAllSource() {
+  if (ed.cm) { ed.cm.execCommand("selectAll"); ed.cm.focus(); }
+  else { var input = document.querySelector(".fallback-editor"); if (input) { input.focus(); input.select(); } }
+}
+function pasteReplaceSource() {
+  if (!navigator.clipboard || !navigator.clipboard.readText) {
+    selectAllSource();
+    toast("Source selected. Paste your copied code to replace it.", "info");
+    return;
+  }
+  var version = window.DraftDocVersion;
+  navigator.clipboard.readText().then(function (text) {
+    if (version !== window.DraftDocVersion) { toast("Document changed while reading clipboard; nothing replaced.", "info"); return; }
+    if (!text) { toast("Clipboard is empty; nothing replaced.", "info"); return; }
+    ed.replaceDocument(text);
+    if (!ed.cm) { scheduleRun(); scheduleSave(); updateMetricsSoon(); }
+    ed.focus();
+    toast("Source replaced from clipboard. Undo to restore.");
+  }, function () {
+    selectAllSource();
+    toast("Clipboard access unavailable. Paste your copied code to replace the selection.", "info");
+  });
+}
+$("selectAllBtn").addEventListener("click", selectAllSource);
+$("copySourceBtn").addEventListener("click", copySource);
+$("pasteReplaceBtn").addEventListener("click", pasteReplaceSource);
+
 var COMMANDS = [
+  { name: "Select all source", cat: "Editor", icon: ICONS.copy, fn: selectAllSource },
+  { name: "Paste and replace source", cat: "Editor", icon: ICONS.copy, fn: pasteReplaceSource },
   { name: "Run preview", cat: "Run", keys: [MOD, "↵"], icon: ICONS.run, fn: function () { run(); } },
   { name: "Run in new tab", cat: "Run", keys: [MOD, "⇧", "↵"], icon: ICONS.tab, fn: openInNewTab },
   { name: "Toggle console", cat: "Run", keys: [MOD, "`"], icon: ICONS.console, fn: function () { toggleConsole(); } },
@@ -1268,6 +1304,7 @@ function setMobileTab(t) {
   $("tabPreview").classList.toggle("on", t === "preview");
   $("tabEditor").setAttribute("aria-selected", String(t === "editor"));
   $("tabPreview").setAttribute("aria-selected", String(t === "preview"));
+  requestAnimationFrame(function () { if (t === "editor" && ed && ed.cm) ed.cm.refresh(); if (t === "preview") applyZoom(); });
 }
 
 /* ═════════════════════════ wire up global actions ═════════════════════════ */

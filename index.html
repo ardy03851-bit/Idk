@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="vendor/codemirror/foldgutter.css">
 <link rel="stylesheet" href="vendor/codemirror/show-hint.css">
 <link rel="stylesheet" href="assets/css/main.css">
+<link rel="stylesheet" href="assets/css/workspace.css">
 </head>
 <body>
 
@@ -34,7 +35,7 @@
   <!-- ══════════ top bar ══════════ -->
   <header class="topbar glass fade-hairline">
     <div class="identity">
-      <div class="wordmark">Draft<span class="wordmark-rule" aria-hidden="true"></span><span class="wordmark-sub">HTML&nbsp;Studio</span></div>
+      <div class="brand-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 7-5 5 5 5M15 7l5 5-5 5"/></svg></div><div class="wordmark">Draft<span class="wordmark-rule" aria-hidden="true"></span><span class="wordmark-sub">HTML&nbsp;Studio</span></div>
     </div>
     <div class="top-actions">
       <button class="btn ghost" id="paletteBtn" type="button" title="Command palette · Ctrl K">
@@ -201,6 +202,14 @@
         <span class="grow"></span>
         <span class="ai-status-note">10 free models · no key · auto-switch</span>
       </div>
+      <div class="source-actions" aria-label="Source actions">
+        <div class="source-label"><span class="source-file-icon">&lt;/&gt;</span><span>HTML document</span><span class="source-hint">Your changes are saved locally</span></div>
+        <div class="source-buttons">
+          <button type="button" id="selectAllBtn" title="Select all source code">Select all</button>
+          <button type="button" id="copySourceBtn" title="Copy all source code">Copy</button>
+          <button type="button" id="pasteReplaceBtn" title="Replace all source with clipboard text">Paste &amp; replace</button>
+        </div>
+      </div>
       <div class="editor-host" id="editorHost">
         <div class="drop-veil" id="dropVeil"><div class="drop-card">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 15v3a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-3"/></svg>
@@ -233,10 +242,10 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>
           </button>
           <select class="zoom-select" id="zoomSelect" aria-label="Preview zoom">
-            <option value="fit">Fit</option>
+            <option value="fit" selected>Fit</option>
             <option value="0.5">50%</option>
             <option value="0.75">75%</option>
-            <option value="1" selected>100%</option>
+            <option value="1">100%</option>
             <option value="1.25">125%</option>
             <option value="1.5">150%</option>
           </select>
@@ -392,7 +401,7 @@
 <script src="vendor/beautify/beautify-html.js"></script>
 <script src="assets/js/emmet.js"></script>
 <script src="assets/js/hints.js"></script>
-<script src="assets/js/spheres.js"></script>
+
 <script src="assets/js/app.js"></script>
 <script src="assets/js/ai-edit.js"></script>
 </body>

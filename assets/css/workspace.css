@@ -1,0 +1,86 @@
+/* A quieter, more spacious studio shell. The editing engine and all tools remain shared. */
+:root { --bg:#0d1018; --fill-1:#151a25; --fill-2:#151a25; --fill-3:#151a25; --fill-readout:#10141e; --line:rgba(202,211,236,.10); --line-soft:rgba(202,211,236,.07); --ink:#eef0f8; --ink-2:#d2d7e5; --muted:#969fb3; --quiet:#737e94; --r-lg:12px; --shadow-float:0 8px 30px rgba(0,0,0,.16); }
+body { background:#0d1018; }
+#bgCanvas,.bloom,.grain,.vignette { display:none; }
+.glass,.glass-strong,.pane { background:#151a25; backdrop-filter:none; -webkit-backdrop-filter:none; box-shadow:none; }
+.fade-hairline::after { display:none; }
+.app { padding:0; gap:0; }
+.app > * { margin:0; }
+.topbar { height:68px; padding:0 24px; border:0; border-bottom:1px solid var(--line); border-radius:0; background:#11151f; }
+.identity { gap:11px; }
+.brand-icon { display:grid; place-items:center; width:35px; height:35px; border-radius:10px; color:#e8e4ff; background:#6d5bd0; box-shadow:inset 0 1px 0 #ffffff35; }
+.brand-icon svg { width:21px; height:21px; }
+.wordmark { font-size:18px; font-weight:700; letter-spacing:-.04em; gap:12px; }
+.wordmark-sub { font-size:10px; letter-spacing:.13em; color:#828da3; }
+.top-actions { gap:7px; }
+.btn { box-shadow:none; background:#1c2230; border-color:#2b3343; border-radius:8px; }
+.btn.run { background:#a99af8; border-color:#a99af8; color:#17132c; box-shadow:none; border-radius:8px; }
+.btn.run:hover { background:#beb2ff; color:#17132c; box-shadow:none; }
+.workspace { padding:16px 18px 12px; }
+.workspace[data-layout="split-h"] { grid-template-columns:minmax(0,var(--split)) 12px minmax(0,1fr); }
+.pane { border:1px solid #2a3140; border-radius:12px; animation:none; overflow:hidden; }
+.pane-editor { grid-template-rows:52px auto auto auto minmax(0,1fr); }
+.pane-preview { grid-template-rows:52px minmax(0,1fr); }
+.pane-head { padding:0 14px; background:#191f2b; border-bottom:1px solid #2a3140; gap:10px; }
+.eyebrow { font-size:11px; letter-spacing:.04em; text-transform:none; color:#e1e5f1; }
+.eyebrow-tick { width:8px; height:8px; background:#aa9bf7; border-radius:3px; }
+.file-name { border:0; background:transparent; font-size:11px; padding:4px; }
+.tool { border-radius:7px; }
+.tool.on { color:#c5baff; background:rgba(160,142,250,.12); }
+.ai-bar { background:#171c28; padding:9px 12px; }
+.ai-input { background:#101520; border-color:#2b3343; }
+.ai-spark { border:0; background:#302a4e; color:#c7baff; }
+.ai-chip,.ai-apply { border-radius:7px; }
+.source-actions { min-height:49px; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:7px 14px; border-bottom:1px solid var(--line-soft); background:#141925; }
+.source-label { display:flex; align-items:center; gap:8px; min-width:0; color:#c7cede; font-size:11px; font-weight:600; white-space:nowrap; }
+.source-file-icon { color:#b5a6ff; font:600 11px var(--mono); }
+.source-hint { font-weight:400; color:#717c90; margin-left:6px; }
+.source-buttons { display:flex; align-items:center; gap:5px; flex:none; }
+.source-buttons button { height:30px; padding:0 10px; border:1px solid #30394b; border-radius:7px; background:#1c2432; color:#cbd2e1; font-size:11px; font-weight:600; white-space:nowrap; }
+.source-buttons button:hover { background:#293244; color:white; }
+.source-buttons #pasteReplaceBtn { color:#d7ceff; border-color:#514776; background:#2a2540; }
+.editor-host { background:#111620; }
+.cm-s-draft.CodeMirror { line-height:1.8; }
+.cm-s-draft .CodeMirror-gutters { background:#111620; }
+.preview-stage { padding:16px; background-color:#10141e; background-image:radial-gradient(#30394a 1px,transparent 1px); background-size:20px 20px; box-shadow:none; }
+.device-frame { transition:none; }
+.viewport-tablet,.viewport-phone { padding:0; border:0; max-height:none; border-radius:8px; }
+.viewport-tablet .device-camera,.viewport-phone .device-camera { display:none; }
+.viewport-tablet iframe,.viewport-phone iframe { border-radius:8px; }
+.splitter::before { background:transparent; }
+.splitter-grip { background:#363e50; }
+.statusbar { border:0; border-top:1px solid var(--line); border-radius:0; background:#11151f; padding:0 22px; }
+.console { margin:0 18px 12px; }
+@media(max-width:1180px) { .source-hint { display:none; } }
+@media(max-width:900px) {
+ .app { padding:0; gap:0; }
+ .app > * { margin:0; }
+ .topbar { height:62px; padding:0 14px; }
+ .ws-tabs { margin:10px 12px 0; background:#191f2b; border-radius:9px; backdrop-filter:none; }
+ .ws-tab.on { background:#302b49; border-color:#4b426d; }
+ .workspace { padding:10px 12px; }
+ .pane-head .eyebrow { display:inline-flex; }
+ .console { margin:0 12px 10px; }
+}
+@media(max-width:640px) {
+ .topbar { gap:6px; }
+ .brand-icon { width:32px; height:32px; }
+ .wordmark { font-size:16px; }
+ .source-actions { padding:7px 9px; }
+ .source-label { font-size:0; gap:0; }
+ .source-file-icon { font-size:11px; }
+ .source-buttons button { padding:0 8px; }
+ .pane-head { padding:0 9px; }
+ .pane-head .eyebrow { display:inline-flex; }
+ .statusbar { padding:0 10px; }
+}
+@media (hover:none) and (pointer:coarse) {
+ .source-buttons button { min-height:40px; }
+ .source-actions { min-height:54px; }
+ .tool { min-height:40px; }
+ .seg button { min-height:36px; min-width:36px; }
+}
+/* The optional AI status row can appear or disappear without changing editor sizing. */
+.pane-editor { display:flex; flex-direction:column; }
+.pane-editor > .pane-head { min-height:52px; flex:none; }
+.pane-editor > .editor-host { flex:1 1 0; }
